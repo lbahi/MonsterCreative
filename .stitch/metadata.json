@@ -1,0 +1,86 @@
+{
+  "name": "projects/12729551298364191381",
+  "projectId": "12729551298364191381",
+  "title": "MosterAds",
+  "visibility": "PRIVATE",
+  "createTime": "2026-03-16T23:41:25.492080Z",
+  "updateTime": "2026-03-18T01:27:40Z",
+  "projectType": "TEXT_TO_UI_PRO",
+  "origin": "STITCH",
+  "deviceType": "DESKTOP",
+  "designTheme": {
+    "colorMode": "DARK",
+    "font": "INTER",
+    "roundness": "ROUND_EIGHT",
+    "customColor": "#1877F2",
+    "headlineFont": "INTER",
+    "bodyFont": "INTER",
+    "labelFont": "INTER",
+    "colorVariant": "FIDELITY",
+    "overridePrimaryColor": "#1877F2",
+    "overrideSecondaryColor": "#3A3B3C",
+    "overrideNeutralColor": "#18191A",
+    "spacingScale": 2
+  },
+  "screens": {
+    "dashboard": {
+      "id": "876555b51c5448909e25e155e2920a9d",
+      "sourceScreen": "projects/12729551298364191381/screens/876555b51c5448909e25e155e2920a9d",
+      "x": 0,
+      "y": 0,
+      "width": 2660,
+      "height": 2148
+    },
+    "ad-copy": {
+      "id": "2738e91a32e24f20954498a4b660b592",
+      "sourceScreen": "projects/12729551298364191381/screens/2738e91a32e24f20954498a4b660b592",
+      "x": 2173,
+      "y": 937,
+      "width": 2816,
+      "height": 2252
+    },
+    "image-gen": {
+      "id": "d5ecf65998d64555bcc8f50a4d537272",
+      "sourceScreen": "projects/12729551298364191381/screens/d5ecf65998d64555bcc8f50a4d537272",
+      "x": 2178,
+      "y": 2952,
+      "width": 2560,
+      "height": 2048
+    },
+    "video-ads": {
+      "id": "02b0bb24c07a4aea95c7f43e86b55156",
+      "sourceScreen": "projects/12729551298364191381/screens/02b0bb24c07a4aea95c7f43e86b55156",
+      "x": 2178,
+      "y": 4051,
+      "width": 2560,
+      "height": 2048
+    },
+    "ai-spending-tracker": {
+      "id": "7fd983396cd94dd093ca513938e9b777",
+      "sourceScreen": "projects/12729551298364191381/screens/7fd983396cd94dd093ca513938e9b777",
+      "x": 2178,
+      "y": 5483,
+      "width": 2560,
+      "height": 2316
+    },
+    "campaigns": {
+      "id": "2fe302f2d1f04e3a8e3383d114cd92dc",
+      "sourceScreen": "projects/12729551298364191381/screens/2fe302f2d1f04e3a8e3383d114cd92dc",
+      "x": 2178,
+      "y": 8000,
+      "width": 2688,
+      "height": 2494
+    },
+    "settings": {
+      "id": "43df4d8ed36c43abb67fae41c0c23b43",
+      "sourceScreen": "projects/12729551298364191381/screens/43df4d8ed36c43abb67fae41c0c23b43",
+      "x": 2207,
+      "y": 6649,
+      "width": 2760,
+      "height": 2248
+    }
+  },
+  "metadata": {
+    "userRole": "OWNER"
+  }
+}

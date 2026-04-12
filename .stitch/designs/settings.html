@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MosterAds - Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#adc6ff",
+                        "primary-variant": "#4b8eff",
+                        "background-light": "#f5f6f8",
+                        "background-dark": "#0f1523",
+                        "surface-container": "rgba(173, 198, 255, 0.08)",
+                        "surface-container-low": "rgba(173, 198, 255, 0.04)",
+                        "surface-container-highest": "rgba(173, 198, 255, 0.12)",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+        .mica-effect {
+            backdrop-filter: blur(40px) saturate(150%);
+            background: rgba(15, 21, 35, 0.7);
+        }
+        .glass-panel {
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .glow-orb {
+            position: absolute;
+            filter: blur(120px);
+            z-index: 0;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display h-screen w-screen overflow-hidden">
+<!-- Background Orbs -->
+<div class="glow-orb bg-primary/20 w-[600px] h-[600px] top-[-100px] right-[-100px]"></div>
+<div class="glow-orb bg-primary-variant/10 w-[400px] h-[400px] bottom-[-100px] left-[-100px]"></div>
+<div class="relative z-10 flex h-full w-full">
+<!-- Sidebar -->
+<aside class="w-64 mica-effect border-r border-primary/5 flex flex-col h-full">
+<div class="p-6">
+<h1 class="text-primary text-xl font-extrabold tracking-tight">MosterAds</h1>
+<p class="text-slate-400 text-xs mt-1 uppercase tracking-widest font-semibold">Windows 11 Edition</p>
+</div>
+<nav class="flex-1 px-3 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-slate-100 transition-all rounded-lg hover:bg-white/5" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-slate-100 transition-all rounded-lg hover:bg-white/5" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="text-sm font-medium">Ad Copy</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-slate-100 transition-all rounded-lg hover:bg-white/5" href="#">
+<span class="material-symbols-outlined">image</span>
+<span class="text-sm font-medium">Image Gen</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-slate-100 transition-all rounded-lg hover:bg-white/5" href="#">
+<span class="material-symbols-outlined">videocam</span>
+<span class="text-sm font-medium">Video Ads</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-slate-100 transition-all rounded-lg hover:bg-white/5" href="#">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="text-sm font-medium">AI Spending Tracker</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-white transition-all bg-white/5 rounded-lg border-l-4 border-[#1877F2]" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+</nav>
+<div class="p-4 border-t border-primary/5 mt-auto">
+<div class="flex items-center gap-3 p-2 rounded-xl bg-surface-container">
+<img class="w-10 h-10 rounded-full object-cover shadow-lg shadow-black/20" data-alt="User profile avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcc9yMlevaPRn3OZkP98NusDpvTRWTxNl37vZ0Jjn3Gxs4LkDYHo8O8-O7YnMlV5icofXZUpU_g8QAZnjuasA1Dv7p3cJS60sAq84rRYelMglo-nLdwXWtD3Xn97fC3oK21hIXGRnf_3zaocvkuOBDYLHTF7fDAOIjshBzOuqKr0EXrSqh5ZSQjq7MXEXKthdw21LrsJkgIPq8T_BOgJ9sRbKRCQS9Ms3QOlfsbUOYE6_ZQ82aRXEoRo1Qncu2sqvfZTCplAdb4ZbO"/>
+<div>
+<p class="text-sm font-bold text-slate-100">Alex Rivera</p>
+<p class="text-[10px] text-slate-400 uppercase tracking-tighter">Pro Plan</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Layout -->
+<main class="flex-1 flex overflow-hidden">
+<!-- Left Panel: Settings Menu -->
+<div class="w-[280px] mica-effect/50 p-8 border-r border-primary/5 overflow-y-auto">
+<h2 class="text-4xl font-black text-slate-100 mb-8 tracking-tight">Settings</h2>
+<div class="space-y-2">
+<a class="block px-4 py-3 rounded-xl text-slate-400 hover:bg-surface-container-low transition-colors text-sm font-semibold" href="#">General</a>
+<a class="block px-4 py-3 rounded-xl bg-surface-container text-primary text-sm font-bold border-r-2 border-primary/50" href="#">Account</a>
+<a class="block px-4 py-3 rounded-xl text-slate-400 hover:bg-surface-container-low transition-colors text-sm font-semibold" href="#">Billing &amp; Usage</a>
+<a class="block px-4 py-3 rounded-xl text-slate-400 hover:bg-surface-container-low transition-colors text-sm font-semibold" href="#">Team &amp; Access</a>
+<a class="block px-4 py-3 rounded-xl text-slate-400 hover:bg-surface-container-low transition-colors text-sm font-semibold" href="#">AI Models &amp; API Keys</a>
+<a class="block px-4 py-3 rounded-xl text-slate-400 hover:bg-surface-container-low transition-colors text-sm font-semibold" href="#">Integrations</a>
+</div>
+</div>
+<!-- Right Panel: Content -->
+<div class="flex-1 overflow-y-auto mica-effect/10 p-12 scroll-smooth">
+<div class="max-w-3xl">
+<header class="mb-12">
+<h3 class="text-3xl font-bold text-slate-100 tracking-tight">Account Profile</h3>
+<p class="text-slate-400 mt-2 text-lg">Manage your personal information and preferences.</p>
+</header>
+<!-- Profile Picture Section -->
+<section class="flex items-center gap-8 mb-12 group">
+<div class="relative">
+<img class="w-32 h-32 rounded-full object-cover ring-4 ring-primary/20 shadow-2xl" data-alt="Large user profile avatar portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2L2x6GMFY4wD8L5O8OvH-R5Q38UU7D0loV4Dntc_XG5HdNvGfQIkLTrOfdJ85EK3Nt3R6dmKTImSH-08aXvDEGHSnbK1LUVe57OyqURgQHfWLqfsUq8WuEaH2pluaOrjUGhHPBzaPGkYlWrPrnPi0lDiUbraGuoyFd1TfPHPo5tMLwfWZ7X35QEktJQvyW4s6ntO3Ym6b1PTYMDn6U-zbLPzf0BW91lQP8X4Ycu5pA6W5S4vVWzhfhwa5dQgYi2tfKXcYiXJpP8tC"/>
+<div class="absolute bottom-0 right-0 bg-primary text-slate-900 rounded-full p-2 flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-sm font-bold">photo_camera</span>
+</div>
+</div>
+<div class="flex flex-col gap-3">
+<button class="px-6 py-2.5 rounded-lg border border-primary/20 text-primary text-sm font-bold hover:bg-primary/10 transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">upload</span>
+                                Upload new picture
+                            </button>
+<p class="text-slate-500 text-xs italic">JPG, GIF or PNG. Max size of 800K</p>
+</div>
+</section>
+<!-- Form Grid -->
+<section class="grid grid-cols-2 gap-x-8 gap-y-6 mb-12">
+<div class="flex flex-col gap-2">
+<label class="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">First Name</label>
+<input class="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3.5 text-slate-100 focus:ring-2 focus:ring-primary/50 transition-all" type="text" value="Alex"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Last Name</label>
+<input class="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3.5 text-slate-100 focus:ring-2 focus:ring-primary/50 transition-all" type="text" value="Rivera"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Email Address</label>
+<input class="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3.5 text-slate-100 focus:ring-2 focus:ring-primary/50 transition-all" type="email" value="alex.rivera@mosterads.com"/>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-xs font-bold uppercase tracking-widest text-slate-400 ml-1">Phone Number</label>
+<input class="w-full bg-surface-container-highest border-none rounded-xl px-4 py-3.5 text-slate-100 focus:ring-2 focus:ring-primary/50 transition-all" type="tel" value="+1 (555) 000-0000"/>
+</div>
+</section>
+<div class="flex justify-end mb-16">
+<button class="bg-gradient-to-r from-primary to-primary-variant px-10 py-4 rounded-xl text-slate-900 font-extrabold text-sm uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-primary/20">
+                            Save Changes
+                        </button>
+</div>
+<!-- Subtle Divider Block -->
+<div class="h-2 w-full bg-surface-container-low rounded-full mb-16"></div>
+<!-- Danger Zone -->
+<section class="bg-surface-container-low rounded-xl p-8 border border-red-500/10 mb-20">
+<div class="flex justify-between items-center">
+<div>
+<h4 class="text-xl font-bold text-red-400 tracking-tight">Danger Zone</h4>
+<p class="text-slate-400 mt-1 max-w-md">Deleting your account is permanent. All your data, including AI training models and ad assets, will be wiped immediately.</p>
+</div>
+<button class="px-6 py-3 rounded-lg border border-red-500/20 text-red-400 text-sm font-bold hover:bg-red-500/10 transition-all">
+                                Delete Account
+                            </button>
+</div>
+</section>
+</div>
+</div>
+</main>
+</div>
+</body></html>

@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MosterAds | AI Spending Tracker</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;700;900&amp;family=Inter:wght@400;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#adc6ff",
+                        "brand-blue": "#1877F2",
+                        "tertiary": "#ffb691",
+                        "background-dark": "#121314",
+                        "surface": "rgba(255, 255, 255, 0.03)",
+                        "surface-container": "rgba(255, 255, 255, 0.05)",
+                        "surface-container-low": "rgba(255, 255, 255, 0.02)",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "body": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            background-color: #121314;
+            color: #f1f5f9;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+        }
+        .glow-orb-tr {
+            position: fixed;
+            top: -100px;
+            right: -100px;
+            width: 500px;
+            height: 500px;
+            background: #adc6ff;
+            filter: blur(120px);
+            opacity: 0.15;
+            z-index: -1;
+            pointer-events: none;
+        }
+        .glow-orb-bl {
+            position: fixed;
+            bottom: -150px;
+            left: -150px;
+            width: 600px;
+            height: 600px;
+            background: #ffb691;
+            filter: blur(150px);
+            opacity: 0.1;
+            z-index: -1;
+            pointer-events: none;
+        }
+        .mica-effect {
+            backdrop-filter: blur(20px);
+            background: rgba(18, 19, 20, 0.4);
+        }
+        .primary-gradient-btn {
+            background: linear-gradient(135deg, #adc6ff 0%, #4b8eff 100%);
+            box-shadow: 0 4px 15px rgba(75, 142, 255, 0.3);
+        }
+        .progress-gradient {
+            background: linear-gradient(90deg, #adc6ff 0%, #4b8eff 100%);
+        }
+        .text-label {
+            font-size: 10px;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body class="font-body selection:bg-primary/30">
+<div class="glow-orb-tr"></div>
+<div class="glow-orb-bl"></div>
+<div class="flex min-h-screen">
+<!-- Sidebar -->
+<aside class="w-64 mica-effect flex flex-col fixed inset-y-0 z-50">
+<div class="p-6">
+<div class="flex flex-col mb-10">
+<h1 class="text-white text-xl font-black tracking-tighter">MosterAds</h1>
+<p class="text-slate-500 text-[10px] uppercase font-bold tracking-widest">Test Faster Cheaper</p>
+</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">description</span>
+<span class="text-sm font-medium">Ad Copy</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">image</span>
+<span class="text-sm font-medium">Image Gen</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-white/5 transition-all" href="#">
+<span class="material-symbols-outlined text-[20px]">smart_display</span>
+<span class="text-sm font-medium">Video Ads</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-white/5 text-primary border-l-4 border-brand-blue relative" href="#">
+<span class="material-symbols-outlined text-[20px]">monitoring</span>
+<span class="text-sm font-bold">AI Spending Tracker</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-white/5 transition-all mt-10" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto p-6">
+<div class="bg-surface-container rounded-xl p-4 flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">JD</div>
+<div class="overflow-hidden">
+<p class="text-xs font-bold text-slate-100 truncate">John Dash</p>
+<p class="text-[10px] text-slate-500 truncate">Enterprise Plan</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="ml-64 flex-1 p-8">
+<!-- Header Section -->
+<header class="flex justify-between items-end mb-10">
+<div class="space-y-1">
+<h2 class="text-4xl font-black text-slate-100 tracking-tight">AI Spending Tracker</h2>
+<p class="text-slate-400 font-medium">Real-time budget optimization across 12 campaigns</p>
+</div>
+<button class="bg-surface-container-low hover:bg-surface-container text-white px-5 py-2.5 rounded-lg text-sm font-bold flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+                    Last 30 Days
+                    <span class="material-symbols-outlined text-[18px]">expand_more</span>
+</button>
+</header>
+<!-- Metrics Row -->
+<section class="grid grid-cols-3 gap-6 mb-10">
+<div class="bg-surface-container-low p-6 rounded-xl space-y-4">
+<span class="text-label text-slate-500">Total Managed Spend</span>
+<div class="flex items-baseline gap-2">
+<span class="text-2xl font-black text-slate-100">$42,500</span>
+<span class="text-sm text-slate-500">/ $50,000 budget</span>
+</div>
+<div class="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+<div class="h-full progress-gradient" style="width: 85%"></div>
+</div>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl space-y-4">
+<span class="text-label text-slate-500">Projected ROI</span>
+<div class="flex items-center justify-between">
+<span class="text-3xl font-black text-slate-100">284%</span>
+<div class="flex items-center text-tertiary">
+<span class="material-symbols-outlined">trending_up</span>
+<span class="text-sm font-bold ml-1">12% WoW</span>
+</div>
+</div>
+<p class="text-[10px] text-slate-600 font-medium uppercase">Based on current conversion trajectory</p>
+</div>
+<div class="bg-surface-container-low p-6 rounded-xl space-y-4">
+<span class="text-label text-slate-500">Wasted Spend Prevented</span>
+<div class="flex items-center gap-3">
+<span class="text-3xl font-black text-brand-blue tracking-tight">$3,240</span>
+<div class="px-2 py-0.5 rounded bg-brand-blue/10 border border-brand-blue/20 text-[10px] text-brand-blue font-bold">SAVED</div>
+</div>
+<p class="text-[10px] text-slate-600 font-medium uppercase">Redirected from underperforming channels</p>
+</div>
+</section>
+<!-- Insights and Breakdown Section -->
+<div class="grid grid-cols-12 gap-8 mb-10">
+<!-- AI Reallocation Insights -->
+<div class="col-span-8 space-y-4">
+<h3 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">psychology</span>
+                        AI Reallocation Insights
+                    </h3>
+<div class="space-y-3">
+<!-- Suggestion Card 1 -->
+<div class="bg-surface-container p-5 rounded-xl flex items-center justify-between group">
+<div class="flex gap-4 items-start max-w-[70%]">
+<div class="p-2 bg-primary/10 rounded-lg text-primary mt-1">
+<span class="material-symbols-outlined text-[20px]">swap_horiz</span>
+</div>
+<div>
+<p class="text-sm font-bold text-slate-100 mb-1">Shift $1,000 from Facebook to LinkedIn</p>
+<p class="text-xs text-slate-400 leading-relaxed">LinkedIn CPA is 15% lower this week for the B2B tech segment. Historical data suggests 2.4x higher lead quality.</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="text-xs font-bold text-slate-500 hover:text-slate-300">Dismiss</button>
+<button class="primary-gradient-btn px-4 py-2 rounded-lg text-xs font-bold text-slate-900 transition-transform active:scale-95">Apply Recommendation</button>
+</div>
+</div>
+<!-- Suggestion Card 2 -->
+<div class="bg-surface-container p-5 rounded-xl flex items-center justify-between group">
+<div class="flex gap-4 items-start max-w-[70%]">
+<div class="p-2 bg-tertiary/10 rounded-lg text-tertiary mt-1">
+<span class="material-symbols-outlined text-[20px]">pause_circle</span>
+</div>
+<div>
+<p class="text-sm font-bold text-slate-100 mb-1">Pause "Summer Blitz" TikTok Ad Group</p>
+<p class="text-xs text-slate-400 leading-relaxed">Engagement rate dropped below 0.8% threshold. AI predicts 40% higher efficiency if budget is moved to Search.</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="text-xs font-bold text-slate-500 hover:text-slate-300">Dismiss</button>
+<button class="primary-gradient-btn px-4 py-2 rounded-lg text-xs font-bold text-slate-900 transition-transform active:scale-95">Apply Recommendation</button>
+</div>
+</div>
+<!-- Suggestion Card 3 -->
+<div class="bg-surface-container p-5 rounded-xl flex items-center justify-between group">
+<div class="flex gap-4 items-start max-w-[70%]">
+<div class="p-2 bg-primary/10 rounded-lg text-primary mt-1">
+<span class="material-symbols-outlined text-[20px]">trending_up</span>
+</div>
+<div>
+<p class="text-sm font-bold text-slate-100 mb-1">Scale Google Search budget by 10%</p>
+<p class="text-xs text-slate-400 leading-relaxed">Top performing keywords showing high impression share but low budget ceiling. Estimated ROI: 310%.</p>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="text-xs font-bold text-slate-500 hover:text-slate-300">Dismiss</button>
+<button class="primary-gradient-btn px-4 py-2 rounded-lg text-xs font-bold text-slate-900 transition-transform active:scale-95">Apply Recommendation</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Spend by Platform -->
+<div class="col-span-4 space-y-4">
+<h3 class="text-lg font-bold text-slate-100">Spend by Platform</h3>
+<div class="bg-surface-container p-6 rounded-xl h-full flex flex-col justify-center gap-6">
+<div class="space-y-4">
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-bold mb-1">
+<span class="text-slate-300">Facebook</span>
+<span class="text-primary">40%</span>
+</div>
+<div class="h-1.5 w-full bg-white/5 rounded-full">
+<div class="h-full bg-primary rounded-full" style="width: 40%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-bold mb-1">
+<span class="text-slate-300">Google Ads</span>
+<span class="text-primary/70">30%</span>
+</div>
+<div class="h-1.5 w-full bg-white/5 rounded-full">
+<div class="h-full bg-primary/70 rounded-full" style="width: 30%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-bold mb-1">
+<span class="text-slate-300">LinkedIn</span>
+<span class="text-tertiary">20%</span>
+</div>
+<div class="h-1.5 w-full bg-white/5 rounded-full">
+<div class="h-full bg-tertiary rounded-full" style="width: 20%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-bold mb-1">
+<span class="text-slate-300">TikTok</span>
+<span class="text-tertiary/60">10%</span>
+</div>
+<div class="h-1.5 w-full bg-white/5 rounded-full">
+<div class="h-full bg-tertiary/60 rounded-full" style="width: 10%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Campaign Velocity Table -->
+<section class="space-y-4">
+<div class="flex justify-between items-center">
+<h3 class="text-lg font-bold text-slate-100">Active Campaign Velocity</h3>
+<span class="text-[10px] font-bold text-slate-500 uppercase">Live Tracking Enabled</span>
+</div>
+<div class="bg-surface-container-low rounded-xl overflow-hidden">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-white/5">
+<th class="px-6 py-4 text-label text-slate-400">Campaign Name</th>
+<th class="px-6 py-4 text-label text-slate-400">Daily Burn Rate</th>
+<th class="px-6 py-4 text-label text-slate-400">AI Health Score</th>
+<th class="px-6 py-4 text-label text-slate-400">7-Day Trend</th>
+<th class="px-6 py-4"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-white/5">
+<tr class="hover:bg-white/5 transition-colors">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-green-500"></div>
+<span class="text-sm font-bold text-slate-100">B2B Core Retargeting</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-slate-300">$450.00/day</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<span class="text-sm font-black text-primary">92</span>
+<span class="text-[10px] text-slate-500">/ 100</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="w-24 h-6 flex items-end gap-[2px]">
+<div class="w-2 bg-primary/20 h-2 rounded-sm"></div>
+<div class="w-2 bg-primary/40 h-3 rounded-sm"></div>
+<div class="w-2 bg-primary/30 h-2 rounded-sm"></div>
+<div class="w-2 bg-primary/60 h-4 rounded-sm"></div>
+<div class="w-2 bg-primary/80 h-5 rounded-sm"></div>
+<div class="w-2 bg-primary h-6 rounded-sm"></div>
+<div class="w-2 bg-primary h-5 rounded-sm"></div>
+</div>
+</td>
+<td class="px-6 py-5 text-right">
+<span class="material-symbols-outlined text-slate-500 cursor-pointer">more_horiz</span>
+</td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-green-500"></div>
+<span class="text-sm font-bold text-slate-100">Global Search Expansion</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-slate-300">$1,200.00/day</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<span class="text-sm font-black text-primary">88</span>
+<span class="text-[10px] text-slate-500">/ 100</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="w-24 h-6 flex items-end gap-[2px]">
+<div class="w-2 bg-primary/30 h-3 rounded-sm"></div>
+<div class="w-2 bg-primary/40 h-4 rounded-sm"></div>
+<div class="w-2 bg-primary/50 h-3 rounded-sm"></div>
+<div class="w-2 bg-primary/70 h-5 rounded-sm"></div>
+<div class="w-2 bg-primary/40 h-4 rounded-sm"></div>
+<div class="w-2 bg-primary/90 h-6 rounded-sm"></div>
+<div class="w-2 bg-primary h-6 rounded-sm"></div>
+</div>
+</td>
+<td class="px-6 py-5 text-right">
+<span class="material-symbols-outlined text-slate-500 cursor-pointer">more_horiz</span>
+</td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-yellow-500"></div>
+<span class="text-sm font-bold text-slate-100">TikTok Lifestyle Creative</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-slate-300">$215.00/day</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<span class="text-sm font-black text-tertiary">64</span>
+<span class="text-[10px] text-slate-500">/ 100</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="w-24 h-6 flex items-end gap-[2px]">
+<div class="w-2 bg-tertiary/60 h-6 rounded-sm"></div>
+<div class="w-2 bg-tertiary/50 h-5 rounded-sm"></div>
+<div class="w-2 bg-tertiary/40 h-4 rounded-sm"></div>
+<div class="w-2 bg-tertiary/30 h-3 rounded-sm"></div>
+<div class="w-2 bg-tertiary/20 h-2 rounded-sm"></div>
+<div class="w-2 bg-tertiary/30 h-2 rounded-sm"></div>
+<div class="w-2 bg-tertiary/20 h-1 rounded-sm"></div>
+</div>
+</td>
+<td class="px-6 py-5 text-right">
+<span class="material-symbols-outlined text-slate-500 cursor-pointer">more_horiz</span>
+</td>
+</tr>
+<tr class="hover:bg-white/5 transition-colors">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-green-500"></div>
+<span class="text-sm font-bold text-slate-100">Ecom Catalog DABA</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm font-medium text-slate-300">$850.00/day</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<span class="text-sm font-black text-primary">79</span>
+<span class="text-[10px] text-slate-500">/ 100</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="w-24 h-6 flex items-end gap-[2px]">
+<div class="w-2 bg-primary/20 h-2 rounded-sm"></div>
+<div class="w-2 bg-primary/40 h-2 rounded-sm"></div>
+<div class="w-2 bg-primary/30 h-3 rounded-sm"></div>
+<div class="w-2 bg-primary/40 h-3 rounded-sm"></div>
+<div class="w-2 bg-primary/60 h-4 rounded-sm"></div>
+<div class="w-2 bg-primary/80 h-4 rounded-sm"></div>
+<div class="w-2 bg-primary/90 h-5 rounded-sm"></div>
+</div>
+</td>
+<td class="px-6 py-5 text-right">
+<span class="material-symbols-outlined text-slate-500 cursor-pointer">more_horiz</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</main>
+</div>
+</body></html>

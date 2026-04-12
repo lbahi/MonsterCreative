@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MosterAds | Image Generation</title>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS v3 -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandBackground: '#121314',
+            brandSurface: '#1b1c1d',
+            brandInteractive: '#1f2021',
+            brandData: '#292a2b',
+            brandInput: '#343536',
+            brandPrimary: '#adc6ff',
+            brandPrimaryContainer: '#4b8eff',
+            brandText: '#e3e2e3',
+            brandTextVariant: '#c1c6d6',
+            brandTertiary: '#ffb691',
+            brandBlue: '#1877F2',
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+          },
+        }
+      }
+    }
+  </script>
+<style data-purpose="custom-typography">
+    .font-display { font-size: 24px; font-weight: 900; }
+    .font-headline { font-size: 18px; font-weight: 700; }
+    .font-body { font-size: 13px; font-weight: 400; }
+    .font-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+  </style>
+<style data-purpose="layout-effects">
+    .mica-effect {
+      backdrop-filter: blur(32px) saturate(180%);
+      background-color: rgba(27, 28, 29, 0.7);
+    }
+    .ambient-glow-1 {
+      position: fixed;
+      top: -10%;
+      right: -10%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(173, 198, 255, 0.08) 0%, rgba(173, 198, 255, 0) 70%);
+      filter: blur(120px);
+      z-index: -1;
+      pointer-events: none;
+    }
+    .ambient-glow-2 {
+      position: fixed;
+      bottom: -10%;
+      left: -10%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(255, 182, 145, 0.05) 0%, rgba(255, 182, 145, 0) 70%);
+      filter: blur(120px);
+      z-index: -1;
+      pointer-events: none;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    
+    .gradient-purple-blue { background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); }
+    .gradient-orange-pink { background: linear-gradient(135deg, #f97316 0%, #ec4899 100%); }
+    .gradient-teal-green { background: linear-gradient(135deg, #14b8a6 0%, #22c55e 100%); }
+    .gradient-blue-violet { background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); }
+  </style>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/></head>
+<body class="bg-brandBackground text-brandText font-sans selection:bg-brandPrimaryContainer/30 overflow-hidden h-screen flex flex-col">
+<!-- BEGIN: Ambient Backgrounds -->
+<div class="ambient-glow-1"></div>
+<div class="ambient-glow-2"></div>
+<!-- END: Ambient Backgrounds -->
+<!-- BEGIN: Windows Top Bar -->
+<header class="h-10 w-full fixed top-0 left-0 flex items-center justify-between px-4 z-50 mica-effect">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 bg-brandPrimary rounded-full opacity-50"></div>
+<span class="font-label opacity-60">MosterAds Workspace</span>
+</div>
+<!-- Windows Control Mockup -->
+<div class="flex items-center gap-6 h-full">
+<div class="flex items-center gap-8 h-full pr-2">
+<svg class="w-3 h-3 opacity-70" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M20 12H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<svg class="w-3 h-3 opacity-70" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 4h16v16H4z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+<svg class="w-3 h-3 opacity-70" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</div>
+</div>
+</header>
+<!-- END: Windows Top Bar -->
+<div class="flex flex-1 pt-10 overflow-hidden">
+<!-- BEGIN: Sidebar Navigation -->
+<aside class="w-64 flex flex-col border-r border-white/5 mica-effect h-full">
+<div class="p-6">
+<div class="flex items-center gap-2 mb-1">
+<div class="w-8 h-8 bg-brandBlue rounded-lg flex items-center justify-center font-black text-white italic">M</div>
+<span class="font-display tracking-tight">MosterAds</span>
+</div>
+<p class="font-label text-brandPrimary lowercase opacity-80">Test Faster Cheaper</p>
+</div>
+<nav class="flex-1 px-3 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-brandTextVariant hover:bg-white/5 transition-colors font-body group" href="#">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          Dashboard
+        </a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-brandTextVariant hover:bg-white/5 transition-colors font-body" href="#">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          Ad Copy
+        </a>
+<!-- ACTIVE LINK -->
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-brandText bg-white/5 font-medium font-body border-l-4 border-brandBlue" href="#">
+<svg class="w-4 h-4 text-brandBlue" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          Image Gen
+        </a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-brandTextVariant hover:bg-white/5 transition-colors font-body" href="#">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          Video Ads
+        </a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-brandTextVariant hover:bg-white/5 transition-colors font-body" href="#">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          Campaigns
+        </a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-brandTextVariant hover:bg-white/5 transition-colors font-body" href="#">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+          Settings
+        </a>
+</nav>
+<div class="p-4 mt-auto">
+<div class="bg-white/5 p-3 rounded-xl flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-brandPrimaryContainer flex items-center justify-center font-bold text-xs">B</div>
+<div>
+<p class="font-body font-semibold">Bahaa</p>
+<p class="font-label text-brandTertiary">PRO ACCOUNT</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- END: Sidebar Navigation -->
+<!-- BEGIN: Main Content Area -->
+<main class="flex-1 flex overflow-hidden p-6 gap-6">
+<!-- BEGIN: Generator Controls Panel -->
+<section class="w-80 flex flex-col gap-6" data-purpose="generator-controls">
+<div class="bg-brandSurface p-6 rounded-2xl shadow-2xl flex flex-col gap-6 h-full overflow-y-auto no-scrollbar">
+<div>
+<h1 class="font-headline mb-1">Image Generation</h1>
+<p class="font-body text-brandTextVariant">Create stunning ad visuals with AI.</p>
+</div>
+<!-- Prompt Area -->
+<div class="space-y-2">
+<label class="font-label text-brandTextVariant">Prompt Input</label>
+<textarea class="w-full h-32 bg-brandInput border-none rounded-xl p-3 font-body text-brandText placeholder:text-brandTextVariant/30 focus:ring-1 focus:ring-brandPrimaryContainer transition-all resize-none" placeholder="A futuristic luxury watch floating in a void, neon accents, high resolution, soft bokeh..."></textarea>
+</div>
+<!-- Style Selection -->
+<!-- Winning Ad Reference -->
+<div class="space-y-2">
+<label class="font-label text-brandTextVariant">Winning Ad Reference</label>
+<div class="w-full h-[110px] border-2 border-dashed border-brandInput rounded-xl bg-brandInteractive flex flex-col items-center justify-center gap-1 group hover:border-brandPrimaryContainer/50 transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-brandTextVariant group-hover:text-brandPrimary">cloud_upload</span>
+<p class="font-body text-brandTextVariant text-center">Drop your best-performing ad here</p>
+<p class="text-[10px] text-brandTextVariant/40 uppercase">PNG, JPG up to 10MB</p>
+</div>
+</div>
+<!-- Product Photo -->
+<div class="space-y-2">
+<label class="font-label text-brandTextVariant">Product Photo</label>
+<div class="w-full h-[110px] border-2 border-dashed border-brandInput rounded-xl bg-brandInteractive flex flex-col items-center justify-center gap-1 group hover:border-brandPrimaryContainer/50 transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-brandTextVariant group-hover:text-brandPrimary">add_photo_alternate</span>
+<p class="font-body text-brandTextVariant text-center">Upload product image</p>
+<p class="text-[10px] text-brandTextVariant/40 uppercase">Used as hero element in generated creatives</p>
+</div>
+</div><div class="space-y-3">
+<label class="font-label text-brandTextVariant">Visual Style</label>
+<div class="flex flex-wrap gap-2">
+<button class="px-3 py-1.5 rounded-full font-label bg-brandPrimaryContainer text-white">Photorealistic</button>
+<button class="px-3 py-1.5 rounded-full font-label bg-brandInput text-brandTextVariant hover:bg-brandInteractive">Illustration</button>
+<button class="px-3 py-1.5 rounded-full font-label bg-brandInput text-brandTextVariant hover:bg-brandInteractive">3D Render</button>
+<button class="px-3 py-1.5 rounded-full font-label bg-brandInput text-brandTextVariant hover:bg-brandInteractive">Flat Design</button>
+</div>
+</div>
+<!-- Aspect Ratio Selection -->
+<div class="space-y-3">
+<label class="font-label text-brandTextVariant">Aspect Ratio</label>
+<div class="grid grid-cols-4 gap-2">
+<button class="py-2 rounded-lg font-label border border-brandPrimaryContainer bg-brandPrimaryContainer/10 text-brandPrimaryContainer">1:1</button>
+<button class="py-2 rounded-lg font-label bg-brandInput text-brandTextVariant">16:9</button>
+<button class="py-2 rounded-lg font-label bg-brandInput text-brandTextVariant">9:16</button>
+<button class="py-2 rounded-lg font-label bg-brandInput text-brandTextVariant">4:5</button>
+</div>
+</div>
+<!-- Settings Toggles -->
+<div class="flex items-center justify-between py-2">
+<label class="font-body text-brandTextVariant">Brand Overlay</label>
+<div class="relative inline-flex h-5 w-10 items-center rounded-full bg-brandInput">
+<span class="inline-block h-3.5 w-3.5 translate-x-1 transform rounded-full bg-white transition-all"></span>
+</div>
+</div>
+<!-- Count Selection -->
+<div class="space-y-2">
+<label class="font-label text-brandTextVariant">Image Count</label>
+<div class="flex gap-2">
+<button class="flex-1 py-1.5 rounded-lg font-label bg-brandInput text-brandTextVariant">1</button>
+<button class="flex-1 py-1.5 rounded-lg font-label bg-brandInput text-brandTextVariant">2</button>
+<button class="flex-1 py-1.5 rounded-lg font-label bg-brandPrimaryContainer text-white">4</button>
+<button class="flex-1 py-1.5 rounded-lg font-label bg-brandInput text-brandTextVariant">8</button>
+</div>
+</div>
+<!-- Primary Action -->
+<button class="w-full py-4 mt-auto rounded-xl bg-gradient-to-br from-brandPrimary to-brandPrimaryContainer text-brandBackground font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-all shadow-lg">
+<svg class="w-5 h-5" fill="currentColor" viewbox="0 0 24 24"><path d="M12 2l1.5 5h5l-4 3 1.5 5-4-3-4 3 1.5-5-4-3h5z"></path></svg>
+            Generate Images
+          </button>
+</div>
+</section>
+<!-- END: Generator Controls Panel -->
+<!-- BEGIN: Results Area -->
+<section class="flex-1 flex flex-col gap-6 overflow-hidden" data-purpose="generation-display">
+<!-- Result Header -->
+<div class="flex items-center justify-between">
+<div>
+<h2 class="font-headline">Generated Images</h2>
+<p class="font-body text-brandTextVariant">4 images generated • Model: Gen-V2-Turbo</p>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 rounded-lg bg-brandInteractive text-brandTextVariant hover:text-white transition-colors">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg bg-brandInteractive text-brandText font-body hover:bg-brandData transition-colors">
+<svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+              Download All
+            </button>
+</div>
+</div>
+<!-- 2x2 Image Grid -->
+<div class="grid grid-cols-2 gap-4 flex-none h-[calc(100%-240px)]">
+<div class="relative group rounded-2xl overflow-hidden bg-brandInteractive border border-white/5">
+<div class="w-full h-full gradient-purple-blue"></div>
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
+<button class="px-6 py-2 bg-brandPrimary rounded-full text-brandBackground font-bold font-body">Use in Campaign</button>
+<div class="flex gap-2">
+<button class="p-2 bg-white/20 rounded-lg backdrop-blur-md hover:bg-white/30 transition-colors">Edit</button>
+<button class="p-2 bg-white/20 rounded-lg backdrop-blur-md hover:bg-white/30 transition-colors">Download</button>
+</div>
+</div>
+<div class="absolute bottom-4 left-4 flex gap-2">
+<span class="px-2 py-0.5 rounded bg-black/40 backdrop-blur-md font-label">1024x1024</span>
+<span class="px-2 py-0.5 rounded bg-black/40 backdrop-blur-md font-label">2.3s</span>
+</div>
+</div>
+<div class="relative group rounded-2xl overflow-hidden bg-brandInteractive border border-white/5">
+<div class="w-full h-full gradient-orange-pink"></div>
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
+<button class="px-6 py-2 bg-brandPrimary rounded-full text-brandBackground font-bold font-body">Use in Campaign</button>
+<div class="flex gap-2">
+<button class="p-2 bg-white/20 rounded-lg backdrop-blur-md hover:bg-white/30 transition-colors">Edit</button>
+<button class="p-2 bg-white/20 rounded-lg backdrop-blur-md hover:bg-white/30 transition-colors">Download</button>
+</div>
+</div>
+<div class="absolute bottom-4 left-4 flex gap-2">
+<span class="px-2 py-0.5 rounded bg-black/40 backdrop-blur-md font-label">1024x1024</span>
+<span class="px-2 py-0.5 rounded bg-black/40 backdrop-blur-md font-label">2.1s</span>
+</div>
+</div>
+<div class="relative group rounded-2xl overflow-hidden bg-brandInteractive border border-white/5">
+<div class="w-full h-full gradient-teal-green"></div>
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
+<button class="px-6 py-2 bg-brandPrimary rounded-full text-brandBackground font-bold font-body">Use in Campaign</button>
+<div class="flex gap-2">
+<button class="p-2 bg-white/20 rounded-lg backdrop-blur-md hover:bg-white/30 transition-colors">Edit</button>
+<button class="p-2 bg-white/20 rounded-lg backdrop-blur-md hover:bg-white/30 transition-colors">Download</button>
+</div>
+</div>
+<div class="absolute bottom-4 left-4 flex gap-2">
+<span class="px-2 py-0.5 rounded bg-black/40 backdrop-blur-md font-label">1024x1024</span>
+<span class="px-2 py-0.5 rounded bg-black/40 backdrop-blur-md font-label">2.5s</span>
+</div>
+</div>
+<div class="relative group rounded-2xl overflow-hidden bg-brandInteractive border border-white/5">
+<div class="w-full h-full gradient-blue-violet"></div>
+<div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
+<button class="px-6 py-2 bg-brandPrimary rounded-full text-brandBackground font-bold font-body">Use in Campaign</button>
+<div class="flex gap-2">
+<button class="p-2 bg-white/20 rounded-lg backdrop-blur-md hover:bg-white/30 transition-colors">Edit</button>
+<button class="p-2 bg-white/20 rounded-lg backdrop-blur-md hover:bg-white/30 transition-colors">Download</button>
+</div>
+</div>
+<div class="absolute bottom-4 left-4 flex gap-2">
+<span class="px-2 py-0.5 rounded bg-black/40 backdrop-blur-md font-label">1024x1024</span>
+<span class="px-2 py-0.5 rounded bg-black/40 backdrop-blur-md font-label">1.9s</span>
+</div>
+</div>
+</div>
+<!-- Generation History Section -->
+<div class="mt-4 flex flex-col gap-4 overflow-hidden h-[180px]">
+<h3 class="font-label text-brandTextVariant opacity-60">Generation History</h3>
+<div class="space-y-2 overflow-y-auto no-scrollbar pr-2">
+<!-- Row 1 -->
+<div class="flex items-center justify-between p-3 bg-brandInteractive/40 rounded-xl hover:bg-brandInteractive/70 transition-colors cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg gradient-purple-blue"></div>
+<div>
+<p class="font-body font-medium truncate max-w-md">"Luxury watch aesthetic with dark marble base..."</p>
+<p class="font-label text-brandTextVariant/60">Oct 24 • 14:20 PM</p>
+</div>
+</div>
+<button class="text-brandTextVariant hover:text-white">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<!-- Row 2 -->
+<div class="flex items-center justify-between p-3 bg-brandInteractive/40 rounded-xl hover:bg-brandInteractive/70 transition-colors cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg gradient-orange-pink"></div>
+<div>
+<p class="font-body font-medium truncate max-w-md">"Sunset over metropolitan skyline, high contrast..."</p>
+<p class="font-label text-brandTextVariant/60">Oct 24 • 11:05 AM</p>
+</div>
+</div>
+<button class="text-brandTextVariant hover:text-white">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+<!-- Row 3 -->
+<div class="flex items-center justify-between p-3 bg-brandInteractive/40 rounded-xl hover:bg-brandInteractive/70 transition-colors cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded-lg gradient-teal-green"></div>
+<div>
+<p class="font-body font-medium truncate max-w-md">"Abstract organic shapes for skincare branding..."</p>
+<p class="font-label text-brandTextVariant/60">Oct 23 • 09:45 AM</p>
+</div>
+</div>
+<button class="text-brandTextVariant hover:text-white">
+<svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path></svg>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- END: Results Area -->
+</main>
+<!-- END: Main Content Area -->
+</div>
+</body></html>

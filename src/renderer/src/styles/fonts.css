@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap');
+
+:root {
+  --font-display: 'Bricolage Grotesque', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* MosterAds Dark Theme */
+  --ma-bg: #07070F;
+  --ma-surface: #0C0C1C;
+  --ma-elevated: #111124;
+  --ma-card: #141430;
+  --ma-accent: #6C63FF;
+  --ma-accent-light: #8B84FF;
+  --ma-accent-dark: #4F47D0;
+  --ma-accent-glow: rgba(108, 99, 255, 0.25);
+  --ma-border: rgba(255, 255, 255, 0.07);
+  --ma-border-accent: rgba(108, 99, 255, 0.45);
+  --ma-text: #FFFFFF;
+  --ma-text-secondary: rgba(255, 255, 255, 0.6);
+  --ma-text-muted: rgba(255, 255, 255, 0.35);
+  --ma-green: #22C55E;
+  --ma-red: #EF4444;
+  --ma-amber: #F59E0B;
+}

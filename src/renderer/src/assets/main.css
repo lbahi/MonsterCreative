@@ -1,0 +1,79 @@
+@import "tailwindcss";
+
+@theme {
+  --color-abyss-black: #121314;
+  --color-charcoal-surface: #1b1c1d;
+  --color-elevated-card: #1f2021;
+  --color-nested-high: #292a2b;
+  --color-surface-highest: #343536;
+  --color-ocean-cerulean: #adc6ff;
+  --color-vibrant-cobalt: #4b8eff;
+  --color-soft-cloud: #e3e2e3;
+  --color-subtle-silver: #c1c6d6;
+  --color-warm-sunset: #ffb691;
+  --color-fiery-orange: #ff5e3a;
+  --color-emerald-growth: #a8ffb2;
+  --color-facebook-blue: #1877f2;
+  
+  --font-sans: "Inter", "sans-serif";
+  --font-display: "Public Sans", "sans-serif";
+}
+
+@layer base {
+  body {
+    @apply bg-abyss-black text-soft-cloud font-sans overflow-hidden h-screen w-screen;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(173, 198, 255, 0.05) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(75, 142, 255, 0.03) 0px, transparent 50%);
+  }
+
+  /* Custom Scrollbar for premium feel */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-white/10 rounded-full hover:bg-white/20 transition-all;
+  }
+}
+
+@layer components {
+  .mica-effect {
+    @apply backdrop-blur-[40px] saturate-[180%] bg-abyss-black/70;
+  }
+
+  .glass-panel {
+    @apply backdrop-blur-[20px] bg-white/[0.03] border border-white/5 shadow-xl;
+  }
+
+  .premium-card {
+    @apply bg-elevated-card rounded-xl shadow-lg border border-white/[0.03] transition-all hover:bg-nested-high hover:border-white/10;
+  }
+
+  .glow-orb {
+    @apply absolute blur-[120px] rounded-full pointer-events-none;
+  }
+
+  /* Input fields matching the design system */
+  .premium-input {
+    @apply w-full bg-nested-high border-none rounded-xl px-4 py-3.5 text-soft-cloud placeholder:text-subtle-silver focus:ring-2 focus:ring-ocean-cerulean/50 transition-all outline-none;
+  }
+
+  /* Buttons from DESIGN.md */
+  .btn-primary {
+    @apply bg-gradient-to-r from-ocean-cerulean to-vibrant-cobalt py-3 px-8 rounded-xl text-abyss-black font-extrabold uppercase tracking-widest text-sm hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg shadow-ocean-cerulean/20;
+  }
+
+  .btn-secondary {
+    @apply bg-white/5 text-soft-cloud py-3 px-8 rounded-xl font-bold border border-white/10 hover:bg-white/10 transition-all;
+  }
+
+  .sidebar-link-active {
+    @apply bg-white/5 text-soft-cloud border-l-4 border-facebook-blue;
+  }
+}
