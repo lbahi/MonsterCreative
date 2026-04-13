@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Eye, EyeOff, Key, ChevronRight, X, Zap, Globe, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Key, ChevronRight, Zap, Globe, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { useApp } from '../contexts/AppContext';
 
 interface OnboardingModalProps {
   onComplete: () => void;
@@ -13,6 +14,45 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [phase, setPhase] = useState<'welcome' | 'wizard'>('welcome');
   const [falKey, setFalKey] = useState('');
   const [showFal, setShowFal] = useState(false);
+  const [validating, setValidating] = useState(false);
+  const [keyError, setKeyError] = useState<string | null>(null);
+  const [shake, setShake] = useState(false);
+  const { refreshConnectionStatus, completeOnboarding } = useApp();
+
+  const triggerShake = () => {
+    setShake(true);
+    setTimeout(() => setShake(false), 600);
+  };
+
+  const handleLaunch = async () => {
+    if (!falKey.trim()) {
+      setKeyError('Please enter your fal.ai API key to continue.');
+      triggerShake();
+      return;
+    }
+    setValidating(true);
+    setKeyError(null);
+    try {
+      // Smoke test BEFORE saving to keystore
+      const result = await window.api.fal.validateKey(falKey.trim());
+      if (result.valid) {
+        // Save to secure store only after validation passes
+        await window.api.keystore.setFalKey(falKey.trim());
+        // Update context status
+        await refreshConnectionStatus();
+        completeOnboarding();
+        onComplete();
+      } else {
+        setKeyError(result.error || 'Invalid API key. Please check your fal.ai dashboard.');
+        triggerShake();
+      }
+    } catch {
+      setKeyError('Network error. Please check your connection and try again.');
+      triggerShake();
+    } finally {
+      setValidating(false);
+    }
+  };
 
   return (
     <div style={{
@@ -26,26 +66,38 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       justifyContent: 'center',
       fontFamily: 'var(--font-body)',
     }}>
+      <style>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          15% { transform: translateX(-8px); }
+          30% { transform: translateX(8px); }
+          45% { transform: translateX(-6px); }
+          60% { transform: translateX(6px); }
+          75% { transform: translateX(-3px); }
+          90% { transform: translateX(3px); }
+        }
+        .shake { animation: shake 0.6s ease-out; }
+      `}</style>
+
       {phase === 'welcome' ? (
-        <WelcomePhase onGetStarted={() => setPhase('wizard')} onSkip={onComplete} />
+        <WelcomePhase onGetStarted={() => setPhase('wizard')} />
       ) : (
         <WizardPhase
           falKey={falKey}
           setFalKey={setFalKey}
           showFal={showFal}
           setShowFal={setShowFal}
-          onNext={() => {
-            // Here you can save the fal.ai key securely before completing
-            onComplete();
-          }}
-          onSkip={onComplete}
+          validating={validating}
+          keyError={keyError}
+          shake={shake}
+          onNext={handleLaunch}
         />
       )}
     </div>
   );
 }
 
-function WelcomePhase({ onGetStarted, onSkip }: { onGetStarted: () => void; onSkip: () => void }) {
+function WelcomePhase({ onGetStarted }: { onGetStarted: () => void }) {
   return (
     <div style={{
       width: 680,
@@ -55,62 +107,23 @@ function WelcomePhase({ onGetStarted, onSkip }: { onGetStarted: () => void; onSk
       overflow: 'hidden',
       boxShadow: '0 40px 120px rgba(7,7,15,0.8), 0 0 60px rgba(108,99,255,0.1)',
     }}>
-      {/* Video placeholder */}
-      <div style={{
-        width: '100%',
-        height: 320,
-        background: 'linear-gradient(135deg, #07070F 0%, #0F0F2A 40%, #1A0F3A 70%, #07070F 100%)',
-        position: 'relative',
-        overflow: 'hidden',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
-        {/* Animated glow orbs */}
-        <div style={{
-          position: 'absolute', width: 300, height: 300, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(108,99,255,0.3) 0%, transparent 70%)',
-          top: '50%', left: '50%', transform: 'translate(-50%,-50%)',
-        }} />
-        <div style={{
-          position: 'absolute', width: 200, height: 200, borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(155,143,255,0.2) 0%, transparent 70%)',
-          top: '30%', left: '30%',
-        }} />
-
-        {/* Video play area */}
-        <div style={{ textAlign: 'center', position: 'relative', zIndex: 2 }}>
-          <div style={{
-            width: 72, height: 72, borderRadius: '50%',
-            background: 'rgba(108,99,255,0.2)',
-            border: '2px solid rgba(108,99,255,0.5)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            margin: '0 auto 16px',
-            boxShadow: '0 0 40px rgba(108,99,255,0.3)',
-          }}>
-            <div style={{
-              width: 0, height: 0,
-              borderLeft: '26px solid rgba(255,255,255,0.9)',
-              borderTop: '16px solid transparent',
-              borderBottom: '16px solid transparent',
-              marginLeft: 6,
-            }} />
-          </div>
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12, letterSpacing: '1px', textTransform: 'uppercase' }}>
-            WELCOME TO MOSTERADS — 2:34
-          </p>
-        </div>
-
-        {/* Decorative grid */}
-        <div style={{
-          position: 'absolute', inset: 0,
-          backgroundImage: 'linear-gradient(rgba(108,99,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(108,99,255,0.04) 1px, transparent 1px)',
-          backgroundSize: '40px 40px',
-        }} />
+      {/* Video */}
+      <div style={{ width: '100%', height: 382, background: '#000', position: 'relative', overflow: 'hidden' }}>
+        <iframe
+          width="100%"
+          height="100%"
+          src="https://www.youtube.com/embed/Mlt0BqtmOls?autoplay=1&mute=1&loop=1&playlist=Mlt0BqtmOls&controls=0&modestbranding=1&rel=0"
+          title="MonsterCreative Promo"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          style={{ border: 'none' }}
+        />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, var(--ma-elevated), transparent 40%)', pointerEvents: 'none' }} />
       </div>
 
       {/* Content */}
-      <div style={{ padding: '36px 40px' }}>
+      <div style={{ padding: '36px 40px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
           <div style={{
             width: 28, height: 28, borderRadius: 8,
@@ -121,56 +134,35 @@ function WelcomePhase({ onGetStarted, onSkip }: { onGetStarted: () => void; onSk
             <Zap size={14} color="white" />
           </div>
           <span style={{ color: 'var(--ma-accent-light)', fontSize: 12, fontWeight: 600, letterSpacing: '1px', textTransform: 'uppercase' }}>
-            MosterAds AI Suite
+            MonsterCreative AI Suite
           </span>
         </div>
 
         <h1 style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 32,
-          fontWeight: 700,
-          color: '#FFFFFF',
-          lineHeight: 1.2,
-          marginBottom: 12,
-          letterSpacing: '-0.5px',
+          fontFamily: 'var(--font-display)', fontSize: 32, fontWeight: 700,
+          color: '#FFFFFF', lineHeight: 1.2, marginBottom: 12, letterSpacing: '-0.5px',
         }}>
           Build ads that convert.<br />
           <span style={{ color: 'var(--ma-accent-light)' }}>At the speed of AI.</span>
         </h1>
 
         <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: 14, lineHeight: 1.6, marginBottom: 32, maxWidth: 480 }}>
-          Generate high-converting ad creatives, copy, and videos — powered by the best AI models. Connected to your ad accounts in minutes.
+          Generate high-converting ad copy, audio, and videos — powered by the best AI models. Connected to your ad accounts in minutes.
         </p>
 
-        <div style={{ display: 'flex', gap: 12 }}>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
           <button
             onClick={onGetStarted}
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
-              padding: '12px 28px',
-              background: 'var(--ma-accent)',
-              color: 'white', border: 'none',
-              borderRadius: 10, cursor: 'pointer', fontSize: 14, fontWeight: 600,
-              boxShadow: '0 0 24px rgba(108,99,255,0.4)',
-              transition: 'all 0.2s',
+              padding: '12px 48px',
+              background: 'var(--ma-accent)', color: 'white', border: 'none',
+              borderRadius: 10, cursor: 'pointer', fontSize: 15, fontWeight: 700,
+              boxShadow: '0 0 32px rgba(108,99,255,0.45)', transition: 'all 0.2s',
               fontFamily: 'var(--font-body)',
             }}
           >
-            Get Started <ArrowRight size={16} />
-          </button>
-          <button
-            onClick={onSkip}
-            style={{
-              padding: '12px 24px',
-              background: 'transparent',
-              color: 'rgba(255,255,255,0.4)',
-              border: '1px solid var(--ma-border)',
-              borderRadius: 10, cursor: 'pointer', fontSize: 14,
-              transition: 'all 0.2s',
-              fontFamily: 'var(--font-body)',
-            }}
-          >
-            Skip for now
+            Get Started <ArrowRight size={18} />
           </button>
         </div>
       </div>
@@ -178,26 +170,24 @@ function WelcomePhase({ onGetStarted, onSkip }: { onGetStarted: () => void; onSk
   );
 }
 
-function WizardPhase(props: any) {
-  const { falKey, setFalKey, showFal, setShowFal, onNext, onSkip } = props;
-
+function WizardPhase({ falKey, setFalKey, showFal, setShowFal, validating, keyError, shake, onNext }: any) {
   return (
-    <div style={{
-      width: 560,
-      background: 'var(--ma-elevated)',
-      border: '1px solid var(--ma-border)',
-      borderRadius: 16,
-      overflow: 'hidden',
-      boxShadow: '0 40px 120px rgba(7,7,15,0.8), 0 0 60px rgba(108,99,255,0.1)',
-    }}>
+    <div
+      className={shake ? 'shake' : ''}
+      style={{
+        width: 560,
+        background: 'var(--ma-elevated)',
+        border: `1px solid ${keyError ? 'rgba(239,68,68,0.4)' : 'var(--ma-border)'}`,
+        borderRadius: 16,
+        overflow: 'hidden',
+        boxShadow: keyError
+          ? '0 40px 120px rgba(7,7,15,0.8), 0 0 40px rgba(239,68,68,0.15)'
+          : '0 40px 120px rgba(7,7,15,0.8), 0 0 60px rgba(108,99,255,0.1)',
+        transition: 'border-color 0.3s, box-shadow 0.3s',
+      }}
+    >
       {/* Header */}
-      <div style={{
-        padding: '24px 32px',
-        borderBottom: '1px solid var(--ma-border)',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 16,
-      }}>
+      <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--ma-border)', display: 'flex', alignItems: 'center', gap: 16 }}>
         <div style={{
           width: 36, height: 36, borderRadius: 10,
           background: 'linear-gradient(135deg, var(--ma-accent), #9B8FFF)',
@@ -212,9 +202,7 @@ function WizardPhase(props: any) {
           </h2>
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', margin: 0 }}>{STEPS[0].description}</p>
         </div>
-        <button onClick={onSkip} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)' }}>
-          <X size={18} />
-        </button>
+        <div style={{ marginLeft: 'auto', width: 18 }} />
       </div>
 
       {/* Content */}
@@ -222,40 +210,71 @@ function WizardPhase(props: any) {
         <APIKeyStep
           label="fal.ai API Key"
           value={falKey}
-          onChange={setFalKey}
+          onChange={(v: string) => { setFalKey(v); }}
           show={showFal}
           toggleShow={() => setShowFal(!showFal)}
           placeholder="fal-..."
-          hint="Found at fal.ai/dashboard/keys"
+          hasError={!!keyError}
+          hint={
+            <span>
+              Bring your own fal.ai API key{' '}
+              <a
+                href="https://fal.ai/dashboard/keys"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.api.external.open('https://fal.ai/dashboard/keys');
+                }}
+                style={{ color: '#FFFFFF', textDecoration: 'underline', fontWeight: 600 }}
+              >
+                click here
+              </a>
+            </span>
+          }
         />
 
-        {/* Actions */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 32 }}>
-          <button
-            onClick={onSkip}
-            style={{
-              padding: '10px 20px', background: 'transparent',
-              color: 'rgba(255,255,255,0.4)', border: '1px solid var(--ma-border)',
-              borderRadius: 8, cursor: 'pointer', fontSize: 13,
-              fontFamily: 'var(--font-body)',
-            }}
-          >
-            Skip setup
-          </button>
+        {/* Error message */}
+        {keyError && (
+          <div style={{
+            marginTop: 12, padding: '10px 14px',
+            background: 'rgba(239,68,68,0.1)',
+            border: '1px solid rgba(239,68,68,0.25)',
+            borderRadius: 8,
+            display: 'flex', alignItems: 'flex-start', gap: 8,
+          }}>
+            <AlertCircle size={14} style={{ color: '#EF4444', flexShrink: 0, marginTop: 1 }} />
+            <p style={{ fontSize: 12, color: '#EF4444', margin: 0, lineHeight: 1.5 }}>{keyError}</p>
+          </div>
+        )}
 
+        {/* Actions */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 28 }}>
           <button
             onClick={onNext}
+            disabled={validating}
             style={{
               display: 'flex', alignItems: 'center', gap: 8,
-              padding: '10px 24px',
-              background: 'var(--ma-accent)', color: 'white',
-              border: 'none', borderRadius: 8, cursor: 'pointer',
+              padding: '10px 28px',
+              background: validating ? 'rgba(108,99,255,0.5)' : 'var(--ma-accent)',
+              color: 'white', border: 'none', borderRadius: 8,
+              cursor: validating ? 'not-allowed' : 'pointer',
               fontSize: 13, fontWeight: 600,
-              boxShadow: '0 0 20px rgba(108,99,255,0.35)',
+              boxShadow: validating ? 'none' : '0 0 20px rgba(108,99,255,0.35)',
               fontFamily: 'var(--font-body)',
+              transition: 'all 0.2s',
+              minWidth: 200,
+              justifyContent: 'center',
             }}
           >
-            Launch MosterAds <ChevronRight size={15} />
+            {validating ? (
+              <>
+                <Loader2 size={15} className="animate-spin" />
+                Testing Connection...
+              </>
+            ) : (
+              <>
+                Launch MonsterCreative <ChevronRight size={15} />
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -263,7 +282,7 @@ function WizardPhase(props: any) {
   );
 }
 
-function APIKeyStep({ label, value, onChange, show, toggleShow, placeholder, hint }: any) {
+function APIKeyStep({ label, value, onChange, show, toggleShow, placeholder, hint, hasError }: any) {
   return (
     <div>
       <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)', marginBottom: 8 }}>
@@ -277,16 +296,16 @@ function APIKeyStep({ label, value, onChange, show, toggleShow, placeholder, hin
           placeholder={placeholder}
           style={{
             width: '100%', padding: '12px 48px 12px 16px',
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid var(--ma-border)',
+            background: hasError ? 'rgba(239,68,68,0.05)' : 'rgba(255,255,255,0.04)',
+            border: `1px solid ${hasError ? 'rgba(239,68,68,0.4)' : 'var(--ma-border)'}`,
             borderRadius: 10, color: '#FFFFFF',
             fontSize: 13, outline: 'none',
             fontFamily: 'var(--font-mono)',
             boxSizing: 'border-box',
             transition: 'border-color 0.2s',
           }}
-          onFocus={e => (e.target.style.borderColor = 'var(--ma-accent)')}
-          onBlur={e => (e.target.style.borderColor = 'var(--ma-border)')}
+          onFocus={e => (e.target.style.borderColor = hasError ? 'rgba(239,68,68,0.6)' : 'var(--ma-accent)')}
+          onBlur={e => (e.target.style.borderColor = hasError ? 'rgba(239,68,68,0.4)' : 'var(--ma-border)')}
         />
         <button
           onClick={toggleShow}
@@ -300,7 +319,8 @@ function APIKeyStep({ label, value, onChange, show, toggleShow, placeholder, hin
         </button>
       </div>
       <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
-        <Globe size={11} /> {hint}
+        <Globe size={11} />
+        {hint}
       </p>
 
       <div style={{
@@ -309,7 +329,7 @@ function APIKeyStep({ label, value, onChange, show, toggleShow, placeholder, hin
         border: '1px solid rgba(108,99,255,0.15)',
       }}>
         <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, margin: 0 }}>
-          🔒 Your API key is stored locally and never sent to MosterAds servers. All requests go directly from your device to the API provider.
+          🔒 Your API key is stored locally and never sent to MonsterCreative servers. All requests go directly from your device to the API provider.
         </p>
       </div>
     </div>

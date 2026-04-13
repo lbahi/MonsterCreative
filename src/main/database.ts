@@ -84,6 +84,8 @@ export class DatabaseService {
         cta TEXT,
         tone TEXT,
         triggers_used TEXT,
+        landing_page_part TEXT,
+        video_scripts TEXT,
         created_at TEXT
       );
     `)
@@ -149,12 +151,12 @@ export class DatabaseService {
     const stmt = this.db.prepare(`
       INSERT INTO copy_variants
         (campaign_id, variant_type, platform, headline1, headline2, headline3,
-         hook, body_copy, cta, tone, triggers_used, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         hook, body_copy, cta, tone, triggers_used, landing_page_part, video_scripts, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
     return stmt.run(
       v.campaign_id, v.variant_type, v.platform, v.headline1, v.headline2, v.headline3,
-      v.hook, v.body_copy, v.cta, v.tone, v.triggers_used, new Date().toISOString()
+      v.hook, v.body_copy, v.cta, v.tone, v.triggers_used, v.landing_page_part, v.video_scripts, new Date().toISOString()
     ).lastInsertRowid
   }
 }

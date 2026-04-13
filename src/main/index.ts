@@ -38,6 +38,9 @@ function createWindow(): void {
   }
 }
 
+// Support for YouTube embeds and silencing dxcompiler.dll warnings
+app.disableHardwareAcceleration()
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
@@ -66,8 +69,17 @@ app.whenReady().then(() => {
   ipcMain.handle('key:deleteFalKey', () => keystoreService.deleteFalKey())
 
   // IPC Handlers: Fal
-  ipcMain.handle('fal:getUsage', (_, timeframe) => falService.getUsage(timeframe))
+  ipcMain.handle('fal:getUsage', (_, timeframe, start, end) => falService.getUsage(timeframe, start, end))
   ipcMain.handle('fal:getBilling', () => falService.getBilling())
+  ipcMain.handle('fal:validateKey', (_, key) => falService.validateKey(key))
+  ipcMain.handle('fal:getPricing', (_, ids) => falService.getPricing(ids))
+  ipcMain.handle('fal:getAnalytics', (_, ids, start, end) => falService.getAnalytics(ids, start, end))
+  ipcMain.handle('fal:uploadImage', (_, base64, fileName, contentType) => falService.uploadImage(base64, fileName, contentType))
+
+  // IPC Handlers: Utils
+  ipcMain.handle('util:openExternal', async (_, url) => {
+    await shell.openExternal(url)
+  })
 
   createWindow()
 

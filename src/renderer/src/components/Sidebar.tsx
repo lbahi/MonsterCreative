@@ -74,7 +74,7 @@ const bottomItems: NavItem[] = [
 ];
 
 export function Sidebar() {
-  const { sidebarCollapsed, toggleSidebar, mcpEnabled } = useApp();
+  const { sidebarCollapsed, toggleSidebar, connectionStatus, falCredits, refreshConnectionStatus } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
   const [expandedMenus, setExpandedMenus] = useState<string[]>(['image-gen', 'video-gen']);
@@ -134,80 +134,74 @@ export function Sidebar() {
           height: 48,
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'space-between',
           padding: sidebarCollapsed ? '0 12px' : '0 16px',
           flexShrink: 0,
           WebkitAppRegion: 'drag' as any,
-          gap: 8,
         } as React.CSSProperties}
       >
-        {/* Traffic lights */}
-        <div style={{ display: 'flex', gap: 6, flexShrink: 0, WebkitAppRegion: 'no-drag' as any } as React.CSSProperties}>
-          <div style={{ width: 11, height: 11, borderRadius: '50%', background: '#FF5F57', cursor: 'pointer' }} />
-          <div style={{ width: 11, height: 11, borderRadius: '50%', background: '#FEBC2E', cursor: 'pointer' }} />
-          <div style={{ width: 11, height: 11, borderRadius: '50%', background: '#28C840', cursor: 'pointer' }} />
-        </div>
-
-        {!sidebarCollapsed && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 6, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}>
+          {!sidebarCollapsed ? (
+            <>
+              <div style={{
+                width: 22, height: 22, borderRadius: 6,
+                background: 'linear-gradient(135deg, var(--ma-accent), #9B8FFF)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                boxShadow: '0 0 12px var(--ma-accent-glow)',
+              }}>
+                <Zap size={13} color="white" />
+              </div>
+              <span style={{
+                color: '#FFFFFF',
+                fontSize: 14,
+                fontWeight: 600,
+                letterSpacing: '-0.2px',
+                whiteSpace: 'nowrap',
+                fontFamily: 'var(--font-display)',
+              }}>
+                MonsterCreative
+              </span>
+            </>
+          ) : (
             <div style={{
               width: 22, height: 22, borderRadius: 6,
               background: 'linear-gradient(135deg, var(--ma-accent), #9B8FFF)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
               boxShadow: '0 0 12px var(--ma-accent-glow)',
+              margin: '0 auto',
             }}>
-              <Zap size={13} color="white" />
+              <Zap size={12} color="white" />
             </div>
-            <span style={{
-              color: '#FFFFFF',
-              fontSize: 14,
-              fontWeight: 600,
-              letterSpacing: '-0.2px',
-              whiteSpace: 'nowrap',
-              fontFamily: 'var(--font-display)',
-            }}>
-              MonsterCreative
-            </span>
-          </div>
-        )}
+          )}
+        </div>
 
-        {sidebarCollapsed && (
-          <div style={{
-            width: 22, height: 22, borderRadius: 6,
-            background: 'linear-gradient(135deg, var(--ma-accent), #9B8FFF)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 0 12px var(--ma-accent-glow)',
-            marginLeft: 2,
-          }}>
-            <Zap size={12} color="white" />
-          </div>
-        )}
+        {/* Collapse toggle */}
+        <button
+          onClick={toggleSidebar}
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: sidebarCollapsed ? 20 : 12,
+            width: 24,
+            height: 24,
+            borderRadius: '50%',
+            background: 'rgba(255,255,255,0.05)',
+            border: '1px solid var(--ma-border)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer',
+            color: 'rgba(255,255,255,0.4)',
+            zIndex: 20,
+            transition: 'all 0.2s',
+            flexShrink: 0,
+            WebkitAppRegion: 'no-drag' as any,
+          }}
+          className="hover:bg-white/10 hover:text-white/70"
+        >
+          {sidebarCollapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
+        </button>
       </div>
-
-      {/* Collapse toggle */}
-      <button
-        onClick={toggleSidebar}
-        style={{
-          position: 'absolute',
-          top: 48 + 16,
-          right: sidebarCollapsed ? 8 : 12,
-          width: 24,
-          height: 24,
-          borderRadius: '50%',
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid var(--ma-border)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: 'pointer',
-          color: 'rgba(255,255,255,0.4)',
-          zIndex: 20,
-          transition: 'all 0.2s',
-          flexShrink: 0,
-        }}
-        className="hover:bg-white/10 hover:text-white/70"
-      >
-        {sidebarCollapsed ? <ChevronRight size={12} /> : <ChevronLeft size={12} />}
-      </button>
 
       {/* Nav items */}
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', padding: '8px 8px 8px 8px', paddingTop: 36 }}>
@@ -242,30 +236,59 @@ export function Sidebar() {
             </div>
           </div>
           
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            gap: 6, 
-            padding: '6px 10px', 
-            background: mcpEnabled ? 'rgba(108,99,255,0.06)' : 'rgba(34,197,94,0.06)', 
-            border: mcpEnabled ? '1px solid rgba(108,99,255,0.12)' : '1px solid rgba(34,197,94,0.12)',
-            borderRadius: 6,
-          }}>
-            <div style={{ 
-              width: 6, height: 6, borderRadius: '50%', 
-              background: mcpEnabled ? 'var(--ma-accent)' : 'var(--ma-green)', 
-              boxShadow: mcpEnabled ? '0 0 6px var(--ma-accent)' : '0 0 6px var(--ma-green)' 
-            }} />
-            <span style={{ 
-              fontSize: 10, 
-              color: mcpEnabled ? 'var(--ma-accent-light)' : 'var(--ma-green)', 
-              fontWeight: 500, 
-              textTransform: 'uppercase', 
-              letterSpacing: '0.4px' 
-            }}>
-              {mcpEnabled ? 'IDE Linked (MCP)' : 'Cloud Sync Active'}
-            </span>
-          </div>
+          {/* Connection Status Pill - Clickable */}
+          {(() => {
+            const cfg = {
+              connected: { color: 'var(--ma-green)', borderColor: 'rgba(34,197,94,0.2)', bg: 'rgba(34,197,94,0.06)', text: 'Fal.ai Connected', pulse: false },
+              verifying: { color: '#F59E0B', borderColor: 'rgba(245,158,11,0.2)', bg: 'rgba(245,158,11,0.06)', text: 'Verifying...', pulse: true },
+              invalid: { color: '#EF4444', borderColor: 'rgba(239,68,68,0.2)', bg: 'rgba(239,68,68,0.06)', text: 'Invalid API Key', pulse: false },
+              required: { color: '#EF4444', borderColor: 'rgba(239,68,68,0.2)', bg: 'rgba(239,68,68,0.06)', text: 'API Key Required', pulse: false },
+              error: { color: '#F59E0B', borderColor: 'rgba(245,158,11,0.2)', bg: 'rgba(245,158,11,0.06)', text: 'Connection Error', pulse: false },
+              idle: { color: 'rgba(255,255,255,0.2)', borderColor: 'var(--ma-border)', bg: 'transparent', text: 'Checking...', pulse: false },
+            }[connectionStatus] ?? { color: 'rgba(255,255,255,0.2)', borderColor: 'var(--ma-border)', bg: 'transparent', text: 'Checking...', pulse: false };
+            return (
+              <button
+                onClick={() => refreshConnectionStatus()}
+                title="Click to re-check connection"
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  padding: '6px 10px',
+                  background: cfg.bg,
+                  border: `1px solid ${cfg.borderColor}`,
+                  borderRadius: 6, cursor: 'pointer', width: '100%',
+                  textAlign: 'left',
+                }}
+              >
+                <style>{`
+                  @keyframes statusPulse {
+                    0%, 100% { opacity: 1; }
+                    50% { opacity: 0.3; }
+                  }
+                `}</style>
+                <div style={{
+                  width: 6, height: 6, borderRadius: '50%',
+                  background: cfg.color,
+                  boxShadow: `0 0 6px ${cfg.color}`,
+                  animation: cfg.pulse ? 'statusPulse 1s ease-in-out infinite' : 'none',
+                  flexShrink: 0,
+                }} />
+                <div style={{ overflow: 'hidden' }}>
+                  <span style={{
+                    fontSize: 10, color: cfg.color, fontWeight: 500,
+                    textTransform: 'uppercase', letterSpacing: '0.4px',
+                    display: 'block', whiteSpace: 'nowrap',
+                  }}>
+                    {cfg.text}
+                  </span>
+                  {connectionStatus === 'connected' && falCredits !== null && (
+                    <span style={{ fontSize: 9, color: 'rgba(255,255,255,0.3)', fontFamily: 'var(--font-mono)', display: 'block' }}>
+                      ${falCredits.toFixed(2)} credits
+                    </span>
+                  )}
+                </div>
+              </button>
+            );
+          })()}
         </div>
       )}
 

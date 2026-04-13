@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   Settings, Key, Palette, Bell, Info, Plus, Trash2, Eye, EyeOff,
   Check, AlertCircle, RefreshCw, Shield, ChevronRight, ExternalLink, Globe,
-  Layers
+  Layers, Loader2
 } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 
@@ -29,7 +29,7 @@ const INITIAL_KEYS: ApiKey[] = [
 ];
 
 export function SettingsScreen() {
-  const { setRightPanelContent } = useApp();
+  const { setRightPanelContent, refreshConnectionStatus } = useApp();
   const [section, setSection] = useState('api-keys');
   const [keys, setKeys] = useState<ApiKey[]>(INITIAL_KEYS);
   const [showValues, setShowValues] = useState<Record<string, boolean>>({});
@@ -37,31 +37,63 @@ export function SettingsScreen() {
   const [editValue, setEditValue] = useState('');
   const [saving, setSaving] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
+  const [keyError, setKeyError] = useState<string | null>(null);
+
+  // Load real key from secure keystore on mount
+  useEffect(() => {
+    async function loadKeys() {
+      const falKey = await window.api.keystore.getFalKey();
+      setKeys(prev => prev.map(k =>
+        k.id === 'fal'
+          ? { ...k, value: falKey || '', status: falKey ? 'connected' : 'unconfigured' }
+          : k
+      ));
+    }
+    loadKeys();
+  }, []);
 
   useEffect(() => {
     setRightPanelContent(<SettingsRightPanel section={section} />);
     return () => setRightPanelContent(null);
   }, [setRightPanelContent, section]);
 
-  const handleSaveKey = (keyId: string) => {
+  const handleSaveKey = async (keyId: string) => {
+    if (!editValue.trim()) return;
     setSaving(keyId);
-    setTimeout(() => {
+    setKeyError(null);
+    try {
+      // Smoke test first
+      const result = await window.api.fal.validateKey(editValue.trim());
+      if (!result.valid) {
+        setKeyError(result.error || 'Invalid API key.');
+        setSaving(null);
+        return;
+      }
+      // Save to secure keystore
+      await window.api.keystore.setFalKey(editValue.trim());
       setKeys(prev => prev.map(k => k.id === keyId
-        ? { ...k, value: editValue, status: editValue ? 'connected' : 'unconfigured', lastUsed: 'Just now' }
+        ? { ...k, value: editValue.trim(), status: 'connected', lastUsed: 'Just now' }
         : k
       ));
-      setSaving(null);
       setSaved(keyId);
       setEditingKey(null);
+      setKeyError(null);
+      await refreshConnectionStatus();
       setTimeout(() => setSaved(null), 2000);
-    }, 1200);
+    } catch {
+      setKeyError('Network error. Please check your connection.');
+    } finally {
+      setSaving(null);
+    }
   };
 
-  const handleDeleteKey = (keyId: string) => {
+  const handleDeleteKey = async (keyId: string) => {
+    if (keyId === 'fal') await window.api.keystore.deleteFalKey();
     setKeys(prev => prev.map(k => k.id === keyId
       ? { ...k, value: '', status: 'unconfigured', lastUsed: undefined }
       : k
     ));
+    await refreshConnectionStatus();
   };
 
   return (
@@ -122,9 +154,10 @@ export function SettingsScreen() {
               editingKey={editingKey}
               setEditingKey={setEditingKey}
               editValue={editValue}
-              setEditValue={setEditValue}
+              setEditValue={(v: string) => { setEditValue(v); setKeyError(null); }}
               saving={saving}
               saved={saved}
+              keyError={keyError}
               onSave={handleSaveKey}
               onDelete={handleDeleteKey}
             />
@@ -138,7 +171,7 @@ export function SettingsScreen() {
   );
 }
 
-function ApiKeysSection({ keys, showValues, setShowValues, editingKey, setEditingKey, editValue, setEditValue, saving, saved, onSave, onDelete }: any) {
+function ApiKeysSection({ keys, showValues, setShowValues, editingKey, setEditingKey, editValue, setEditValue, saving, saved, keyError, onSave, onDelete }: any) {
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
@@ -181,37 +214,17 @@ function ApiKeysSection({ keys, showValues, setShowValues, editingKey, setEditin
             onDelete={() => onDelete(key.id)}
             saving={saving === key.id}
             saved={saved === key.id}
+            keyError={editingKey === key.id ? keyError : null}
           />
         ))}
       </div>
 
-      {/* Add custom key */}
-      <button style={{
-        width: '100%', marginTop: 16, padding: '12px',
-        background: 'rgba(255,255,255,0.03)',
-        border: '1px dashed rgba(255,255,255,0.12)',
-        borderRadius: 12, cursor: 'pointer',
-        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-        color: 'rgba(255,255,255,0.3)', fontSize: 13,
-        transition: 'all 0.15s',
-        fontFamily: 'var(--font-body)',
-      }}
-        onMouseEnter={e => {
-          (e.currentTarget as HTMLElement).style.borderColor = 'rgba(108,99,255,0.3)';
-          (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.6)';
-        }}
-        onMouseLeave={e => {
-          (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.12)';
-          (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.3)';
-        }}
-      >
-        <Plus size={16} /> Add Custom API Key
-      </button>
+
     </div>
   );
 }
 
-function ApiKeyCard({ apiKey, showValue, onToggleShow, isEditing, editValue, setEditValue, onEdit, onCancel, onSave, onDelete, saving, saved }: any) {
+function ApiKeyCard({ apiKey, showValue, onToggleShow, isEditing, editValue, setEditValue, onEdit, onCancel, onSave, onDelete, saving, saved, keyError }: any) {
   const statusConfig = {
     connected: { color: 'var(--ma-green)', label: 'Connected', bg: 'rgba(34,197,94,0.12)', border: 'rgba(34,197,94,0.25)' },
     error: { color: 'var(--ma-red)', label: 'Error', bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.25)' },
@@ -280,8 +293,10 @@ function ApiKeyCard({ apiKey, showValue, onToggleShow, isEditing, editValue, set
               letterSpacing: '0.5px',
             }}>
               {apiKey.status === 'connected'
-                ? (showValue ? 'sk-proj-••••••••••••••••••••ACTUAL_KEY' : apiKey.value)
-                : 'Not configured'}
+                ? (showValue
+                    ? apiKey.value
+                    : `${apiKey.value.substring(0, 8)}${'•'.repeat(24)}`)
+                : 'Not configured — click Add Key to set up'}
             </span>
           </div>
 
@@ -340,15 +355,25 @@ function ApiKeyCard({ apiKey, showValue, onToggleShow, isEditing, editValue, set
               style={{
                 width: '100%', padding: '10px 14px',
                 background: 'rgba(255,255,255,0.04)',
-                border: '1px solid var(--ma-accent)',
+                border: `1px solid ${keyError ? 'rgba(239,68,68,0.5)' : 'var(--ma-accent)'}`,
                 borderRadius: 8, color: '#FFF',
                 fontSize: 12, outline: 'none',
                 fontFamily: 'var(--font-mono)',
                 boxSizing: 'border-box',
-                boxShadow: '0 0 12px rgba(108,99,255,0.15)',
+                boxShadow: keyError ? '0 0 12px rgba(239,68,68,0.15)' : '0 0 12px rgba(108,99,255,0.15)',
               }}
             />
           </div>
+          {keyError && (
+            <div style={{
+              marginBottom: 10, padding: '8px 12px',
+              background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)',
+              borderRadius: 7, display: 'flex', alignItems: 'center', gap: 6,
+            }}>
+              <AlertCircle size={13} style={{ color: '#EF4444', flexShrink: 0 }} />
+              <p style={{ fontSize: 12, color: '#EF4444', margin: 0 }}>{keyError}</p>
+            </div>
+          )}
           <div style={{ display: 'flex', gap: 8 }}>
             <button onClick={onSave} disabled={saving || !editValue} style={{
               padding: '8px 20px', background: saving ? 'rgba(108,99,255,0.3)' : 'var(--ma-accent)',

@@ -18,8 +18,15 @@ declare global {
         deleteFalKey: () => Promise<boolean>
       }
       fal: {
-        getUsage: (timeframe?: string) => Promise<any>
+        getUsage: (timeframe?: string, start?: string, end?: string) => Promise<any>
         getBilling: () => Promise<any>
+        validateKey: (key: string) => Promise<{ valid: boolean; credits?: number; currency?: string; error?: string }>
+        getPricing: (ids: string[]) => Promise<any>
+        getAnalytics: (ids: string[], start?: string, end?: string) => Promise<any>
+        uploadImage: (base64: string, fileName: string, contentType: string) => Promise<{ url?: string; error?: string }>
+      },
+      external: {
+        open: (url: string) => Promise<void>
       }
     }
   }

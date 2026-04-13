@@ -26,15 +26,22 @@ export function ApiCostsScreen() {
   const [transactions, setTransactions] = useState<any[]>([]);
   const [totalRequests, setTotalRequests] = useState(0);
   const [billing, setBilling] = useState<{ balance?: number, currency?: string } | null>(null);
+  const [analyticsData, setAnalyticsData] = useState<{ successRate: number; avgDuration: number } | null>(null);
+  const [modelBreakdown, setModelBreakdown] = useState<{ model: string; cost: number; quantity: number }[]>([]);
 
   useEffect(() => {
     async function fetchData() {
       try {
         setLoading(true);
-        // Fetch billing and usage simultaneously
-        const [usageResponse, billingResponse] = await Promise.all([
+        const FAL_MODEL_IDS = [
+          'fal-ai/flux-pro', 'fal-ai/flux/dev', 'fal-ai/flux/schnell', 'fal-ai/fast-sdxl',
+          'fal-ai/kling-video/v1.6/pro/text-to-video', 'fal-ai/wan/v2.1/1.3b/text-to-video'
+        ];
+        // Fetch billing, usage and analytics concurrently
+        const [usageResponse, billingResponse, analyticsResponse] = await Promise.all([
           window.api.fal.getUsage('day'),
-          window.api.fal.getBilling()
+          window.api.fal.getBilling(),
+          window.api.fal.getAnalytics(FAL_MODEL_IDS).catch(() => ({ error: 'unavailable' }))
         ]);
         
         if (usageResponse.error) {
@@ -43,11 +50,13 @@ export function ApiCostsScreen() {
           return;
         }
 
-        if (!billingResponse.error && billingResponse.credits) {
+        if (!billingResponse.error && !billingResponse.billing_restricted && billingResponse.credits) {
           setBilling({
             balance: billingResponse.credits.current_balance,
             currency: billingResponse.credits.currency
           });
+        } else if (billingResponse.billing_restricted) {
+          setBilling({ balance: null, currency: null, restricted: true } as any);
         }
 
         const chartData: any[] = [];
@@ -95,6 +104,30 @@ export function ApiCostsScreen() {
 
         setUsageData(chartData);
         setTransactions(txns);
+        // ── Parse analytics ──
+        if (!analyticsResponse.error && analyticsResponse.summary) {
+          let totalReqs = 0, successReqs = 0, totalDur = 0, durCount = 0;
+          for (const row of analyticsResponse.summary) {
+            totalReqs += row.request_count ?? 0;
+            successReqs += row.success_count ?? 0;
+            if (row.p50_duration) { totalDur += row.p50_duration; durCount++; }
+          }
+          setAnalyticsData({
+            successRate: totalReqs > 0 ? (successReqs / totalReqs) * 100 : 0,
+            avgDuration: durCount > 0 ? totalDur / durCount : 0,
+          });
+        }
+
+        // ── Model breakdown from usage summary ──
+        if (!usageResponse.error && usageResponse.summary) {
+          const breakdown = usageResponse.summary.map((row: any) => ({
+            model: row.endpoint_id?.split('/').slice(-2).join('/') ?? row.endpoint_id,
+            cost: row.cost ?? 0,
+            quantity: row.quantity ?? 0,
+          })).sort((a: any, b: any) => b.cost - a.cost);
+          setModelBreakdown(breakdown);
+        }
+
         setTotalRequests(requestsCount);
       } catch (err: any) {
         setError(err.message);
@@ -144,9 +177,17 @@ export function ApiCostsScreen() {
   }, [transactions, typeFilter, platformFilter, sortField, sortDir]);
 
   useEffect(() => {
-    setRightPanelContent(<ApiCostsRightPanel totalSpend={totalSpend} transactions={transactions} billing={billing} />);
+    setRightPanelContent(
+      <ApiCostsRightPanel
+        totalSpend={totalSpend}
+        transactions={transactions}
+        billing={billing}
+        analyticsData={analyticsData}
+        modelBreakdown={modelBreakdown}
+      />
+    );
     return () => setRightPanelContent(null);
-  }, [setRightPanelContent, totalSpend, transactions, billing]);
+  }, [setRightPanelContent, totalSpend, transactions, billing, analyticsData, modelBreakdown]);
 
   // Handle loading and error rendering before full UI
   if (loading) {
@@ -448,17 +489,24 @@ function FilterPill({ options, value, onChange, colors }: any) {
   );
 }
 
-function ApiCostsRightPanel({ totalSpend, transactions, billing }: { totalSpend: number; transactions: any[]; billing: any }) {
+function ApiCostsRightPanel({ totalSpend, transactions, billing, analyticsData, modelBreakdown }: {
+  totalSpend: number;
+  transactions: any[];
+  billing: any;
+  analyticsData: { successRate: number; avgDuration: number } | null;
+  modelBreakdown: { model: string; cost: number; quantity: number }[];
+}) {
   const byType = transactions.reduce((acc, t) => {
     acc[t.type] = (acc[t.type] || 0) + t.cost;
     return acc;
   }, {} as Record<string, number>);
 
-  const balance = billing?.balance ?? 0;
+  const balance = billing?.balance ?? null;
+  const isRestricted = billing && (billing as any).restricted;
   // If we have a balance, compute what percentage of the budget we've "used" 
   // Wait, if it's "Available Credits", let's show how much is left.
-  const isLowBalance = billing && balance < 10 && balance > 0;
-  const isOutOfCredits = billing && balance <= 0;
+  const isLowBalance = billing && balance !== null && balance < 10 && balance > 0;
+  const isOutOfCredits = billing && balance !== null && balance <= 0 && !isRestricted;
 
   return (
     <div style={{ fontFamily: 'var(--font-body)' }}>
@@ -480,9 +528,30 @@ function ApiCostsRightPanel({ totalSpend, transactions, billing }: { totalSpend:
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: 8 }}>
             <span style={{ fontSize: 11, color: 'var(--ma-text-muted)', textTransform: 'uppercase', letterSpacing: '0.6px' }}>Available fal.ai Credits</span>
             <span style={{ fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-mono)', color: isOutOfCredits ? '#EF4444' : isLowBalance ? 'var(--ma-amber)' : '#FFF' }}>
-              {billing?.currency || '$'}{balance.toFixed(2)}
+              {isRestricted ? '—' : balance !== null ? `${billing?.currency || '$'}${balance.toFixed(2)}` : '…'}
             </span>
           </div>
+
+          {isRestricted && (
+            <div style={{
+              marginTop: 8, padding: 10, borderRadius: 6,
+              background: 'rgba(245,158,11,0.08)',
+              border: '1px solid rgba(245,158,11,0.2)',
+              display: 'flex', gap: 8, alignItems: 'flex-start'
+            }}>
+              <AlertTriangle size={13} style={{ color: 'var(--ma-amber)', flexShrink: 0, marginTop: 2 }} />
+              <p style={{ fontSize: 11, color: 'var(--ma-amber)', margin: 0, lineHeight: 1.4 }}>
+                Billing API access is restricted for this key. View your balance at{' '}
+                <a
+                  href="https://fal.ai/dashboard/billing"
+                  onClick={(e) => { e.preventDefault(); window.api.external.open('https://fal.ai/dashboard/billing'); }}
+                  style={{ color: '#FFFFFF', textDecoration: 'underline' }}
+                >
+                  fal.ai/dashboard/billing
+                </a>
+              </p>
+            </div>
+          )}
           
           {(isLowBalance || isOutOfCredits) && (
             <div style={{ 
@@ -532,9 +601,58 @@ function ApiCostsRightPanel({ totalSpend, transactions, billing }: { totalSpend:
           );
         })}
 
-        <div style={{ height: 1, background: 'var(--ma-border)', margin: '24px 0' }} />
+        {/* ── Analytics Panel ── */}
+        {analyticsData && (
+          <>
+            <div style={{ height: 1, background: 'var(--ma-border)', margin: '8px 0 20px' }} />
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.7px' }}>
+              API Health (MTD)
+            </p>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 20 }}>
+              <div style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.2)', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
+                <div style={{ fontSize: 18, fontWeight: 700, fontFamily: 'var(--font-mono)', color: analyticsData.successRate >= 95 ? '#22C55E' : analyticsData.successRate >= 80 ? 'var(--ma-amber)' : '#EF4444' }}>
+                  {analyticsData.successRate.toFixed(1)}%
+                </div>
+                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>Success Rate</div>
+              </div>
+              <div style={{ background: 'rgba(108,99,255,0.06)', border: '1px solid rgba(108,99,255,0.2)', borderRadius: 8, padding: '10px 12px', textAlign: 'center' }}>
+                <div style={{ fontSize: 18, fontWeight: 700, fontFamily: 'var(--font-mono)', color: '#FFF' }}>
+                  {analyticsData.avgDuration.toFixed(1)}s
+                </div>
+                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>Avg Gen Time</div>
+              </div>
+            </div>
+          </>
+        )}
 
-        {/* Live Activity Feed */}
+        {/* ── Model Cost Breakdown ── */}
+        {modelBreakdown.length > 0 && (
+          <>
+            <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.7px' }}>
+              By Model
+            </p>
+            {modelBreakdown.slice(0, 5).map((row) => {
+              const pct = totalSpend > 0 ? (row.cost / totalSpend) * 100 : 0;
+              return (
+                <div key={row.model} style={{ marginBottom: 14 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
+                    <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.55)', fontFamily: 'var(--font-mono)' }}>{row.model}</span>
+                    <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: '#FFF' }}>${row.cost.toFixed(3)}</span>
+                  </div>
+                  <div style={{ height: 3, borderRadius: 2, background: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${pct}%` }}
+                      style={{ height: '100%', background: 'var(--ma-accent)', borderRadius: 2, boxShadow: '0 0 8px rgba(108,99,255,0.5)' }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+            <div style={{ height: 1, background: 'var(--ma-border)', margin: '8px 0 20px' }} />
+          </>
+        )}
+
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
           <Clock size={14} style={{ color: 'var(--ma-text-muted)' }} />
           <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.7px' }}>

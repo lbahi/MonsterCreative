@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Image, Wand2, Shirt, Crop, Monitor, RefreshCw, Download, Check, Sliders, ChevronDown } from 'lucide-react';
+import { Image, Wand2, Shirt, Crop, Monitor, RefreshCw, Download, Check, Sliders, ChevronDown, DollarSign } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 import { StepChecklist, Step } from '../components/ui/StepChecklist';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
@@ -44,6 +44,21 @@ const STYLES = ['Photorealistic', 'Studio Lit', 'Cinematic', 'Editorial', 'Flat 
 const RATIOS = ['1:1', '4:5', '9:16', '16:9', '2:3', '1.91:1'];
 const MODELS = ['FLUX.1 Pro', 'FLUX.1 Dev', 'FLUX Schnell', 'Stable Diffusion XL'];
 
+// Fal.ai endpoint IDs mapped to our model display names
+const MODEL_ENDPOINT_MAP: Record<string, string> = {
+  'FLUX.1 Pro': 'fal-ai/flux-pro',
+  'FLUX.1 Dev': 'fal-ai/flux/dev',
+  'FLUX Schnell': 'fal-ai/flux/schnell',
+  'Stable Diffusion XL': 'fal-ai/fast-sdxl',
+};
+// Fallback prices (USD per image) if API unavailable
+const MODEL_FALLBACK_PRICES: Record<string, number> = {
+  'FLUX.1 Pro': 0.048,
+  'FLUX.1 Dev': 0.024,
+  'FLUX Schnell': 0.008,
+  'Stable Diffusion XL': 0.006,
+};
+
 const IMG_STEPS: Step[] = [
   { label: 'Processing prompt & context', duration: 800 },
   { label: 'Initializing model', duration: 1200 },
@@ -74,6 +89,29 @@ export function ImageGenScreen() {
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
   const [selectedOutput, setSelectedOutput] = useState(0);
+  const [modelPrices, setModelPrices] = useState<Record<string, number>>(MODEL_FALLBACK_PRICES);
+  const [pricesLoading, setPricesLoading] = useState(true);
+
+  // Fetch live pricing on mount
+  useEffect(() => {
+    async function fetchPricing() {
+      try {
+        const ids = Object.values(MODEL_ENDPOINT_MAP);
+        const res = await window.api.fal.getPricing(ids);
+        if (!res.error && res.prices) {
+          const map: Record<string, number> = { ...MODEL_FALLBACK_PRICES };
+          for (const [name, endpointId] of Object.entries(MODEL_ENDPOINT_MAP)) {
+            const found = res.prices.find((p: any) => p.endpoint_id === endpointId);
+            if (found) map[name] = found.unit_price;
+          }
+          setModelPrices(map);
+        }
+      } catch { /* keep fallbacks */ } finally {
+        setPricesLoading(false);
+      }
+    }
+    fetchPricing();
+  }, []);
 
   const handleGenerate = () => {
     setGenerating(true);
@@ -90,7 +128,7 @@ export function ImageGenScreen() {
     navigate(mode.path);
   };
 
-  const costPerImage = model === 'FLUX.1 Pro' ? 0.048 : model === 'FLUX.1 Dev' ? 0.024 : 0.008;
+  const costPerImage = modelPrices[model] ?? MODEL_FALLBACK_PRICES[model] ?? 0.024;
   const totalCost = (costPerImage * numImages).toFixed(3);
 
   // Dynamic generate button text based on mode
@@ -257,7 +295,11 @@ export function ImageGenScreen() {
                       fontFamily: 'var(--font-body)',
                     }}
                   >
-                    {MODELS.map(m => <option key={m} value={m} style={{ background: '#111124' }}>{m}</option>)}
+                    {MODELS.map(m => (
+                      <option key={m} value={m} style={{ background: '#111124' }}>
+                        {m} — ${(modelPrices[m] ?? MODEL_FALLBACK_PRICES[m] ?? 0).toFixed(3)}/img
+                      </option>
+                    ))}
                   </select>
                   <ChevronDown size={12} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
                 </div>

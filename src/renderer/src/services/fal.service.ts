@@ -1,6 +1,7 @@
 /**
  * FalService - TypeScript Port
  * Identical logic to C# FalService.cs
+ * Uses fal.ai queue + openrouter/router for LLM calls
  */
 
 export interface FalResponse {
@@ -8,6 +9,19 @@ export interface FalResponse {
   status?: string
   images?: Array<{ url: string; width: number; height: number }>
   video?: { url: string }
+}
+
+export interface CopyVariant {
+  variantType: string
+  headline1: string
+  headline2: string
+  headline3: string
+  hook: string
+  bodyCopy: string
+  cta: string
+  triggersUsed: string
+  landingPagePart?: string
+  videoScripts?: string
 }
 
 export class FalService {
@@ -20,28 +34,102 @@ export class FalService {
   }
 
   /**
-   * Identical polling logic: Polls until status is 'COMPLETED' or 'IN_PROGRESS' becomes too long.
+   * Polls the fal.ai queue until status is COMPLETED or FAILED.
+   * Matches the C# PollAsync logic exactly.
    */
-  private async pollStatus(requestId: string, endpoint: string): Promise<FalResponse> {
+  private async pollStatus(requestId: string, endpoint: string, maxAttempts = 60): Promise<any> {
     const auth = await this.getAuthHeader()
-    const pollUrl = `${this.baseUrl}/${endpoint}/requests/${requestId}`
+    const statusUrl = `${this.baseUrl}/${endpoint}/requests/${requestId}/status`
+    const resultUrl = `${this.baseUrl}/${endpoint}/requests/${requestId}`
 
-    while (true) {
-      const response = await fetch(pollUrl, {
+    for (let i = 0; i < maxAttempts; i++) {
+      await new Promise(resolve => setTimeout(resolve, 2000))
+
+      const statusRes = await fetch(statusUrl, {
         method: 'GET',
         headers: { 'Authorization': auth }
       })
 
-      if (!response.ok) throw new Error(`Polling failed: ${response.statusText}`)
+      if (!statusRes.ok) throw new Error(`Polling failed: ${statusRes.statusText}`)
 
-      const result = await response.json() as FalResponse
-      
-      if (result.status === 'COMPLETED') return result
-      if (result.status === 'FAILED') throw new Error('Generation failed on fal.ai.')
+      const statusData = await statusRes.json()
 
-      // Wait 2 seconds before next poll, matching C# logic
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      switch (statusData.status) {
+        case 'COMPLETED': {
+          // Fetch the full result from the result endpoint (matching C# pattern)
+          const resultRes = await fetch(resultUrl, {
+            method: 'GET',
+            headers: { 'Authorization': auth }
+          })
+          if (!resultRes.ok) throw new Error(`Result fetch failed: ${resultRes.statusText}`)
+          return await resultRes.json()
+        }
+        case 'FAILED': {
+          const error = statusData.error || 'Unknown error'
+          throw new Error(`Generation failed: ${error}`)
+        }
+        case 'IN_QUEUE':
+        case 'IN_PROGRESS':
+          continue
+      }
     }
+
+    throw new Error(`Timed out after ${maxAttempts * 2} seconds`)
+  }
+
+  /**
+   * Extracts the raw LLM text output from the fal.ai openrouter/router result.
+   * Mirrors the C# ExtractLlmOutput method exactly.
+   */
+  private extractLlmOutput(result: any): string {
+    let output = ''
+
+    // Shape: { "output": "...text..." }
+    if (typeof result.output === 'string') {
+      output = result.output
+    }
+
+    // Shape: { "output": { "text": "..." } }
+    if (!output && result.output && typeof result.output === 'object' && result.output.text) {
+      output = result.output.text
+    }
+
+    // Shape: { "text": "..." }
+    if (!output && typeof result.text === 'string') {
+      output = result.text
+    }
+
+    // Fallback to entire JSON body
+    if (!output) {
+      output = JSON.stringify(result)
+    }
+
+    return output
+  }
+
+  /**
+   * "Monster Search" — extract the JSON array from potentially chatty LLM output.
+   * Finds the first [ and last ] to survive any preamble/postamble.
+   */
+  private extractJsonArray(text: string): string {
+    // Strip markdown code fences
+    let cleaned = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()
+
+    const firstBracket = cleaned.indexOf('[')
+    const lastBracket = cleaned.lastIndexOf(']')
+
+    if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
+      return cleaned.substring(firstBracket, lastBracket + 1)
+    }
+
+    // Fallback: try object extraction
+    const firstBrace = cleaned.indexOf('{')
+    const lastBrace = cleaned.lastIndexOf('}')
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      return '[' + cleaned.substring(firstBrace, lastBrace + 1) + ']'
+    }
+
+    return cleaned
   }
 
   async generateImage(prompt: string, model: string = 'flux/pro-1.1'): Promise<FalResponse> {
@@ -72,9 +160,18 @@ export class FalService {
     return this.pollStatus(queueData.request_id, endpoint)
   }
 
-  async generateCopy(prompt: string): Promise<string> {
+  /**
+   * Sends a prompt to an LLM via fal.ai's openrouter/router bridge.
+   * Mirrors the C# AnthropicService.GenerateCopyAsync queue + poll pattern.
+   *
+   * @param prompt - The full system prompt
+   * @param modelId - OpenRouter model ID (e.g. 'google/gemini-3-pro', 'anthropic/claude-opus-4-20250514')
+   * @param maxTokens - Max tokens for the response
+   * @returns Raw text output from the LLM
+   */
+  async generateCopy(prompt: string, modelId: string = 'google/gemini-3-pro', maxTokens: number = 4096): Promise<string> {
     const auth = await this.getAuthHeader()
-    const endpoint = 'openrouter/router' // Per technical findings rule
+    const endpoint = 'openrouter/router'
     const queueUrl = `${this.baseUrl}/${endpoint}`
 
     const response = await fetch(queueUrl, {
@@ -84,20 +181,40 @@ export class FalService {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: 'meta-llama/llama-3.1-405b',
+        model: modelId,
         prompt,
-        max_tokens: 4096
+        max_tokens: maxTokens
       })
     })
 
-    if (!response.ok) throw new Error(`Text request failed: ${response.statusText}`)
+    if (!response.ok) {
+      const errBody = await response.text()
+      throw new Error(`LLM queue request failed (${response.status}): ${errBody}`)
+    }
 
-    const queueData = await response.json() as FalResponse
-    const finalResult = await this.pollStatus(queueData.request_id, endpoint)
-    
-    // In any-llm responses, the text is usually in 'output' or similar.
-    // Matching the expected structure from C# findings.
-    return (finalResult as any).output || (finalResult as any).text || ''
+    const queueData = await response.json()
+    const result = await this.pollStatus(queueData.request_id, endpoint)
+
+    return this.extractLlmOutput(result)
+  }
+
+  /**
+   * High-level method: generates ad copy variants and parses them into structured objects.
+   * Combines generateCopy + Monster Search JSON extraction + parsing.
+   */
+  async generateAdCopyVariants(prompt: string, modelId: string): Promise<CopyVariant[]> {
+    const rawOutput = await this.generateCopy(prompt, modelId)
+    const jsonString = this.extractJsonArray(rawOutput)
+
+    try {
+      const parsed = JSON.parse(jsonString)
+      const variants: CopyVariant[] = Array.isArray(parsed) ? parsed : [parsed]
+      return variants
+    } catch (e: any) {
+      console.error('Failed to parse LLM JSON response:', e.message)
+      console.error('Raw output:', rawOutput)
+      throw new Error(`Failed to parse LLM response: ${e.message}`)
+    }
   }
 }
 
