@@ -16,7 +16,8 @@ function createWindow(): void {
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false
+      sandbox: false,
+      webSecurity: false
     }
   })
 
@@ -69,12 +70,15 @@ app.whenReady().then(() => {
   ipcMain.handle('key:deleteFalKey', () => keystoreService.deleteFalKey())
 
   // IPC Handlers: Fal
+  ipcMain.handle('fal:generateCopy', (_, promptOrMessages, modelId) => falService.generateCopy(promptOrMessages, modelId))
+  ipcMain.handle('fal:analyzeImageVision', (_, imageUrl, prompt, systemPrompt, modelId) => falService.analyzeImageVision(imageUrl, prompt, systemPrompt, modelId))
+  ipcMain.handle('fal:chatCompletion', (_, messages, modelId) => falService.chatCompletion(messages, modelId))
   ipcMain.handle('fal:getUsage', (_, timeframe, start, end) => falService.getUsage(timeframe, start, end))
   ipcMain.handle('fal:getBilling', () => falService.getBilling())
   ipcMain.handle('fal:validateKey', (_, key) => falService.validateKey(key))
   ipcMain.handle('fal:getPricing', (_, ids) => falService.getPricing(ids))
   ipcMain.handle('fal:getAnalytics', (_, ids, start, end) => falService.getAnalytics(ids, start, end))
-  ipcMain.handle('fal:uploadImage', (_, base64, fileName, contentType) => falService.uploadImage(base64, fileName, contentType))
+
 
   // IPC Handlers: Utils
   ipcMain.handle('util:openExternal', async (_, url) => {

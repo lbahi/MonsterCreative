@@ -8,10 +8,38 @@ import { falService, CopyVariant } from './fal.service'
 
 /** Maps the ANALYSIS_MODELS dropdown IDs to OpenRouter model IDs */
 const MODEL_ID_MAP: Record<string, string> = {
-  'gemini-3-pro': 'google/gemini-3-pro',
+  'gemini-3-pro': 'google/gemini-2.0-flash-exp:free',
   'kimi-k2.5-thinking': 'moonshotai/kimi-k2.5-thinking',
   'claude-opus-4-20250514-thinking-16k': 'anthropic/claude-opus-4-20250514'
 }
+
+export interface ChatMessage {
+  role: 'user' | 'assistant' | 'system';
+  content: string | any[];
+}
+
+export interface ConsultationResponse {
+  question: string;
+  contextSummary: string; // "What we know so far"
+  isFinished: boolean;
+}
+
+export interface ProductAnalysis {
+  product: string;
+  material: string;
+  category: string;
+  features: string[];
+  // AI-determined strategy (populated in one-shot mode)
+  targetAudience?: string;
+  priceTier?: string;
+  recommendedPlatforms?: string[];
+}
+
+export interface OneShotResult {
+  analysis: ProductAnalysis;
+  variants: CopyVariant[];
+}
+
 
 export interface AdCopyRequest {
   productName: string
@@ -55,162 +83,277 @@ export class AnthropicService {
    * Resolves the user-facing model dropdown ID to the OpenRouter model ID.
    */
   private resolveModelId(dropdownId: string): string {
-    return MODEL_ID_MAP[dropdownId] || `openai/${dropdownId}`
+    return MODEL_ID_MAP[dropdownId] || dropdownId;
   }
 
   /**
-   * Analyzes a product image using a vision-capable LLM.
+   * ONE-SHOT: Analyzes the product image AND generates the full content plan
+   * in a single API call. The AI self-determines: audience, price tier, platforms.
    */
-  async analyzeProductImage(imageUrl: string, prompt: string): Promise<string> {
-    // We use Gemini 3 Pro (vision capable) for analysis
-    const modelId = 'google/gemini-3-pro';
+  async generatePlanFromImage(dataUrl: string, selectedModel: string = 'google/gemini-2.5-flash'): Promise<OneShotResult> {
+    const systemPrompt = `أنت MonsterCreative AI — خبير تسويق رقمي متخصص في السوق العربي والخليجي.
+
+مهمتك في هذا الطلب الواحد:
+1. حلّل صورة المنتج (المنتج، المادة، الفئة، المزايا البيعية).
+2. حدد استراتيجية التسويق الأمثل بنفسك: الجمهور المستهدف، فئة السعر، المنصات المناسبة.
+3. أنشئ خطة محتوى تسويقي متكاملة.
+
+قواعد الكتابة الإعلانية الصارمة:
+1. كل عنوان يجذب الانتباه خلال 3 ثوانٍ.
+2. استخدم استراتيجية السعر حسب الفئة التي حددتها (اقتصادي/متوسط/فاخر).
+3. التزم بحدود الأحرف: فيسبوك 125 حرف، تيك توك 100 حرف.
+4. فيسبوك: إيموجي بحذر. تيك توك: أشر لصوت تريند.
+5. خطافات الفيديو: Pattern Interrupt في أول ثانيتين.
+6. CTA محدد وموجه للفعل الفوري.
+7. Pain-Killer: مشكلة → تهييج → حل.
+8. Dream-State: صورة حية للمستقبل المشرق للعميل.
+9. نوّع الخطافات: سؤال، صدمة، فضول، تصريح.
+
+أخرج JSON واحد فقط بهذا الهيكل الدقيق (بدون أي نص قبله أو بعده، بدون markdown):
+{
+  "analysis": {
+    "product": "اسم المنتج",
+    "material": "المادة",
+    "category": "الفئة",
+    "features": ["ميزة 1", "ميزة 2", "ميزة 3"],
+    "targetAudience": "الجمهور المستهدف المقترح مع مبرر",
+    "priceTier": "متوسط",
+    "recommendedPlatforms": ["فيسبوك", "إنستغرام"]
+  },
+  "variants": [
+    {
+      "variantType": "Pain-Killer",
+      "headline1": "العنوان الأول (40 حرف كحد أقصى)",
+      "headline2": "العنوان الثاني",
+      "headline3": "العنوان الثالث",
+      "hook": "الخطاف (سؤال، صدمة، فضول)",
+      "bodyCopy": "النص الإعلاني الكامل بأسلوب الاستجابة المباشرة",
+      "cta": "نداء الإجراء المحدد",
+      "triggersUsed": "المحفزات النفسية المستخدمة",
+      "landingPagePart": "موجز الصفحة التسويقية",
+      "videoScripts": "فكرة الفيديو والخطاف المرئي"
+    },
+    {
+      "variantType": "Dream-State",
+      "headline1": "...", "headline2": "...", "headline3": "...",
+      "hook": "...", "bodyCopy": "...", "cta": "...",
+      "triggersUsed": "...", "landingPagePart": "...", "videoScripts": "..."
+    },
+    {
+      "variantType": "Curiosity",
+      "headline1": "...", "headline2": "...", "headline3": "...",
+      "hook": "...", "bodyCopy": "...", "cta": "...",
+      "triggersUsed": "...", "landingPagePart": "...", "videoScripts": "..."
+    }
+  ]
+}`;
+
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: 'حلّل هذا المنتج وأنشئ خطة التسويق الكاملة.' },
+          { type: 'image_url', image_url: { url: dataUrl } }
+        ]
+      }
+    ];
+
+    const response = await window.api.fal.chatCompletion(messages, selectedModel);
+    if (response.error) throw new Error(response.error);
+
+    const raw = response.data!;
+    const jsonStr = raw.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+    const start = jsonStr.indexOf('{');
+    const end = jsonStr.lastIndexOf('}');
+    const parsed = JSON.parse(jsonStr.substring(start, end + 1));
+
+    return {
+      analysis: parsed.analysis as ProductAnalysis,
+      variants: parsed.variants as CopyVariant[]
+    };
+  }
+
+  /**
+   * @deprecated Use generatePlanFromImage instead.
+   * Kept for backward compatibility with other screens.
+   */
+  async analyzeProductImage(dataUrl: string, selectedModel: string = 'google/gemini-2.5-flash'): Promise<ProductAnalysis> {
+    const systemPrompt = `أنت "المحلل الاستراتيجي" — مدير تسويق عالي الأداء متخصص في السوق العربي.
+مهمتك: تحليل صورة المنتج فقط وإخراج تشخيص دقيق.
+
+أخرج JSON فقط بهذه الهيكلة (بدون أي نص قبله أو بعده، بدون markdown):
+{
+  "product": "اسم المنتج بالعربية",
+  "material": "المادة أو الخامة بالعربية",
+  "category": "الفئة بالعربية",
+  "features": ["ميزة بيعية 1", "ميزة بيعية 2", "ميزة بيعية 3"]
+}
+
+قواعد صارمة:
+- جميع القيم النصية باللغة العربية الفصيحة
+- مفاتيح JSON فقط تبقى بالإنجليزية
+- ركّز على الميزات البيعية الفعلية من الصورة`;
+
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      {
+        role: 'user',
+        content: [
+          { type: 'text', text: 'حلل هذا المنتج وأخرج JSON التشخيص التسويقي.' },
+          { type: 'image_url', image_url: { url: dataUrl } }
+        ]
+      }
+    ];
+
+    const response = await window.api.fal.chatCompletion(messages, selectedModel);
+    if (response.error) throw new Error(response.error);
+
+    const jsonStr = response.data!.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+    return JSON.parse(jsonStr) as ProductAnalysis;
+  }
+
+  /**
+   * Phase 2: The Proactive Strategist.
+   * Makes intelligent suggestions based on the product analysis, then confirms
+   * or refines with the user. Collects: Audience, Price, Platforms, Video Content.
+   * Does NOT ask — it SUGGESTS and asks the user to confirm.
+   */
+  async getNextConsultationQuestion(
+    history: ChatMessage[],
+    productInfo: ProductAnalysis,
+    selectedModel: string = 'google/gemini-2.5-flash'
+  ): Promise<ConsultationResponse> {
+    const systemPrompt = `أنت "الاستراتيجي الاستباقي" لـ MonsterCreative — تساعد أصحاب المنتجات في السوق العربي.
+
+هذا هو المنتج الذي تم تحليله:
+- المنتج: ${productInfo.product}
+- الفئة: ${productInfo.category}
+- المادة: ${productInfo.material}
+- الميزات: ${productInfo.features?.join('، ')}
+
+دورك:
+بدلاً من مجرد طرح أسئلة، اقترح بذكاء بناءً على المنتج. مثال:
+"بناءً على هذا المنتج، أرى أن الجمهور الأنسب هو [X] بسبب [Y]. هل تتفق؟ أو لديك شريحة مختلفة في ذهنك؟"
+
+البيانات التي يجب جمعها (متسلسلة، واحدة في كل رد):
+1. Target Audience — اقترح شريحة محددة مع مبرر من الصورة.
+2. Price Point — اقترح فئة السعر (اقتصادي / متوسط / فاخر) مع نطاق سعري مقترح.
+3. Platforms — اقترح منصات بناءً على الجمهور المتفق عليه.
+4. Video Content — اقترح نوع الفيديو الأنسب للمنتج والمنصة (Reels، UGC، Animation، إلخ).
+
+بمجرد تأكيد جميع البنود الأربعة — اضبط "isFinished" على true.
+
+قواعد المحادثة:
+- اقتراح ذكي + تأكيد في كل رد (وليس مجرد سؤال).
+- لا مقدمات، لا "أحسنت"، مباشرة للاقتراح.
+- احتفظ بـ "contextSummary": جملة واحدة تلخص ما تم الاتفاق عليه.
+
+أخرج JSON فقط:
+{
+  "question": "الاقتراح + سؤال التأكيد بالعربية",
+  "contextSummary": "ملخص ما تم الاتفاق عليه حتى الآن بالعربية",
+  "isFinished": false
+}`;
+
+    // Gemini requires: system → user → assistant → user → ...
+    // We inject a synthetic trigger user message so history always follows a valid turn pattern.
+    // Without this, system → assistant → user causes Gemini to ignore prior turns.
+    const triggerMessage = {
+      role: 'user' as const,
+      content: `المنتج: ${productInfo.product} | الفئة: ${productInfo.category} | الميزات: ${productInfo.features?.join('، ')}. ابدأ جلسة الاستراتيجية.`
+    };
+
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      triggerMessage,
+      ...history
+    ];
+
+    const response = await window.api.fal.chatCompletion(messages, selectedModel);
+    if (response.error) throw new Error(response.error);
+
+    const jsonStr = response.data!.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+    return JSON.parse(jsonStr) as ConsultationResponse;
+  }
+
+  /**
+   * Final Step: Synthesis.
+   * Generates the multi-variant content plan from the entire consultation.
+   */
+  async generateFinalMarketingPlan(
+    history: ChatMessage[],
+    productInfo: ProductAnalysis,
+    selectedModel: string = 'google/gemini-2.5-pro'
+  ): Promise<ContentStrategyResult> {
+    const transcript = history.map(m => `${m.role.toUpperCase()}: ${typeof m.content === 'string' ? m.content : JSON.stringify(m.content)}`).join('\n');
     
-    // For vision, we use the messages format which the fal.ai openrouter/router endpoint 
-    // supports if we pass it through. However, since our current fal.service.ts 
-    // generateCopy expects a string prompt, we'll embed the URL in the prompt 
-    // or update falService to support multimodal. 
-    // Actually, let's just use the URL in the prompt for simplicity, as most 
-    // vision models detect the URL.
-    const fullPrompt = `${prompt}\n\nImage for analysis: ${imageUrl}`;
-    return await falService.generateCopy(fullPrompt, modelId);
-  }
+    const prompt = `أنت MonsterCreative AI — خبير تسويق رقمي وإطلاق منتجات للسوق العربي.
+لخّص هذه الجلسة الاستشارية في خطة محتوى تسويقي متكاملة بناءً على هذه القواعد الصارمة.
 
-  /**
-   * Builds the full ad copy generation prompt.
-   * Uses the specialized "MonsterCreative AI" expert strategist persona.
-   */
-  private buildPrompt(request: ContentStrategyRequest): string {
-    const analysis = request.productAnalysis;
-    const audiences = request.selectedAudiences.join(', ');
-    const angles = request.selectedAngles.join(', ');
-    const platforms = request.selectedPlatforms.join(', ');
-    const videoTypes = request.selectedVideoTypes.join(', ');
-    const price = request.exactPrice || request.priceTier;
-    const priceContext = request.exactPrice ? `$${request.exactPrice}` : request.priceTier;
+محاضر الجلسة (الاستراتيجية المتفق عليها):
+${transcript}
 
-    // Define content deliverables dynamically
-    let deliverables = `- ${request.selectedAngles.length} Ad Copy Variants for ${platforms} following these angles: ${angles}`;
-    if (request.needsLandingPage) {
-      deliverables += `\n- Full Landing Page Copy (Hero, Body, Benefits, FAQ, SEO)`;
-    }
-    if (request.needsVideo) {
-      deliverables += `\n- Video Script Hooks and Concepts for: ${videoTypes}`;
-    }
+معلومات المنتج الأساسية (من الصورة):
+- المنتج: ${productInfo.product}
+- الفئة: ${productInfo.category}
+- المادة: ${productInfo.material}
+- الميزات: ${productInfo.features?.join('، ')}
 
-    return `You are MonsterCreative AI, an expert content strategist specializing in product launches.
-Output ONLY a JSON array of objects. No preamble. No markdown.
+قواعد الكتابة الإعلانية الصارمة (CRITICAL STRATEGY RULES):
+1. يجب أن يجذب كل عنوان (Headline) الانتباه خلال 3 ثوانٍ.
+2. استخدم استراتيجية السعر بناءً على الفئة المتفق عليها في الجلسة.
+3. التزم بحدود الأحرف للمنصات (فيسبوك: 125 حرف للنص الأساسي، تيك توك: 100 حرف).
+4. استخدم عناصر المنصات (فيسبوك: إيموجي بحذر، تيك توك: إشارة لصوت تريند).
+5. خطافات الفيديو يجب أن تخلق (Pattern Interrupt) في أول ثانيتين.
+6. جميع الـ CTAs يجب أن تكون محددة وموجهة للفعل المجرد.
+7. لزاوية Pain-Killer: ابدأ بالمشكلة، هيّج المشاعر، ثم قدم الحل.
+8. لزاوية Dream-State: ارسم صورة حية للمستقبل المشرق للعميل.
+9. نوّع الخطافات: سؤال، تصريح، صدمة، فضول.
 
-PRODUCT CONTEXT:
-- Product: ${analysis.product}
-- Category: ${analysis.category}
-- Materials: ${analysis.material}
-- Key Features: ${analysis.features.join(', ')}
-- Price Point: ${priceContext} (${request.priceTier})
-- Target Audience: ${audiences}
+عدد النسخ المطلوبة:
+استخرج من محاضر الجلسة عدد النسخ المطلوبة. إذا لم يُذكر عدد محدد، أنتج 3 نسخ كحد أدنى بزوايا مختلفة.
 
-STRATEGY PARAMETERS:
-- Messaging Frameworks: ${angles}
-- Platforms: ${platforms}
-- Timeline: ${request.campaignDuration}-day campaign
-- Tone: ${request.brandVoice}
-- Video Content: ${request.needsVideo ? `Yes, types: ${videoTypes}` : 'No'}
-
-CONTENT DELIVERABLES:
-${deliverables}
-
-CRITICAL RULES:
-1. Every headline must hook within 3 seconds
-2. Use price strategically based on tier (${request.priceTier})
-3. Match character limits per platform (FB: 125 chars primary text, TikTok: 100 chars)
-4. Include platform-specific elements (FB: emoji sparingly, TikTok: trending sounds reference)
-5. Video hooks must create pattern interrupt in first 2 seconds
-6. All CTAs must be action-oriented and specific
-7. Maintain ${request.brandVoice} tone throughout
-8. For Pain-Killer angle: start with problem, agitate, solve
-9. For Dream-State angle: paint vivid future state
-10. Vary hook types: question, statement, shock, curiosity
-
-Required JSON structure (One object per selected angle):
+أخرج JSON array فقط (بدون أي نص آخر أو markdown):
 [
   {
-    "variantType": "angle_id",
-    "headline1": "string",
-    "headline2": "string",
-    "headline3": "string",
-    "hook": "string",
-    "bodyCopy": "string",
-    "cta": "string",
-    "triggersUsed": "string",
-    "landingPagePart": "string (optional, include if landing page requested)",
-    "videoScripts": "string (optional, include if video requested)"
+    "variantType": "نوع الزاوية (Pain-Killer / Dream-State / Curiosity)",
+    "headline1": "العنوان الأول (40 حرف كحد أقصى)",
+    "headline2": "العنوان الثاني",
+    "headline3": "العنوان الثالث",
+    "hook": "الخطاف (سؤال، صدمة، فضول)",
+    "bodyCopy": "النص الإعلاني الكامل بأسلوب الاستجابة المباشرة",
+    "cta": "نداء الإجراء المحدد",
+    "triggersUsed": "المحفزات النفسية المستخدمة",
+    "landingPagePart": "موجز الصفحة التسويقية",
+    "videoScripts": "فكرة الفيديو والخطاف المرئي (Pattern Interrupt)"
   }
-]
+]`;
 
-RULES:
-- Output ONLY the JSON array.
-- Generate one variant per selected angle: ${angles}.
-- "landingPagePart" and "videoScripts" should be embedded inside the variant objects, or appended to the first variant.`;
-  }
-
-  /**
-   * Full Content Strategy generation — the main entry point.
-   * Gathers all survey data, builds the prompt, calls the LLM, returns parsed variants.
-   */
-  async generateContentStrategy(request: ContentStrategyRequest): Promise<ContentStrategyResult> {
-    const prompt = this.buildPrompt(request)
-    const modelId = this.resolveModelId(request.analysisModelId)
-
-    console.log('[AnthropicService] Using model:', modelId)
-    console.log('[AnthropicService] Prompt length:', prompt.length, 'chars')
-
-    const rawOutput = await falService.generateCopy(prompt, modelId)
-
-    // Monster Search: extract JSON array from response
-    let jsonString = rawOutput
-      .replace(/```json\s*/g, '')
-      .replace(/```\s*/g, '')
-      .trim()
-
-    const firstBracket = jsonString.indexOf('[')
-    const lastBracket = jsonString.lastIndexOf(']')
-
-    if (firstBracket !== -1 && lastBracket !== -1 && lastBracket > firstBracket) {
-      jsonString = jsonString.substring(firstBracket, lastBracket + 1)
+    const rawOutput = await falService.generateCopy(prompt, selectedModel);
+    
+    let jsonString = rawOutput.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+    const firstBracket = jsonString.indexOf('[');
+    const lastBracket = jsonString.lastIndexOf(']');
+    if (firstBracket !== -1 && lastBracket !== -1) {
+      jsonString = jsonString.substring(firstBracket, lastBracket + 1);
     }
 
     try {
-      const parsed = JSON.parse(jsonString)
-      const variants: CopyVariant[] = Array.isArray(parsed) ? parsed : [parsed]
-      return { variants, rawOutput }
+      const parsed = JSON.parse(jsonString);
+      const variants: CopyVariant[] = Array.isArray(parsed) ? parsed : [parsed];
+      return { variants, rawOutput };
     } catch (e: any) {
-      console.error('[AnthropicService] JSON parse failed:', e.message)
-      console.error('[AnthropicService] Raw output:', rawOutput)
-      throw new Error(`Failed to parse LLM response. The model returned invalid JSON. Please try again or switch models.`)
+      throw new Error(`Failed to parse final plan JSON: ${e.message}`);
     }
   }
 
   /**
-   * Simple ad copy generation (legacy interface, kept for compatibility).
+   * Simple ad copy generation (Compatibility helper).
    */
   async generateAdCopy(campaignName: string, platforms: string[], tone: string, modelId?: string): Promise<string> {
-    const prompt = `
-      Act as a Senior Direct-Response Copywriter.
-      Campaign: ${campaignName}
-      Target Platforms: ${platforms.join(', ')}
-      Desired Tone: ${tone}
-
-      Task: Generate 3 variations of high-converting ad copy.
-      Each variation must include:
-      1. Headline (Max 40 chars)
-      2. Hook (First line of body)
-      3. Primary Body Copy
-      4. CTA (Strong and clear)
-
-      Format your response as a valid JSON array of objects with the following keys:
-      "variant", "headline", "hook", "body", "cta"
-      Return ONLY the JSON.
-    `
-    return await falService.generateCopy(prompt, modelId || 'google/gemini-3-pro')
+    const prompt = `Generate 3 ad copy variations for ${campaignName} on ${platforms.join(', ')} with a ${tone} tone. Return JSON array with keys: variant, headline, hook, body, cta.`;
+    return await falService.generateCopy(prompt, modelId || 'google/gemini-2.0-flash-001');
   }
 
   /**

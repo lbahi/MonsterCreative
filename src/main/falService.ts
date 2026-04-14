@@ -227,53 +227,137 @@ export class FalService {
   }
 
   /**
-   * Uploads an image (as base64) to fal.ai CDN storage.
-   * Returns the publicly accessible CDN URL for use with vision models.
-   *
-   * Flow: POST initiate → PUT binary → return file_url
+   * ONE-SHOT VISION ANALYSIS
+   * Uses the correct openrouter/router/vision schema:
+   * { image_urls, prompt, system_prompt?, model, max_tokens? }
+   * Returns the plain text `output` field from the response.
    */
-  async uploadImage(base64Data: string, fileName: string, contentType: string): Promise<{ url?: string; error?: string }> {
+  async analyzeImageVision(
+    imageUrl: string,
+    prompt: string,
+    systemPrompt: string,
+    modelId: string,
+    maxTokens: number = 4096
+  ): Promise<{ data?: string; error?: string }> {
     try {
       const apiKey = await keystoreService.getFalKey()
-      if (!apiKey) return { error: 'No Fal.ai API key found.' }
+      if (!apiKey) return { error: 'No Fal.ai API key configured.' }
 
-      // Step 1: Initiate the upload to get a presigned URL
-      const initRes = await fetch('https://rest.alpha.fal.ai/storage/upload/initiate', {
+      const auth = `Key ${apiKey}`
+      const queueUrl = 'https://queue.fal.run/openrouter/router/vision'
+
+      const body: Record<string, any> = {
+        image_urls: [imageUrl],
+        prompt,
+        system_prompt: systemPrompt,
+        model: modelId,
+        max_tokens: maxTokens
+      }
+
+      const response = await fetch(queueUrl, {
+        method: 'POST',
+        headers: {
+          'Authorization': auth,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      })
+
+      if (!response.ok) {
+        const errBody = await response.text()
+        return { error: `Vision queue submit failed (${response.status}): ${errBody}` }
+      }
+
+      const queueData = await response.json()
+      const result = await this.pollVisionStatus(queueData.request_id, auth)
+      // The vision endpoint returns { output: string, usage: {...} }
+      return { data: result?.output ?? JSON.stringify(result) }
+    } catch (err: any) {
+      return { error: `Network error: ${err.message}` }
+    }
+  }
+
+  /**
+   * MULTI-TURN CHAT COMPLETION (synchronous)
+   * Uses fal.run/openrouter/router/openai/v1/chat/completions
+   * This is the OpenAI-compatible bridge - it supports:
+   *   - Full `messages` history array (for interview flow)
+   *   - system/user/assistant roles
+   *   - Plain text: wrap the prompt in a user message
+   * No polling needed - response comes back directly.
+   */
+  async chatCompletion(
+    messages: any[],
+    modelId: string,
+    maxTokens: number = 4096
+  ): Promise<{ data?: string; error?: string }> {
+    try {
+      const apiKey = await keystoreService.getFalKey()
+      if (!apiKey) return { error: 'No Fal.ai API key configured.' }
+
+      const response = await fetch('https://fal.run/openrouter/router/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Authorization': `Key ${apiKey}`,
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          file_name: fileName,
-          content_type: contentType
+          model: modelId,
+          messages,
+          max_tokens: maxTokens
         })
       })
 
-      if (!initRes.ok) {
-        const errBody = await initRes.text()
-        return { error: `Storage initiate failed (${initRes.status}): ${errBody}` }
+      if (!response.ok) {
+        const errBody = await response.text()
+        return { error: `Chat completion failed (${response.status}): ${errBody}` }
       }
 
-      const { file_url, upload_url } = await initRes.json()
-
-      // Step 2: Upload the raw binary to the presigned URL
-      const buffer = Buffer.from(base64Data, 'base64')
-      const uploadRes = await fetch(upload_url, {
-        method: 'PUT',
-        headers: { 'Content-Type': contentType },
-        body: buffer
-      })
-
-      if (!uploadRes.ok) {
-        return { error: `Storage upload failed (${uploadRes.status}): ${uploadRes.statusText}` }
-      }
-
-      return { url: file_url }
+      const data = await response.json()
+      // Standard OpenAI response format
+      const text = data?.choices?.[0]?.message?.content ?? ''
+      return { data: text }
     } catch (err: any) {
-      return { error: `Image upload failed: ${err.message}` }
+      return { error: `Network error: ${err.message}` }
     }
+  }
+
+  /**
+   * Backward-compatible wrapper.
+   * String prompt → wraps in a user message → calls chatCompletion.
+   * Message array → calls chatCompletion directly.
+   */
+  async generateCopy(promptOrMessages: any, modelId: string, maxTokens: number = 4096): Promise<{ data?: string; error?: string }> {
+    const messages = Array.isArray(promptOrMessages)
+      ? promptOrMessages
+      : [{ role: 'user', content: promptOrMessages }]
+    return this.chatCompletion(messages, modelId, maxTokens)
+  }
+
+  private async pollVisionStatus(requestId: string, auth: string, maxAttempts = 60, intervalMs = 1500): Promise<any> {
+    const endpoint = 'openrouter/router/vision'
+    const statusUrl = `https://queue.fal.run/${endpoint}/requests/${requestId}/status`
+
+    for (let attempts = 0; attempts < maxAttempts; attempts++) {
+      const res = await fetch(statusUrl, { headers: { 'Authorization': auth, 'Accept': 'application/json' } })
+
+      if (!res.ok) {
+        throw new Error(`Polling failed (${res.status}): ${await res.text()}`)
+      }
+
+      const data = await res.json()
+      if (data.status === 'COMPLETED') {
+        const finalRes = await fetch(`https://queue.fal.run/${endpoint}/requests/${requestId}`, {
+          headers: { 'Authorization': auth, 'Accept': 'application/json' }
+        })
+        return await finalRes.json()
+      } else if (data.status === 'FAILED') {
+        throw new Error(`Vision analysis failed on server: ${data.error}`)
+      }
+
+      await new Promise(r => setTimeout(r, intervalMs))
+    }
+    throw new Error('Vision polling timed out.')
   }
 }
 

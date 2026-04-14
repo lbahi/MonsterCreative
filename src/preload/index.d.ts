@@ -23,7 +23,9 @@ declare global {
         validateKey: (key: string) => Promise<{ valid: boolean; credits?: number; currency?: string; error?: string }>
         getPricing: (ids: string[]) => Promise<any>
         getAnalytics: (ids: string[], start?: string, end?: string) => Promise<any>
-        uploadImage: (base64: string, fileName: string, contentType: string) => Promise<{ url?: string; error?: string }>
+        generateCopy: (promptOrMessages: any, modelId: string) => Promise<{ data?: string; error?: string }>
+        analyzeImageVision: (imageUrl: string, prompt: string, systemPrompt: string, modelId: string) => Promise<{ data?: string; error?: string }>
+        chatCompletion: (messages: any[], modelId: string) => Promise<{ data?: string; error?: string }>
       },
       external: {
         open: (url: string) => Promise<void>

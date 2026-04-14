@@ -22,7 +22,9 @@ const api = {
     validateKey: (key: string) => ipcRenderer.invoke('fal:validateKey', key),
     getPricing: (ids: string[]) => ipcRenderer.invoke('fal:getPricing', ids),
     getAnalytics: (ids: string[], start?: string, end?: string) => ipcRenderer.invoke('fal:getAnalytics', ids, start, end),
-    uploadImage: (base64: string, fileName: string, contentType: string) => ipcRenderer.invoke('fal:uploadImage', base64, fileName, contentType),
+    generateCopy: (promptOrMessages, modelId) => ipcRenderer.invoke('fal:generateCopy', promptOrMessages, modelId),
+    analyzeImageVision: (imageUrl: string, prompt: string, systemPrompt: string, modelId: string) => ipcRenderer.invoke('fal:analyzeImageVision', imageUrl, prompt, systemPrompt, modelId),
+    chatCompletion: (messages: any[], modelId: string) => ipcRenderer.invoke('fal:chatCompletion', messages, modelId),
   },
   external: {
     open: (url: string) => ipcRenderer.invoke('util:openExternal', url)

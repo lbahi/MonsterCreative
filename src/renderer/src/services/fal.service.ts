@@ -99,6 +99,16 @@ export class FalService {
       output = result.text
     }
 
+    // Shape: { "choices": [{ "message": { "content": "..." } }] } (Standard OpenAI/OpenRouter)
+    if (!output && result.choices && result.choices[0]?.message?.content) {
+      output = result.choices[0].message.content
+    }
+
+    // Shape: { "choices": [{ "text": "..." }] } (Older Completion API)
+    if (!output && result.choices && result.choices[0]?.text) {
+      output = result.choices[0].text
+    }
+
     // Fallback to entire JSON body
     if (!output) {
       output = JSON.stringify(result)
@@ -169,33 +179,15 @@ export class FalService {
    * @param maxTokens - Max tokens for the response
    * @returns Raw text output from the LLM
    */
-  async generateCopy(prompt: string, modelId: string = 'google/gemini-3-pro', maxTokens: number = 4096): Promise<string> {
-    const auth = await this.getAuthHeader()
-    const endpoint = 'openrouter/router'
-    const queueUrl = `${this.baseUrl}/${endpoint}`
-
-    const response = await fetch(queueUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': auth,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: modelId,
-        prompt,
-        max_tokens: maxTokens
-      })
-    })
-
-    if (!response.ok) {
-      const errBody = await response.text()
-      throw new Error(`LLM queue request failed (${response.status}): ${errBody}`)
+  async generateCopy(promptOrMessages: string | any[], modelId: string = 'google/gemini-3-pro', maxTokens: number = 4096): Promise<string> {
+    const response = await window.api.fal.generateCopy(promptOrMessages, modelId);
+    
+    if (response.error) {
+      throw new Error(response.error);
     }
-
-    const queueData = await response.json()
-    const result = await this.pollStatus(queueData.request_id, endpoint)
-
-    return this.extractLlmOutput(result)
+    
+    // response.data is already the extracted plain text from chatCompletion
+    return response.data ?? '';
   }
 
   /**
@@ -214,6 +206,55 @@ export class FalService {
       console.error('Failed to parse LLM JSON response:', e.message)
       console.error('Raw output:', rawOutput)
       throw new Error(`Failed to parse LLM response: ${e.message}`)
+    }
+  }
+
+  /**
+   * Uploads an image directly from the renderer using the native File object.
+   * Eliminates the need to base64 encode and bypasses Node.js native fetch Buffer bugs.
+   */
+  async uploadImage(file: File): Promise<{ url?: string; error?: string }> {
+    try {
+      const apiKey = await window.api.keystore.getFalKey()
+      if (!apiKey) return { error: 'No Fal.ai API key found.' }
+
+      const response = await fetch('https://fal.media/files/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'X-Fal-File-Name': file.name,
+          'Content-Type': file.type,
+          'Accept': 'application/json'
+        },
+        body: file
+      })
+
+      if (!response.ok) {
+        const errBody = await response.text()
+        return { error: `CDN upload failed (${response.status}): ${errBody}` }
+      }
+
+      const data = await response.json()
+      let accessUrl = data.access_url
+      if (accessUrl) {
+        accessUrl = accessUrl.replace(/ /g, '%20')
+      }
+
+      return { url: accessUrl }
+    } catch (err: any) {
+      return { error: `Image upload failed: ${err.message}` }
+    }
+  }
+  async uploadImageFromDataUrl(dataUrl: string): Promise<{ url?: string; error?: string }> {
+    try {
+      // Convert data URL to Blob
+      const res = await fetch(dataUrl)
+      const blob = await res.blob()
+      const ext = blob.type.split('/')[1] || 'jpg'
+      const file = new File([blob], `product.${ext}`, { type: blob.type })
+      return this.uploadImage(file)
+    } catch (err: any) {
+      return { error: `Failed to convert image: ${err.message}` }
     }
   }
 }

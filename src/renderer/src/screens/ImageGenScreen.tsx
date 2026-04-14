@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Image, Wand2, Shirt, Crop, Monitor, RefreshCw, Download, Check, Sliders, ChevronDown, DollarSign } from 'lucide-react';
+import { Image, Wand2, Shirt, Crop, Monitor, RefreshCw, Download, Check, Sliders, ChevronDown, DollarSign, Upload, X, Settings2 } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 import { StepChecklist, Step } from '../components/ui/StepChecklist';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
@@ -86,6 +86,20 @@ export function ImageGenScreen() {
   const [ratio, setRatio] = useState('1:1');
   const [model, setModel] = useState('FLUX.1 Pro');
   const [numImages, setNumImages] = useState(4);
+
+  // Nano Banana 2 Edit States
+  const [nbReferenceImage, setNbReferenceImage] = useState<string | null>(null);
+  const [nbAssetImage, setNbAssetImage] = useState<string | null>(null);
+  const [nbAdvancedOpen, setNbAdvancedOpen] = useState(false);
+  const [nbRatio, setNbRatio] = useState('auto');
+  const [nbResolution, setNbResolution] = useState('1K');
+  const [nbOutputFormat, setNbOutputFormat] = useState('jpeg');
+  const [nbNumOutputs, setNbNumOutputs] = useState(1);
+  const [nbSeed, setNbSeed] = useState('');
+  const [nbSafety, setNbSafety] = useState(3);
+  const [nbWebSearch, setNbWebSearch] = useState(false);
+  const [nbThinkingLevel, setNbThinkingLevel] = useState<'minimal' | 'high'>('minimal');
+  const [nbLimitGen, setNbLimitGen] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
   const [selectedOutput, setSelectedOutput] = useState(0);
@@ -147,23 +161,44 @@ export function ImageGenScreen() {
   };
 
   useEffect(() => {
-    setRightPanelContent(
-      <ImageGenRightPanel
-        generating={generating}
-        generated={generated}
-        steps={IMG_STEPS}
-        onStepsComplete={handleStepsComplete}
-        selectedOutput={selectedOutput}
-        setSelectedOutput={setSelectedOutput}
-        outputs={SAMPLE_OUTPUTS}
-        model={model}
-        ratio={ratio}
-        style={style}
-        numImages={numImages}
-      />
-    );
+    if (activeMode === 'generate') {
+      setRightPanelContent(
+        <NanoBananaRightPanel
+          generating={generating}
+          generated={generated}
+          ratio={nbRatio}
+          resolution={nbResolution}
+          format={nbOutputFormat}
+          numOutputs={nbNumOutputs}
+          safety={nbSafety}
+          thinkLevel={nbThinkingLevel}
+          search={nbWebSearch}
+          estimatedCost={(0.05 * nbNumOutputs).toFixed(3)}
+        />
+      );
+    } else {
+      setRightPanelContent(
+        <ImageGenRightPanel
+          generating={generating}
+          generated={generated}
+          steps={IMG_STEPS}
+          onStepsComplete={handleStepsComplete}
+          selectedOutput={selectedOutput}
+          setSelectedOutput={setSelectedOutput}
+          outputs={SAMPLE_OUTPUTS}
+          model={model}
+          ratio={ratio}
+          style={style}
+          numImages={numImages}
+        />
+      );
+    }
     return () => setRightPanelContent(null);
-  }, [setRightPanelContent, generating, generated, selectedOutput, model, ratio, style, numImages, handleStepsComplete]);
+  }, [
+    setRightPanelContent, activeMode, generating, generated, selectedOutput, 
+    model, ratio, style, numImages, handleStepsComplete,
+    nbRatio, nbResolution, nbOutputFormat, nbNumOutputs, nbSafety, nbThinkingLevel, nbWebSearch
+  ]);
 
   return (
     <div style={{ padding: '32px 36px', fontFamily: 'var(--font-body)' }}>
@@ -227,125 +262,145 @@ export function ImageGenScreen() {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, alignItems: 'start' }}>
         {/* Form area */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {activeMode === 'generate' && <GenerateForm prompt={prompt} setPrompt={setPrompt} />}
-          {activeMode === 'vton' && <VtonForm />}
-          {activeMode === 'resize' && <ResizeForm />}
-          {activeMode === 'landing' && <LandingForm prompt={prompt} setPrompt={setPrompt} />}
+          {activeMode === 'generate' ? (
+            <NanoBananaLayout 
+              refImage={nbReferenceImage} setRefImage={setNbReferenceImage}
+              assetImage={nbAssetImage} setAssetImage={setNbAssetImage}
+              prompt={prompt} setPrompt={setPrompt}
+              generating={generating} onGenerate={handleGenerate}
+              advOpen={nbAdvancedOpen} setAdvOpen={setNbAdvancedOpen}
+              ratio={nbRatio} setRatio={setNbRatio}
+              resolution={nbResolution} setResolution={setNbResolution}
+              format={nbOutputFormat} setFormat={setNbOutputFormat}
+              numOutputs={nbNumOutputs} setNumOutputs={setNbNumOutputs}
+              seed={nbSeed} setSeed={setNbSeed}
+              safety={nbSafety} setSafety={setNbSafety}
+              searchGround={nbWebSearch} setSearchGround={setNbWebSearch}
+              thinking={nbThinkingLevel} setThinking={setNbThinkingLevel}
+              limitGen={nbLimitGen} setLimitGen={setNbLimitGen}
+            />
+          ) : (
+            <>
+              {activeMode === 'vton' && <VtonForm />}
+              {activeMode === 'resize' && <ResizeForm />}
+              {activeMode === 'landing' && <LandingForm prompt={prompt} setPrompt={setPrompt} />}
 
-          {/* Common settings */}
-          <div style={{ background: 'var(--ma-elevated)', border: '1px solid var(--ma-border)', borderRadius: 12, padding: 20 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-              <Sliders size={14} style={{ color: 'rgba(255,255,255,0.4)' }} />
-              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-                Generation Settings
-              </span>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-              <div>
-                <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 6 }}>Style</label>
-                <div style={{ position: 'relative' }}>
-                  <select
-                    value={style}
-                    onChange={e => setStyle(e.target.value)}
-                    style={{
-                      width: '100%', padding: '8px 32px 8px 12px',
-                      background: 'rgba(255,255,255,0.04)',
-                      border: '1px solid var(--ma-border)',
-                      borderRadius: 8, color: '#FFF',
-                      fontSize: 12, outline: 'none',
-                      appearance: 'none',
-                      cursor: 'pointer',
-                      fontFamily: 'var(--font-body)',
-                    }}
-                  >
-                    {STYLES.map(s => <option key={s} value={s} style={{ background: '#111124' }}>{s}</option>)}
-                  </select>
-                  <ChevronDown size={12} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
+              {/* Common settings */}
+              <div style={{ background: 'var(--ma-elevated)', border: '1px solid var(--ma-border)', borderRadius: 12, padding: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
+                  <Sliders size={14} style={{ color: 'rgba(255,255,255,0.4)' }} />
+                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+                    Generation Settings
+                  </span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+                  <div>
+                    <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 6 }}>Style</label>
+                    <div style={{ position: 'relative' }}>
+                      <select
+                        value={style}
+                        onChange={e => setStyle(e.target.value)}
+                        style={{
+                          width: '100%', padding: '8px 32px 8px 12px',
+                          background: 'rgba(255,255,255,0.04)',
+                          border: '1px solid var(--ma-border)',
+                          borderRadius: 8, color: '#FFF',
+                          fontSize: 12, outline: 'none',
+                          appearance: 'none',
+                          cursor: 'pointer',
+                          fontFamily: 'var(--font-body)',
+                        }}
+                      >
+                        {STYLES.map(s => <option key={s} value={s} style={{ background: '#111124' }}>{s}</option>)}
+                      </select>
+                      <ChevronDown size={12} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 6 }}>Aspect Ratio</label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
+                      {RATIOS.map(r => (
+                        <button key={r} onClick={() => setRatio(r)} style={{
+                          padding: '5px 10px',
+                          background: ratio === r ? 'rgba(108,99,255,0.2)' : 'rgba(255,255,255,0.04)',
+                          border: `1px solid ${ratio === r ? 'var(--ma-border-accent)' : 'var(--ma-border)'}`,
+                          borderRadius: 6, color: ratio === r ? 'var(--ma-accent-light)' : 'rgba(255,255,255,0.4)',
+                          fontSize: 11, cursor: 'pointer', fontFamily: 'var(--font-mono)',
+                        }}>
+                          {r}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 6 }}>Model</label>
+                    <div style={{ position: 'relative' }}>
+                      <select
+                        value={model}
+                        onChange={e => setModel(e.target.value)}
+                        style={{
+                          width: '100%', padding: '8px 32px 8px 12px',
+                          background: 'rgba(255,255,255,0.04)',
+                          border: '1px solid var(--ma-border)',
+                          borderRadius: 8, color: '#FFF',
+                          fontSize: 12, outline: 'none',
+                          appearance: 'none', cursor: 'pointer',
+                          fontFamily: 'var(--font-body)',
+                        }}
+                      >
+                        {MODELS.map(m => (
+                          <option key={m} value={m} style={{ background: '#111124' }}>
+                            {m} — ${(modelPrices[m] ?? MODEL_FALLBACK_PRICES[m] ?? 0).toFixed(3)}/img
+                          </option>
+                        ))}
+                      </select>
+                      <ChevronDown size={12} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
+                    </div>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 6 }}>Images: {numImages}</label>
+                    <input
+                      type="range" min={1} max={8} value={numImages}
+                      onChange={e => setNumImages(Number(e.target.value))}
+                      style={{ width: '100%', accentColor: 'var(--ma-accent)', cursor: 'pointer' }}
+                    />
+                  </div>
                 </div>
               </div>
-              <div>
-                <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 6 }}>Aspect Ratio</label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
-                  {RATIOS.map(r => (
-                    <button key={r} onClick={() => setRatio(r)} style={{
-                      padding: '5px 10px',
-                      background: ratio === r ? 'rgba(108,99,255,0.2)' : 'rgba(255,255,255,0.04)',
-                      border: `1px solid ${ratio === r ? 'var(--ma-border-accent)' : 'var(--ma-border)'}`,
-                      borderRadius: 6, color: ratio === r ? 'var(--ma-accent-light)' : 'rgba(255,255,255,0.4)',
-                      fontSize: 11, cursor: 'pointer', fontFamily: 'var(--font-mono)',
-                    }}>
-                      {r}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
-                <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 6 }}>Model</label>
-                <div style={{ position: 'relative' }}>
-                  <select
-                    value={model}
-                    onChange={e => setModel(e.target.value)}
-                    style={{
-                      width: '100%', padding: '8px 32px 8px 12px',
-                      background: 'rgba(255,255,255,0.04)',
-                      border: '1px solid var(--ma-border)',
-                      borderRadius: 8, color: '#FFF',
-                      fontSize: 12, outline: 'none',
-                      appearance: 'none', cursor: 'pointer',
-                      fontFamily: 'var(--font-body)',
-                    }}
-                  >
-                    {MODELS.map(m => (
-                      <option key={m} value={m} style={{ background: '#111124' }}>
-                        {m} — ${(modelPrices[m] ?? MODEL_FALLBACK_PRICES[m] ?? 0).toFixed(3)}/img
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown size={12} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
-                </div>
-              </div>
-              <div>
-                <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 6 }}>Images: {numImages}</label>
-                <input
-                  type="range" min={1} max={8} value={numImages}
-                  onChange={e => setNumImages(Number(e.target.value))}
-                  style={{ width: '100%', accentColor: 'var(--ma-accent)', cursor: 'pointer' }}
-                />
-              </div>
-            </div>
-          </div>
 
-          {/* Generate button */}
-          <button
-            onClick={handleGenerate}
-            disabled={generating}
-            style={{
-              width: '100%', padding: '14px 24px',
-              background: generating ? 'rgba(108,99,255,0.3)' : 'var(--ma-accent)',
-              color: 'white', border: 'none', borderRadius: 10,
-              cursor: generating ? 'not-allowed' : 'pointer',
-              fontSize: 14, fontWeight: 600,
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-              boxShadow: generating ? 'none' : '0 0 28px rgba(108,99,255,0.4)',
-              transition: 'all 0.2s',
-              fontFamily: 'var(--font-body)',
-            }}
-          >
-            {generating ? (
-              <><RefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }} /> {getGeneratingText()}</>
-            ) : (
-              <><Wand2 size={16} /> {getGenerateButtonText()}</>
-            )}
-            <span style={{
-              marginLeft: 'auto', fontSize: 11,
-              fontFamily: 'var(--font-mono)',
-              color: 'rgba(255,255,255,0.7)',
-              background: 'rgba(0,0,0,0.2)',
-              padding: '2px 8px', borderRadius: 10,
-            }}>
-              ~${totalCost}
-            </span>
-          </button>
+              {/* Generate button */}
+              <button
+                onClick={handleGenerate}
+                disabled={generating}
+                style={{
+                  width: '100%', padding: '14px 24px',
+                  background: generating ? 'rgba(108,99,255,0.3)' : 'var(--ma-accent)',
+                  color: 'white', border: 'none', borderRadius: 10,
+                  cursor: generating ? 'not-allowed' : 'pointer',
+                  fontSize: 14, fontWeight: 600,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                  boxShadow: generating ? 'none' : '0 0 28px rgba(108,99,255,0.4)',
+                  transition: 'all 0.2s',
+                  fontFamily: 'var(--font-body)',
+                }}
+              >
+                {generating ? (
+                  <><RefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }} /> {getGeneratingText()}</>
+                ) : (
+                  <><Wand2 size={16} /> {getGenerateButtonText()}</>
+                )}
+                <span style={{
+                  marginLeft: 'auto', fontSize: 11,
+                  fontFamily: 'var(--font-mono)',
+                  color: 'rgba(255,255,255,0.7)',
+                  background: 'rgba(0,0,0,0.2)',
+                  padding: '2px 8px', borderRadius: 10,
+                }}>
+                  ~${totalCost}
+                </span>
+              </button>
+            </>
+          )}
 
           {/* Output grid */}
           {generated && (
@@ -718,6 +773,296 @@ function InfoRow({ label, value, mono, green }: { label: string; value: any; mon
       }}>
         {value}
       </span>
+    </div>
+  );
+}
+
+function NanoBananaLayout({
+  // Uploads
+  refImage, setRefImage, assetImage, setAssetImage,
+  // Inputs
+  prompt, setPrompt, generating, onGenerate,
+  // Advanced Settings
+  advOpen, setAdvOpen, ratio, setRatio, resolution, setResolution,
+  format, setFormat, numOutputs, setNumOutputs, seed, setSeed,
+  safety, setSafety, searchGround, setSearchGround, thinking, setThinking, limitGen, setLimitGen
+}: any) {
+  const [dragRef, setDragRef] = useState(false);
+  const [dragAsset, setDragAsset] = useState(false);
+  const [nbModel, setNbModel] = useState('Nano Banana 2');
+
+  const handleImageUpload = (e: any, setter: any) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => setter(ev.target?.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadBoxStyle = (isDragging: boolean) => ({
+    border: `2px dashed ${isDragging ? 'var(--ma-accent)' : 'rgba(255,255,255,0.12)'}`,
+    borderRadius: 12, padding: 30, textAlign: 'center' as const, cursor: 'pointer',
+    background: isDragging ? 'rgba(108,99,255,0.05)' : 'rgba(255,255,255,0.02)',
+    transition: 'all 0.2s', height: 160, display: 'flex', flexDirection: 'column' as const,
+    alignItems: 'center', justifyContent: 'center', position: 'relative' as const, overflow: 'hidden'
+  });
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+      {/* 3 Columns */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.2fr)', gap: 16 }}>
+        {/* Step 1: Reference */}
+        <div style={{ background: 'var(--ma-elevated)', border: '1px solid var(--ma-border)', borderRadius: 12, padding: 16 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+            <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#FFF' }}>1</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#FFF' }}>Reference Style</span>
+          </div>
+          <label 
+            style={uploadBoxStyle(dragRef)}
+            onDragOver={(e) => { e.preventDefault(); setDragRef(true); }}
+            onDragLeave={() => setDragRef(false)}
+            onDrop={(e) => { e.preventDefault(); setDragRef(false); if (e.dataTransfer.files[0]) { const reader = new FileReader(); reader.onload = (ev) => setRefImage(ev.target?.result as string); reader.readAsDataURL(e.dataTransfer.files[0]); } }}
+          >
+            <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleImageUpload(e, setRefImage)} />
+            {refImage ? (
+              <>
+                <img src={refImage} style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }} />
+                <button onClick={(e) => { e.preventDefault(); setRefImage(null); }} style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.6)', border: 'none', color: '#FFF', borderRadius: '50%', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={14}/></button>
+              </>
+            ) : (
+              <>
+                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}><Upload size={16} color="rgba(255,255,255,0.5)" /></div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#FFF', marginBottom: 4 }}>Clone an Image</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textAlign: 'center' }}>Recreate The same design in 1s</div>
+              </>
+            )}
+          </label>
+        </div>
+
+        {/* Step 2: Asset */}
+        <div style={{ background: 'var(--ma-elevated)', border: '1px solid var(--ma-border)', borderRadius: 12, padding: 16 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+            <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#FFF' }}>2</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#FFF' }}>Your Asset</span>
+          </div>
+          <label 
+            style={uploadBoxStyle(dragAsset)}
+            onDragOver={(e) => { e.preventDefault(); setDragAsset(true); }}
+            onDragLeave={() => setDragAsset(false)}
+            onDrop={(e) => { e.preventDefault(); setDragAsset(false); if (e.dataTransfer.files[0]) { const reader = new FileReader(); reader.onload = (ev) => setAssetImage(ev.target?.result as string); reader.readAsDataURL(e.dataTransfer.files[0]); } }}
+          >
+            <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleImageUpload(e, setAssetImage)} />
+            {assetImage ? (
+              <>
+                <img src={assetImage} style={{ width: '100%', height: '100%', objectFit: 'contain', position: 'absolute', top: 0, left: 0 }} />
+                <button onClick={(e) => { e.preventDefault(); setAssetImage(null); }} style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.6)', border: 'none', color: '#FFF', borderRadius: '50%', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={14}/></button>
+              </>
+            ) : (
+              <>
+                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}><Image size={16} color="rgba(255,255,255,0.5)" /></div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#FFF', marginBottom: 4 }}>Upload face / logo</div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textAlign: 'center' }}>Optional but recommended</div>
+              </>
+            )}
+          </label>
+        </div>
+
+        {/* Step 3: Instructions */}
+        <div style={{ background: 'var(--ma-elevated)', border: '1px solid var(--ma-border)', borderRadius: 12, padding: 16, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+            <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#FFF' }}>3</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#FFF' }}>Instructions</span>
+          </div>
+          <textarea
+            value={prompt}
+            onChange={e => setPrompt(e.target.value)}
+            placeholder="E.g. Replace the person with my face, change the background to a volcano..."
+            style={{
+              flex: 1, width: '100%', resize: 'none', background: 'rgba(255,255,255,0.02)',
+              border: '1px solid var(--ma-border)', borderRadius: 12, color: '#FFF',
+              fontSize: 12, padding: '14px', outline: 'none', fontFamily: 'var(--font-body)',
+              lineHeight: 1.6, boxSizing: 'border-box'
+            }}
+          />
+        </div>
+      </div>
+
+      <div style={{ background: 'translate', display: 'flex', gap: 12, padding: '10px 0' }}>
+         <div style={{flex: 1}}>
+            <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginBottom: 8, display: 'block' }}>Model Pipeline</label>
+            <select value={nbModel} onChange={e => setNbModel(e.target.value)} style={{ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--ma-border)', borderRadius: 10, color: '#FFF', fontSize: 13, fontFamily: 'var(--font-body)' }}>
+              <option value="Nano Banana 2" style={{background:'#111124'}}>Nano Banana 2 (Smart / Default)</option>
+              <option value="FLUX.2" style={{background:'#111124'}}>FLUX.2 Flash (Precision)</option>
+              <option value="Qwen Image" style={{background:'#111124'}}>Qwen Image 2 Pro (Reasoning / Layout)</option>
+            </select>
+         </div>
+         <div style={{flex: 1}} />
+         <div style={{flex: 1}} />
+      </div>
+
+      {/* Advanced Settings Panel */}
+      <div style={{ background: 'var(--ma-elevated)', border: '1px solid var(--ma-border)', borderRadius: 12, overflow: 'hidden' }}>
+        <button 
+          onClick={() => setAdvOpen(!advOpen)}
+          style={{ width: '100%', padding: '14px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'transparent', border: 'none', color: '#FFF', cursor: 'pointer' }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Settings2 size={16} color="rgba(255,255,255,0.5)" />
+            <span style={{ fontSize: 13, fontWeight: 600 }}>Advanced Controls</span>
+          </div>
+          <ChevronDown size={16} color="rgba(255,255,255,0.3)" style={{ transform: advOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: '0.2s' }} />
+        </button>
+        
+        {advOpen && (
+          <div style={{ padding: '20px', borderTop: '1px solid var(--ma-border)', display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+            {/* Column 1 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginBottom: 8, display: 'block' }}>Aspect Ratio</label>
+                <select value={ratio} onChange={e => setRatio(e.target.value)} style={{ width: '100%', padding: '8px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--ma-border)', borderRadius: 8, color: '#FFF', fontSize: 12 }}>
+                  {['auto', '1:1', '4:5', '3:4', '2:3', '9:16', '16:9', '4:1', '1:4', '8:1', '1:8'].map(r => <option key={r} value={r} style={{background:'#111124'}}>{r}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginBottom: 8, display: 'block' }}>Resolution</label>
+                <select value={resolution} onChange={e => setResolution(e.target.value)} style={{ width: '100%', padding: '8px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--ma-border)', borderRadius: 8, color: '#FFF', fontSize: 12 }}>
+                  {['0.5K', '1K', '2K', '4K'].map(r => <option key={r} value={r} style={{background:'#111124'}}>{r}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginBottom: 8, display: 'block' }}>Format</label>
+                <select value={format} onChange={e => setFormat(e.target.value)} style={{ width: '100%', padding: '8px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--ma-border)', borderRadius: 8, color: '#FFF', fontSize: 12 }}>
+                  {['png', 'jpeg', 'webp'].map(r => <option key={r} value={r} style={{background:'#111124'}}>{r}</option>)}
+                </select>
+              </div>
+            </div>
+
+            {/* Column 2 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginBottom: 8, display: 'block' }}>Outputs ({numOutputs})</label>
+                <input type="range" min={1} max={4} value={numOutputs} onChange={e => setNumOutputs(Number(e.target.value))} style={{ width: '100%', accentColor: 'var(--ma-accent)' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginBottom: 8, display: 'block' }}>Safety Tolerance ({safety})</label>
+                <input type="range" min={1} max={6} value={safety} onChange={e => setSafety(Number(e.target.value))} style={{ width: '100%', accentColor: 'var(--ma-accent)' }} />
+              </div>
+              <div>
+                <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginBottom: 8, display: 'block' }}>Seed (Optional)</label>
+                <input type="text" value={seed} onChange={e => setSeed(e.target.value)} placeholder="Random" style={{ width: '100%', padding: '8px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--ma-border)', borderRadius: 8, color: '#FFF', fontSize: 12, boxSizing: 'border-box' }} />
+              </div>
+            </div>
+
+            {/* Column 3 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                <input type="checkbox" checked={searchGround} onChange={e => setSearchGround(e.target.checked)} style={{ width: 16, height: 16, accentColor: 'var(--ma-accent)' }} />
+                <span style={{ fontSize: 13, color: '#FFF' }}>Web Search Grounding</span>
+              </label>
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+                <input type="checkbox" checked={limitGen} onChange={e => setLimitGen(e.target.checked)} style={{ width: 16, height: 16, accentColor: 'var(--ma-accent)' }} />
+                <span style={{ fontSize: 13, color: '#FFF' }}>Limit Generations</span>
+              </label>
+              <div>
+                <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginBottom: 8, display: 'block' }}>Thinking Level</label>
+                <select value={thinking} onChange={e => setThinking(e.target.value)} style={{ width: '100%', padding: '8px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--ma-border)', borderRadius: 8, color: '#FFF', fontSize: 12 }}>
+                  <option value="minimal" style={{background:'#111124'}}>Minimal</option>
+                  <option value="high" style={{background:'#111124'}}>High</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Main Generate Button */}
+      <button
+        onClick={onGenerate}
+        disabled={generating || !refImage || !assetImage || !prompt}
+        style={{
+          width: '100%', padding: '16px', borderRadius: 12, border: 'none', cursor: (generating || !refImage || !assetImage || !prompt) ? 'not-allowed' : 'pointer',
+          background: generating ? 'rgba(108,99,255,0.3)' : (!refImage || !assetImage || !prompt) ? 'rgba(255,255,255,0.1)' : 'var(--ma-accent)',
+          color: generating ? '#FFF' : (!refImage || !assetImage || !prompt) ? 'rgba(255,255,255,0.3)' : '#FFF',
+          fontSize: 15, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10,
+          boxShadow: (generating || !refImage || !assetImage || !prompt) ? 'none' : '0 4px 20px rgba(108,99,255,0.4)',
+          transition: 'all 0.2s', marginTop: 10,
+        }}
+      >
+        {generating ? (
+          <><RefreshCw size={18} style={{ animation: 'spin 1s linear infinite' }} /> Generating Magic...</>
+        ) : (
+          <><Wand2 size={18} /> Generate Thumbnail</>
+        )}
+      </button>
+    </div>
+  );
+}
+
+function NanoBananaRightPanel({ generating, generated, ratio, resolution, format, numOutputs, safety, thinkLevel, search, estimatedCost }: any) {
+  return (
+    <div style={{ fontFamily: 'var(--font-body)' }}>
+      <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--ma-border)' }}>
+        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: '#FFF', margin: 0 }}>
+          Nano Banana 2
+        </h3>
+        <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', margin: '4px 0 0' }}>
+          Workflow: <span style={{ fontFamily: 'var(--font-mono)' }}>Edit</span>
+        </p>
+      </div>
+
+      <div style={{ padding: 20 }}>
+        {generating ? (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <RefreshCw size={16} color="var(--ma-accent)" style={{ animation: 'spin 1s linear infinite' }} />
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#FFF' }}>Generating...</span>
+            </div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 }}>
+              Applying advanced AI models to construct your final image based on the provided reference style and assets. This usually takes 5-10 seconds.
+            </div>
+          </div>
+        ) : generated ? (
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
+              <Check size={16} color="var(--ma-green)" />
+              <span style={{ fontSize: 13, fontWeight: 600, color: '#FFF' }}>Generation Successful</span>
+            </div>
+            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 }}>
+              Your images are ready. You can download them or run another batch.
+            </div>
+          </div>
+        ) : (
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 16 }}>
+              Live Settings
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, background: 'rgba(255,255,255,0.02)', padding: 16, borderRadius: 10, border: '1px solid rgba(255,255,255,0.05)' }}>
+              <InfoRow label="Aspect Ratio" value={ratio} />
+              <InfoRow label="Resolution" value={resolution} />
+              <InfoRow label="Output Format" value={format} />
+              <InfoRow label="Outputs" value={numOutputs} />
+              <InfoRow label="Safety Level" value={safety} />
+              <InfoRow label="Thinking" value={thinkLevel} />
+              <InfoRow label="Web Search" value={search ? 'Enabled' : 'Disabled'} />
+            </div>
+
+            <div style={{ marginTop: 24, padding: 16, background: 'rgba(108,99,255,0.05)', border: '1px solid rgba(108,99,255,0.15)', borderRadius: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Estimated Cost</span>
+                <span style={{ fontSize: 14, fontWeight: 600, color: '#FFF', fontFamily: 'var(--font-mono)' }}>${estimatedCost}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Est. Time</span>
+                <span style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.8)' }}>
+                  {numOutputs * 3 + 2}s - {numOutputs * 5 + 4}s
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
