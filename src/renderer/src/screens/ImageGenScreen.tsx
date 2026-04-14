@@ -99,6 +99,7 @@ export function ImageGenScreen() {
   const [nbSafety, setNbSafety] = useState(3);
   const [nbWebSearch, setNbWebSearch] = useState(false);
   const [nbThinkingLevel, setNbThinkingLevel] = useState<'minimal' | 'high'>('minimal');
+  const [nbModel, setNbModel] = useState('Nano Banana 2');
   const [nbLimitGen, setNbLimitGen] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [generated, setGenerated] = useState(false);
@@ -145,6 +146,24 @@ export function ImageGenScreen() {
   const costPerImage = modelPrices[model] ?? MODEL_FALLBACK_PRICES[model] ?? 0.024;
   const totalCost = (costPerImage * numImages).toFixed(3);
 
+  // Nano Banana Pricing Logic
+  const getNbEstimatedCost = () => {
+    if (nbModel === 'Qwen Image') return (0.075 * nbNumOutputs).toFixed(3);
+    if (nbModel === 'FLUX.2') return (0.010 * nbNumOutputs).toFixed(3); // 1MP In + 1MP Out
+    
+    // Nano Banana 2 Logic
+    let base = 0.08;
+    if (nbResolution === '2K') base *= 1.5;
+    if (nbResolution === '4K') base *= 2;
+    if (nbResolution === '0.5K') base *= 0.75;
+    
+    if (nbWebSearch) base += 0.015;
+    if (nbThinkingLevel === 'high') base += 0.002;
+    
+    return (base * nbNumOutputs).toFixed(3);
+  };
+  const nbEstimatedCost = getNbEstimatedCost();
+
   // Dynamic generate button text based on mode
   const getGenerateButtonText = () => {
     if (activeMode === 'vton') return `Virtual Try-On (${numImages} Images)`;
@@ -173,7 +192,8 @@ export function ImageGenScreen() {
           safety={nbSafety}
           thinkLevel={nbThinkingLevel}
           search={nbWebSearch}
-          estimatedCost={(0.05 * nbNumOutputs).toFixed(3)}
+          estimatedCost={nbEstimatedCost}
+          nbModel={nbModel}
         />
       );
     } else {
@@ -197,7 +217,7 @@ export function ImageGenScreen() {
   }, [
     setRightPanelContent, activeMode, generating, generated, selectedOutput, 
     model, ratio, style, numImages, handleStepsComplete,
-    nbRatio, nbResolution, nbOutputFormat, nbNumOutputs, nbSafety, nbThinkingLevel, nbWebSearch
+    nbRatio, nbResolution, nbOutputFormat, nbNumOutputs, nbSafety, nbThinkingLevel, nbWebSearch, nbEstimatedCost, nbModel
   ]);
 
   return (
@@ -278,6 +298,7 @@ export function ImageGenScreen() {
               searchGround={nbWebSearch} setSearchGround={setNbWebSearch}
               thinking={nbThinkingLevel} setThinking={setNbThinkingLevel}
               limitGen={nbLimitGen} setLimitGen={setNbLimitGen}
+              nbModel={nbModel} setNbModel={setNbModel}
             />
           ) : (
             <>
@@ -777,19 +798,16 @@ function InfoRow({ label, value, mono, green }: { label: string; value: any; mon
   );
 }
 
-function NanoBananaLayout({
-  // Uploads
-  refImage, setRefImage, assetImage, setAssetImage,
-  // Inputs
-  prompt, setPrompt, generating, onGenerate,
-  // Advanced Settings
-  advOpen, setAdvOpen, ratio, setRatio, resolution, setResolution,
-  format, setFormat, numOutputs, setNumOutputs, seed, setSeed,
-  safety, setSafety, searchGround, setSearchGround, thinking, setThinking, limitGen, setLimitGen
+function NanoBananaLayout({ 
+  refImage, setRefImage, assetImage, setAssetImage, prompt, setPrompt, 
+  advOpen, setAdvOpen, ratio, setRatio, resolution, setResolution, 
+  format, setFormat, numOutputs, setNumOutputs, seed, setSeed, 
+  safety, setSafety, searchGround, setSearchGround, limitGen, setLimitGen, 
+  thinking, setThinking, generating, onGenerate,
+  nbModel, setNbModel
 }: any) {
   const [dragRef, setDragRef] = useState(false);
   const [dragAsset, setDragAsset] = useState(false);
-  const [nbModel, setNbModel] = useState('Nano Banana 2');
 
   const handleImageUpload = (e: any, setter: any) => {
     const file = e.target.files?.[0];
@@ -800,10 +818,10 @@ function NanoBananaLayout({
     }
   };
 
-  const uploadBoxStyle = (isDragging: boolean) => ({
-    border: `2px dashed ${isDragging ? 'var(--ma-accent)' : 'rgba(255,255,255,0.12)'}`,
+  const uploadBoxStyle = (isDragging: boolean, hasImage: boolean) => ({
+    border: `2px ${hasImage ? 'solid' : 'dashed'} ${isDragging ? 'var(--ma-accent)' : hasImage ? 'var(--ma-green)' : 'rgba(255,255,255,0.12)'}`,
     borderRadius: 12, padding: 30, textAlign: 'center' as const, cursor: 'pointer',
-    background: isDragging ? 'rgba(108,99,255,0.05)' : 'rgba(255,255,255,0.02)',
+    background: isDragging ? 'rgba(108,99,255,0.05)' : hasImage ? 'rgba(34,197,94,0.03)' : 'rgba(255,255,255,0.02)',
     transition: 'all 0.2s', height: 160, display: 'flex', flexDirection: 'column' as const,
     alignItems: 'center', justifyContent: 'center', position: 'relative' as const, overflow: 'hidden'
   });
@@ -819,7 +837,7 @@ function NanoBananaLayout({
             <span style={{ fontSize: 13, fontWeight: 600, color: '#FFF' }}>Reference Style</span>
           </div>
           <label 
-            style={uploadBoxStyle(dragRef)}
+            style={uploadBoxStyle(dragRef, !!refImage)}
             onDragOver={(e) => { e.preventDefault(); setDragRef(true); }}
             onDragLeave={() => setDragRef(false)}
             onDrop={(e) => { e.preventDefault(); setDragRef(false); if (e.dataTransfer.files[0]) { const reader = new FileReader(); reader.onload = (ev) => setRefImage(ev.target?.result as string); reader.readAsDataURL(e.dataTransfer.files[0]); } }}
@@ -847,7 +865,7 @@ function NanoBananaLayout({
             <span style={{ fontSize: 13, fontWeight: 600, color: '#FFF' }}>Your Asset</span>
           </div>
           <label 
-            style={uploadBoxStyle(dragAsset)}
+            style={uploadBoxStyle(dragAsset, !!assetImage)}
             onDragOver={(e) => { e.preventDefault(); setDragAsset(true); }}
             onDragLeave={() => setDragAsset(false)}
             onDrop={(e) => { e.preventDefault(); setDragAsset(false); if (e.dataTransfer.files[0]) { const reader = new FileReader(); reader.onload = (ev) => setAssetImage(ev.target?.result as string); reader.readAsDataURL(e.dataTransfer.files[0]); } }}
@@ -855,7 +873,7 @@ function NanoBananaLayout({
             <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handleImageUpload(e, setAssetImage)} />
             {assetImage ? (
               <>
-                <img src={assetImage} style={{ width: '100%', height: '100%', objectFit: 'contain', position: 'absolute', top: 0, left: 0 }} />
+                <img src={assetImage} style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }} />
                 <button onClick={(e) => { e.preventDefault(); setAssetImage(null); }} style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.6)', border: 'none', color: '#FFF', borderRadius: '50%', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={14}/></button>
               </>
             ) : (
@@ -992,19 +1010,19 @@ function NanoBananaLayout({
         {generating ? (
           <><RefreshCw size={18} style={{ animation: 'spin 1s linear infinite' }} /> Generating Magic...</>
         ) : (
-          <><Wand2 size={18} /> Generate Thumbnail</>
+          <><Wand2 size={18} />Magic Generation</>
         )}
       </button>
     </div>
   );
 }
 
-function NanoBananaRightPanel({ generating, generated, ratio, resolution, format, numOutputs, safety, thinkLevel, search, estimatedCost }: any) {
+function NanoBananaRightPanel({ generating, generated, ratio, resolution, format, numOutputs, safety, thinkLevel, search, estimatedCost, nbModel }: any) {
   return (
     <div style={{ fontFamily: 'var(--font-body)' }}>
       <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--ma-border)' }}>
         <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: '#FFF', margin: 0 }}>
-          Nano Banana 2
+          {nbModel}
         </h3>
         <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', margin: '4px 0 0' }}>
           Workflow: <span style={{ fontFamily: 'var(--font-mono)' }}>Edit</span>
