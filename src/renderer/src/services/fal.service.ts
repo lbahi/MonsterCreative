@@ -171,6 +171,87 @@ export class FalService {
   }
 
   /**
+   * Nano Banana 2 Specialized Handler
+   * polymorphic method that supports NB2, FLUX, and Qwen schemas.
+   */
+  async nanoBananaEdit(params: {
+    model: string,
+    prompt: string,
+    image_urls: string[],
+    resolution?: string,
+    aspect_ratio?: string,
+    num_images?: number,
+    seed?: string,
+    output_format?: string,
+    safety_tolerance?: string,
+    thinking_level?: string,
+    enable_web_search?: boolean,
+    limit_generations?: boolean
+  }): Promise<FalResponse> {
+    const auth = await this.getAuthHeader();
+    let endpoint = '';
+    let body: any = {};
+
+    // 1. Determine Endpoint and Map Schemas
+    if (params.model === 'Nano Banana 2') {
+      endpoint = 'fal-ai/nano-banana-2/edit';
+      body = {
+        prompt: params.prompt,
+        image_urls: params.image_urls,
+        resolution: params.resolution || '1K',
+        aspect_ratio: params.aspect_ratio || 'auto',
+        num_images: params.num_images || 1,
+        seed: params.seed ? parseInt(params.seed) : undefined,
+        output_format: params.output_format || 'png',
+        safety_tolerance: params.safety_tolerance || '4',
+        enable_web_search: params.enable_web_search || false,
+        thinking_level: params.thinking_level || undefined,
+        limit_generations: params.limit_generations ?? true
+      };
+    } else if (params.model === 'FLUX.2') {
+      endpoint = 'fal-ai/flux-2/flash/edit';
+      body = {
+        prompt: params.prompt,
+        image_urls: params.image_urls.slice(0, 1), // Flux flash edit takes 1 image usually
+        num_images: params.num_images || 1,
+        seed: params.seed ? parseInt(params.seed) : undefined,
+        output_format: params.output_format || 'png',
+        image_size: params.aspect_ratio === '1:1' ? 'square_hd' : params.aspect_ratio === '16:9' ? 'landscape_4_3' : 'square_hd', // simple mapping for now
+        enable_safety_checker: true
+      };
+    } else if (params.model === 'Qwen Image') {
+      endpoint = 'fal-ai/qwen-image-2/pro/edit';
+      body = {
+        prompt: params.prompt,
+        image_urls: params.image_urls,
+        num_images: params.num_images || 1,
+        seed: params.seed ? parseInt(params.seed) : undefined,
+        output_format: params.output_format || 'png',
+        enable_safety_checker: true,
+        enable_prompt_expansion: true
+      };
+    }
+
+    const queueUrl = `${this.baseUrl}/${endpoint}`;
+    const response = await fetch(queueUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': auth,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Generation request failed (${response.status}): ${errText}`);
+    }
+
+    const queueData = await response.json() as FalResponse;
+    return this.pollStatus(queueData.request_id, endpoint);
+  }
+
+  /**
    * Sends a prompt to an LLM via fal.ai's openrouter/router bridge.
    * Mirrors the C# AnthropicService.GenerateCopyAsync queue + poll pattern.
    *

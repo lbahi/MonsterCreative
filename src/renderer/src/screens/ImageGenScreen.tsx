@@ -4,6 +4,7 @@ import { useApp } from '../contexts/AppContext';
 import { StepChecklist, Step } from '../components/ui/StepChecklist';
 import { ImageWithFallback } from '../components/figma/ImageWithFallback';
 import { useNavigate, useLocation } from 'react-router';
+import { falService } from '../services/fal.service';
 
 const MODES = [
   {
@@ -67,6 +68,118 @@ const IMG_STEPS: Step[] = [
   { label: 'Post-processing & upscaling', duration: 900 },
 ];
 
+const NB_TEMPLATES = {
+  'Nano Banana 2': `NANO BANANA 2 — FULL TEMPLATE (SMART MODE)
+You are a professional AI image editor.
+
+Goal:
+Create a high-quality final image by editing and combining the provided images.
+
+Image usage:
+- Use the first image as the base
+- Integrate elements from additional images naturally
+- Ensure seamless blending between all elements
+
+Edit request:
+{{USER_PROMPT}}
+
+Style:
+{{STYLE}} (default: photorealistic, cinematic lighting, high contrast)
+
+Quality:
+- resolution target: {{RESOLUTION}}
+- aspect ratio: {{ASPECT_RATIO}}
+- quality level: {{QUALITY_HINT}}
+
+Instructions:
+- maintain realistic lighting, shadows, and perspective
+- ensure high detail and sharpness
+- preserve subject identity and proportions
+- avoid artifacts or unnatural blending
+
+Constraints:
+- do not distort faces or key objects
+- keep composition balanced
+- avoid over-processing
+
+Output:
+- {{NUM_IMAGES}} high-quality images
+- consistent colors and lighting
+- format optimized for {{OUTPUT_FORMAT}}`,
+
+  'FLUX.2': `FLUX.2 FLASH Perform a precise image edit.
+
+Task:
+{{USER_PROMPT}}
+
+Editing strictness:
+{{STRICTNESS}} (strict = minimal changes, loose = more freedom)
+
+Rules:
+- only modify explicitly requested elements
+- preserve original composition and layout
+- do not alter unrelated areas
+
+Technical requirements:
+- aspect ratio: {{ASPECT_RATIO}}
+- resolution: {{RESOLUTION}}
+- output format: {{OUTPUT_FORMAT}}
+- number of variations: {{NUM_IMAGES}}
+
+Quality instructions:
+- maintain clean edges and natural transitions
+- ensure color accuracy (especially if HEX values are provided)
+- avoid artifacts or distortions
+
+Style:
+{{STYLE}} (default: clean, commercial, realistic)
+
+Output:
+- controlled, predictable edits
+- minimal deviation from original image`,
+
+  'Qwen Image': `QWEN IMAGE 2 PRO 
+You are a professional designer and visual editor.
+
+Goal:
+Analyze the image and perform a structured, logical edit.
+
+Task:
+{{USER_PROMPT}}
+
+Analysis instructions:
+- understand layout, hierarchy, and relationships
+- identify key elements (text, subject, background)
+- apply changes in a coherent and balanced way
+
+Layout rules:
+- preserve alignment and spacing
+- maintain visual hierarchy
+- ensure readability of all text
+
+Technical requirements:
+- aspect ratio: {{ASPECT_RATIO}}
+- resolution: {{RESOLUTION}}
+- output format: {{OUTPUT_FORMAT}}
+- variations: {{NUM_IMAGES}}
+
+Quality:
+- high clarity and sharpness
+- consistent lighting and colors
+- clean typography rendering
+
+Style:
+{{STYLE}}
+
+Constraints:
+- do not break layout structure
+- avoid overlapping or misaligned elements
+
+Output:
+- structured, professional-quality image
+- visually balanced and clean`
+};
+
 const SAMPLE_OUTPUTS = [
   'https://images.unsplash.com/photo-1771762013405-ad64577dfc55?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=500',
   'https://images.unsplash.com/photo-1591348069836-57e47c84c6a6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=500',
@@ -128,7 +241,82 @@ export function ImageGenScreen() {
     fetchPricing();
   }, []);
 
-  const handleGenerate = () => {
+  const [generatedImages, setGeneratedImages] = useState<string[]>([]);
+
+  const handleGenerate = async () => {
+    if (activeMode === 'generate') {
+      try {
+        setGenerating(true);
+        setGenerated(false);
+        setGeneratedImages([]);
+
+        // 1. Resolve and Upload Images
+        const uploadedUrls: string[] = [];
+        if (nbReferenceImage) {
+          if (nbReferenceImage.startsWith('data:')) {
+            const res = await falService.uploadImageFromDataUrl(nbReferenceImage);
+            if (res.error) throw new Error(`Reference upload failed: ${res.error}`);
+            uploadedUrls.push(res.url!);
+          } else {
+            uploadedUrls.push(nbReferenceImage);
+          }
+        }
+        if (nbAssetImage) {
+          if (nbAssetImage.startsWith('data:')) {
+            const res = await falService.uploadImageFromDataUrl(nbAssetImage);
+            if (res.error) throw new Error(`Asset upload failed: ${res.error}`);
+            uploadedUrls.push(res.url!);
+          } else {
+            uploadedUrls.push(nbAssetImage);
+          }
+        }
+
+        // 2. Build Prompt from Template
+        const template = (NB_TEMPLATES as any)[nbModel] || NB_TEMPLATES['Nano Banana 2'];
+        let finalPrompt = template
+          .replace('{{USER_PROMPT}}', prompt)
+          .replace('{{STYLE}}', style)
+          .replace('{{RESOLUTION}}', nbResolution)
+          .replace('{{ASPECT_RATIO}}', nbRatio)
+          .replace('{{NUM_IMAGES}}', nbNumOutputs.toString())
+          .replace('{{OUTPUT_FORMAT}}', nbOutputFormat)
+          .replace('{{QUALITY_HINT}}', nbResolution === '4K' ? 'Ultra HD' : nbResolution === '2K' ? 'High Detail' : 'Standard')
+          .replace('{{STRICTNESS}}', 'strict');
+
+        console.log('Final Orchestrated Prompt:', finalPrompt);
+
+        // 3. Call Service
+        const result = await falService.nanoBananaEdit({
+          model: nbModel,
+          prompt: finalPrompt,
+          image_urls: uploadedUrls,
+          resolution: nbResolution,
+          aspect_ratio: nbRatio,
+          num_images: nbNumOutputs,
+          seed: nbSeed,
+          output_format: nbOutputFormat,
+          safety_tolerance: nbSafety.toString(),
+          thinking_level: nbThinkingLevel,
+          enable_web_search: nbWebSearch,
+          limit_generations: nbLimitGen
+        });
+
+        if (result.images && result.images.length > 0) {
+          setGeneratedImages(result.images.map(img => img.url));
+          setGenerated(true);
+        } else {
+          throw new Error('No images returned from API');
+        }
+      } catch (err: any) {
+        console.error('Generation Error:', err);
+        alert(`Generation failed: ${err.message}`);
+      } finally {
+        setGenerating(false);
+      }
+      return;
+    }
+
+    // Default existing handleGenerate logic for other modes
     setGenerating(true);
     setGenerated(false);
   };
@@ -441,7 +629,7 @@ export function ImageGenScreen() {
                 </button>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
-                {SAMPLE_OUTPUTS.map((src, i) => (
+                {(generatedImages.length > 0 ? generatedImages : SAMPLE_OUTPUTS).map((src, i) => (
                   <div
                     key={i}
                     onClick={() => setSelectedOutput(i)}
