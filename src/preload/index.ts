@@ -25,6 +25,8 @@ const api = {
     generateCopy: (promptOrMessages, modelId) => ipcRenderer.invoke('fal:generateCopy', promptOrMessages, modelId),
     analyzeImageVision: (imageUrl: string, prompt: string, systemPrompt: string, modelId: string) => ipcRenderer.invoke('fal:analyzeImageVision', imageUrl, prompt, systemPrompt, modelId),
     chatCompletion: (messages: any[], modelId: string) => ipcRenderer.invoke('fal:chatCompletion', messages, modelId),
+    uploadImageFromDataUrl: (dataUrl: string) => ipcRenderer.invoke('fal:uploadImageFromDataUrl', dataUrl),
+    nanoBananaEdit: (params: any) => ipcRenderer.invoke('fal:nanoBananaEdit', params),
   },
   external: {
     open: (url: string) => ipcRenderer.invoke('util:openExternal', url)

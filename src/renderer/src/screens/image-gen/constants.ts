@@ -13,7 +13,7 @@ export const MODES: ModeOption[] = [
 export const STYLES = ['Photorealistic', 'Studio Lit', 'Cinematic', 'Editorial', 'Flat Design', 'Illustration', 'Dark Premium', 'Vibrant'];
 export const RATIOS = ['1:1', '4:5', '9:16', '16:9', '2:3', '1.91:1'];
 export const MODELS = ['FLUX.1 Pro', 'FLUX.1 Dev', 'FLUX Schnell', 'Stable Diffusion XL'];
-export const NANO_BANANA_MODELS = ['Nano Banana 2', 'FLUX.2', 'Qwen Image'];
+export const NANO_BANANA_MODELS = ['Nano Banana 2', 'Seedream 4.5'];
 export const NANO_BANANA_RATIOS = ['auto', '1:1', '4:5', '3:4', '2:3', '9:16', '16:9', '4:1', '1:4', '8:1', '1:8'];
 export const NANO_BANANA_RESOLUTIONS = ['0.5K', '1K', '2K', '4K'];
 export const NANO_BANANA_FORMATS = ['png', 'jpeg', 'webp'];
@@ -78,76 +78,7 @@ Output:
 - {{NUM_IMAGES}} high-quality images
 - consistent colors and lighting
 - format optimized for {{OUTPUT_FORMAT}}`,
-  'FLUX.2': `FLUX.2 FLASH Perform a precise image edit.
-
-Task:
-{{USER_PROMPT}}
-
-Editing strictness:
-{{STRICTNESS}} (strict = minimal changes, loose = more freedom)
-
-Rules:
-- only modify explicitly requested elements
-- preserve original composition and layout
-- do not alter unrelated areas
-
-Technical requirements:
-- aspect ratio: {{ASPECT_RATIO}}
-- resolution: {{RESOLUTION}}
-- output format: {{OUTPUT_FORMAT}}
-- number of variations: {{NUM_IMAGES}}
-
-Quality instructions:
-- maintain clean edges and natural transitions
-- ensure color accuracy (especially if HEX values are provided)
-- avoid artifacts or distortions
-
-Style:
-{{STYLE}} (default: clean, commercial, realistic)
-
-Output:
-- controlled, predictable edits
-- minimal deviation from original image`,
-  'Qwen Image': `QWEN IMAGE 2 PRO
-You are a professional designer and visual editor.
-
-Goal:
-Analyze the image and perform a structured, logical edit.
-
-Task:
-{{USER_PROMPT}}
-
-Analysis instructions:
-- understand layout, hierarchy, and relationships
-- identify key elements (text, subject, background)
-- apply changes in a coherent and balanced way
-
-Layout rules:
-- preserve alignment and spacing
-- maintain visual hierarchy
-- ensure readability of all text
-
-Technical requirements:
-- aspect ratio: {{ASPECT_RATIO}}
-- resolution: {{RESOLUTION}}
-- output format: {{OUTPUT_FORMAT}}
-- variations: {{NUM_IMAGES}}
-
-Quality:
-- high clarity and sharpness
-- consistent lighting and colors
-- clean typography rendering
-
-Style:
-{{STYLE}}
-
-Constraints:
-- do not break layout structure
-- avoid overlapping or misaligned elements
-
-Output:
-- structured, professional-quality image
-- visually balanced and clean`,
+  'Seedream 4.5': `{{USER_PROMPT}}`
 };
 
 export const SAMPLE_OUTPUTS = [

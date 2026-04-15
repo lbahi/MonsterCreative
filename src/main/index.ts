@@ -78,6 +78,8 @@ app.whenReady().then(() => {
   ipcMain.handle('fal:validateKey', (_, key) => falService.validateKey(key))
   ipcMain.handle('fal:getPricing', (_, ids) => falService.getPricing(ids))
   ipcMain.handle('fal:getAnalytics', (_, ids, start, end) => falService.getAnalytics(ids, start, end))
+  ipcMain.handle('fal:uploadImageFromDataUrl', (_, dataUrl) => falService.uploadImageFromDataUrl(dataUrl))
+  ipcMain.handle('fal:nanoBananaEdit', (_, params) => falService.nanoBananaEdit(params))
 
 
   // IPC Handlers: Utils

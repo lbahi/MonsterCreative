@@ -208,7 +208,7 @@ export function NanoBananaLayout({
           <select value={nbModel} onChange={(event) => setNbModel(event.target.value)} style={{ width: '100%', padding: '12px', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--ma-border)', borderRadius: 10, color: '#FFF', fontSize: 13, fontFamily: 'var(--font-body)' }}>
             {NANO_BANANA_MODELS.map((model) => (
               <option key={model} value={model} style={{ background: '#111124' }}>
-                {model === 'Nano Banana 2' ? 'Nano Banana 2 (Smart / Default)' : model === 'FLUX.2' ? 'FLUX.2 Flash (Precision)' : 'Qwen Image 2 Pro (Reasoning / Layout)'}
+                {model === 'Nano Banana 2' ? 'Nano Banana 2 (Smart / Default)' : 'Seedream 4.5 (Transform)'}
               </option>
             ))}
           </select>
@@ -302,22 +302,22 @@ export function NanoBananaLayout({
 
       <button
         onClick={onGenerate}
-        disabled={generating || !refImage || !prompt}
+        disabled={generating || (!prompt) || (nbModel !== 'FLUX.1 [schnell]' && !refImage)}
         style={{
           width: '100%',
           padding: '16px',
           borderRadius: 12,
           border: 'none',
-          cursor: generating || !refImage || !prompt ? 'not-allowed' : 'pointer',
-          background: generating ? 'rgba(108,99,255,0.3)' : !refImage || !prompt ? 'rgba(255,255,255,0.1)' : 'var(--ma-accent)',
-          color: generating ? '#FFF' : !refImage || !prompt ? 'rgba(255,255,255,0.3)' : '#FFF',
+          cursor: generating || (!prompt) || (nbModel !== 'FLUX.1 [schnell]' && !refImage) ? 'not-allowed' : 'pointer',
+          background: generating ? 'rgba(108,99,255,0.3)' : ((!prompt) || (nbModel !== 'FLUX.1 [schnell]' && !refImage)) ? 'rgba(255,255,255,0.1)' : 'var(--ma-accent)',
+          color: generating ? '#FFF' : ((!prompt) || (nbModel !== 'FLUX.1 [schnell]' && !refImage)) ? 'rgba(255,255,255,0.3)' : '#FFF',
           fontSize: 15,
           fontWeight: 700,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           gap: 10,
-          boxShadow: generating || !refImage || !prompt ? 'none' : '0 4px 20px rgba(108,99,255,0.4)',
+          boxShadow: generating || (!prompt) || (nbModel !== 'FLUX.1 [schnell]' && !refImage) ? 'none' : '0 4px 20px rgba(108,99,255,0.4)',
           transition: 'all 0.2s',
           marginTop: 10,
         }}

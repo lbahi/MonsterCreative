@@ -195,6 +195,7 @@ export function ImageGenScreen() {
           outputs={generatedImages}
           selectedOutput={selectedOutput}
           setSelectedOutput={setSelectedOutput}
+          refImage={nbReferenceImage}
         />,
       );
     } else {

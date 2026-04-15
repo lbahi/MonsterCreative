@@ -15,8 +15,7 @@ export function estimateNanoBananaCost({
   webSearch,
   thinkingLevel,
 }: EstimateNanoBananaCostArgs) {
-  if (model === 'Qwen Image') return (0.075 * numOutputs).toFixed(3);
-  if (model === 'FLUX.2') return (0.01 * numOutputs).toFixed(3);
+  if (model === 'Seedream 4.5') return (0.04 * numOutputs).toFixed(3);
 
   let base = 0.08;
   if (resolution === '2K') base *= 1.5;

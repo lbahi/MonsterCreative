@@ -1,4 +1,5 @@
-import { Check, Download } from 'lucide-react';
+import React, { useState } from 'react';
+import { Check, Download, X } from 'lucide-react';
 
 import { ImageWithFallback } from '../../../components/figma/ImageWithFallback';
 import { StepChecklist } from '../../../components/ui/StepChecklist';
@@ -18,6 +19,7 @@ type NanoBananaRightPanelProps = {
   outputs: string[];
   selectedOutput: number;
   setSelectedOutput: (value: number) => void;
+  refImage?: string | null;
 };
 
 export function NanoBananaRightPanel({
@@ -33,7 +35,10 @@ export function NanoBananaRightPanel({
   outputs,
   selectedOutput,
   setSelectedOutput,
+  refImage,
 }: NanoBananaRightPanelProps) {
+  const [modalImage, setModalImage] = useState<string | null>(null);
+
   return (
     <div style={{ fontFamily: 'var(--font-body)' }}>
       <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--ma-border)' }}>
@@ -98,12 +103,39 @@ export function NanoBananaRightPanel({
             <span style={{ fontSize: 12, color: 'var(--ma-green)' }}>Generation Complete</span>
           </div>
 
-          <div style={{ borderRadius: 10, overflow: 'hidden', marginBottom: 16 }}>
-            <ImageWithFallback
-              src={outputs[selectedOutput]}
-              alt="Selected output"
-              style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', display: 'block' }}
-            />
+          <div style={{ display: 'grid', gridTemplateColumns: refImage ? '1fr 1fr' : '1fr', gap: 12, marginBottom: 16 }}>
+            {refImage && (
+              <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid var(--ma-border)' }}>
+                <div style={{ padding: '6px', fontSize: 10, color: 'rgba(255,255,255,0.5)', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderBottom: '1px solid var(--ma-border)' }}>
+                  Original
+                </div>
+                <div onClick={() => setModalImage(refImage)} style={{ cursor: 'pointer' }}>
+                  <ImageWithFallback
+                    src={refImage}
+                    alt="Reference"
+                    style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', display: 'block', transition: 'opacity 0.2s' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.8')}
+                    onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+                  />
+                </div>
+              </div>
+            )}
+            <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid var(--ma-border)' }}>
+              {refImage && (
+                <div style={{ padding: '6px', fontSize: 10, color: 'var(--ma-accent)', textAlign: 'center', background: 'rgba(108,99,255,0.05)', borderBottom: '1px solid var(--ma-border)' }}>
+                  Enhanced
+                </div>
+              )}
+              <div onClick={() => setModalImage(outputs[selectedOutput])} style={{ cursor: 'pointer' }}>
+                <ImageWithFallback
+                  src={outputs[selectedOutput]}
+                  alt="Selected output"
+                  style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', display: 'block', transition: 'opacity 0.2s' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.8')}
+                  onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
+                />
+              </div>
+            </div>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: numOutputs > 1 ? 'repeat(4, 1fr)' : '1fr', gap: 6, marginBottom: 16 }}>
@@ -143,7 +175,23 @@ export function NanoBananaRightPanel({
                 gap: 6,
                 fontFamily: 'var(--font-body)',
               }}
-              onClick={() => window.api.external.open(outputs[selectedOutput])}
+              onClick={async () => {
+                try {
+                  const url = outputs[selectedOutput];
+                  const res = await fetch(url);
+                  const blob = await res.blob();
+                  const blobUrl = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = blobUrl;
+                  a.download = `MonsterCreative-Gen-${Date.now()}.png`; // Provide default name
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(blobUrl);
+                } catch (err) {
+                  window.api.external.open(outputs[selectedOutput]);
+                }
+              }}
             >
               <Download size={14} /> Download Selected
             </button>
@@ -167,6 +215,58 @@ export function NanoBananaRightPanel({
               <Download size={14} /> Download All (ZIP)
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Fullscreen Lightbox Modal */}
+      {modalImage && (
+        <div
+          onClick={() => setModalImage(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.9)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'zoom-out',
+            padding: 40,
+          }}
+        >
+          <button
+            onClick={() => setModalImage(null)}
+            style={{
+              position: 'absolute',
+              top: 20,
+              right: 20,
+              background: 'rgba(255,255,255,0.1)',
+              border: 'none',
+              borderRadius: '50%',
+              width: 40,
+              height: 40,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              cursor: 'pointer',
+              zIndex: 10000,
+            }}
+          >
+            <X size={20} />
+          </button>
+          <img
+            src={modalImage}
+            alt="Fullscreen"
+            style={{
+              maxHeight: '100%',
+              maxWidth: '100%',
+              objectFit: 'contain',
+              borderRadius: 12,
+              boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+            }}
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking the image itself
+          />
         </div>
       )}
     </div>

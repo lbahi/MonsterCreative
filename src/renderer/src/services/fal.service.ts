@@ -188,67 +188,7 @@ export class FalService {
     enable_web_search?: boolean,
     limit_generations?: boolean
   }): Promise<FalResponse> {
-    const auth = await this.getAuthHeader();
-    let endpoint = '';
-    let body: any = {};
-
-    // 1. Determine Endpoint and Map Schemas
-    if (params.model === 'Nano Banana 2') {
-      endpoint = 'fal-ai/nano-banana-2/edit';
-      body = {
-        prompt: params.prompt,
-        image_urls: params.image_urls,
-        resolution: params.resolution || '1K',
-        aspect_ratio: params.aspect_ratio || 'auto',
-        num_images: params.num_images || 1,
-        seed: params.seed ? parseInt(params.seed) : undefined,
-        output_format: params.output_format || 'png',
-        safety_tolerance: params.safety_tolerance || '4',
-        enable_web_search: params.enable_web_search || false,
-        thinking_level: params.thinking_level || undefined,
-        limit_generations: params.limit_generations ?? true
-      };
-    } else if (params.model === 'FLUX.2') {
-      endpoint = 'fal-ai/flux-2/flash/edit';
-      body = {
-        prompt: params.prompt,
-        image_urls: params.image_urls.slice(0, 1), // Flux flash edit takes 1 image usually
-        num_images: params.num_images || 1,
-        seed: params.seed ? parseInt(params.seed) : undefined,
-        output_format: params.output_format || 'png',
-        image_size: params.aspect_ratio === '1:1' ? 'square_hd' : params.aspect_ratio === '16:9' ? 'landscape_4_3' : 'square_hd', // simple mapping for now
-        enable_safety_checker: true
-      };
-    } else if (params.model === 'Qwen Image') {
-      endpoint = 'fal-ai/qwen-image-2/pro/edit';
-      body = {
-        prompt: params.prompt,
-        image_urls: params.image_urls,
-        num_images: params.num_images || 1,
-        seed: params.seed ? parseInt(params.seed) : undefined,
-        output_format: params.output_format || 'png',
-        enable_safety_checker: true,
-        enable_prompt_expansion: true
-      };
-    }
-
-    const queueUrl = `${this.baseUrl}/${endpoint}`;
-    const response = await fetch(queueUrl, {
-      method: 'POST',
-      headers: {
-        'Authorization': auth,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`Generation request failed (${response.status}): ${errText}`);
-    }
-
-    const queueData = await response.json() as FalResponse;
-    return this.pollStatus(queueData.request_id, endpoint);
+    return await window.api.fal.nanoBananaEdit(params);
   }
 
   /**
@@ -326,17 +266,11 @@ export class FalService {
       return { error: `Image upload failed: ${err.message}` }
     }
   }
+  /**
+   * Forwards a data URL to the main process for upload to bypass renderer CORS/fetch restrictions.
+   */
   async uploadImageFromDataUrl(dataUrl: string): Promise<{ url?: string; error?: string }> {
-    try {
-      // Convert data URL to Blob
-      const res = await fetch(dataUrl)
-      const blob = await res.blob()
-      const ext = blob.type.split('/')[1] || 'jpg'
-      const file = new File([blob], `product.${ext}`, { type: blob.type })
-      return this.uploadImage(file)
-    } catch (err: any) {
-      return { error: `Failed to convert image: ${err.message}` }
-    }
+    return await window.api.fal.uploadImageFromDataUrl(dataUrl);
   }
 }
 
