@@ -382,6 +382,9 @@ export function ImageGenScreen() {
           search={nbWebSearch}
           estimatedCost={nbEstimatedCost}
           nbModel={nbModel}
+          outputs={generatedImages}
+          selectedOutput={selectedOutput}
+          setSelectedOutput={setSelectedOutput}
         />
       );
     } else {
@@ -405,7 +408,8 @@ export function ImageGenScreen() {
   }, [
     setRightPanelContent, activeMode, generating, generated, selectedOutput, 
     model, ratio, style, numImages, handleStepsComplete,
-    nbRatio, nbResolution, nbOutputFormat, nbNumOutputs, nbSafety, nbThinkingLevel, nbWebSearch, nbEstimatedCost, nbModel
+    nbRatio, nbResolution, nbOutputFormat, nbNumOutputs, nbSafety, nbThinkingLevel, nbWebSearch, nbEstimatedCost, nbModel,
+    generatedImages, selectedOutput
   ]);
 
   return (
@@ -1205,7 +1209,11 @@ function NanoBananaLayout({
   );
 }
 
-function NanoBananaRightPanel({ generating, generated, ratio, resolution, format, numOutputs, safety, thinkLevel, search, estimatedCost, nbModel }: any) {
+function NanoBananaRightPanel({ 
+  generating, generated, ratio, resolution, format, numOutputs, 
+  safety, thinkLevel, search, estimatedCost, nbModel,
+  outputs, selectedOutput, setSelectedOutput 
+}: any) {
   return (
     <div style={{ fontFamily: 'var(--font-body)' }}>
       <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--ma-border)' }}>
@@ -1217,58 +1225,95 @@ function NanoBananaRightPanel({ generating, generated, ratio, resolution, format
         </p>
       </div>
 
-      <div style={{ padding: 20 }}>
-        {generating ? (
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <RefreshCw size={16} color="var(--ma-accent)" style={{ animation: 'spin 1s linear infinite' }} />
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#FFF' }}>Generating...</span>
-            </div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 }}>
-              Applying advanced AI models to construct your final image based on the provided reference style and assets. This usually takes 5-10 seconds.
-            </div>
+      {generating && (
+        <div style={{ padding: '24px 20px' }}>
+          <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+            {Array.from({ length: numOutputs }).map((_: any, i: number) => (
+              <div key={i} style={{
+                flex: 1, aspectRatio: '1/1',
+                borderRadius: 8,
+                background: 'rgba(108,99,255,0.08)',
+                border: '1px solid rgba(108,99,255,0.15)',
+                animation: 'pulse 1.5s ease-in-out infinite',
+                animationDelay: `${i * 0.2}s`,
+              }} />
+            ))}
           </div>
-        ) : generated ? (
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-              <Check size={16} color="var(--ma-green)" />
-              <span style={{ fontSize: 13, fontWeight: 600, color: '#FFF' }}>Generation Successful</span>
-            </div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 1.5 }}>
-              Your images are ready. You can download them or run another batch.
-            </div>
-          </div>
-        ) : (
-          <div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: 16 }}>
-              Live Settings
-            </div>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, background: 'rgba(255,255,255,0.02)', padding: 16, borderRadius: 10, border: '1px solid rgba(255,255,255,0.05)' }}>
-              <InfoRow label="Aspect Ratio" value={ratio} />
-              <InfoRow label="Resolution" value={resolution} />
-              <InfoRow label="Output Format" value={format} />
-              <InfoRow label="Outputs" value={numOutputs} />
-              <InfoRow label="Safety Level" value={safety} />
-              <InfoRow label="Thinking" value={thinkLevel} />
-              <InfoRow label="Web Search" value={search ? 'Enabled' : 'Disabled'} />
-            </div>
+          <StepChecklist steps={IMG_STEPS} onComplete={() => {}} estimatedTime="~8 seconds" />
+          <style>{`@keyframes pulse { 0%,100% { opacity:0.4 } 50% { opacity:0.8 } }`}</style>
+        </div>
+      )}
 
-            <div style={{ marginTop: 24, padding: 16, background: 'rgba(108,99,255,0.05)', border: '1px solid rgba(108,99,255,0.15)', borderRadius: 10 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
-                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Estimated Cost</span>
-                <span style={{ fontSize: 14, fontWeight: 600, color: '#FFF', fontFamily: 'var(--font-mono)' }}>${estimatedCost}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Est. Time</span>
-                <span style={{ fontSize: 12, fontWeight: 500, color: 'rgba(255,255,255,0.8)' }}>
-                  {numOutputs * 3 + 2}s - {numOutputs * 5 + 4}s
-                </span>
-              </div>
-            </div>
+      {!generating && !generated && (
+        <div style={{ padding: 20 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <InfoRow label="Model" value={nbModel} mono />
+            <InfoRow label="Ratio" value={ratio} mono />
+            <InfoRow label="Resolution" value={resolution} />
+            <InfoRow label="Safety" value={`Level ${safety}`} />
+            <InfoRow label="Web Search" value={search ? 'ON' : 'OFF'} green={search} />
+            <InfoRow label="Quantity" value={`${numOutputs} images`} />
+            <InfoRow label="Est. cost" value={`$${estimatedCost}`} mono green />
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {generated && outputs && outputs.length > 0 && (
+        <div style={{ padding: 20 }}>
+          <div style={{
+            padding: 12, borderRadius: 8,
+            background: 'rgba(34,197,94,0.08)',
+            border: '1px solid rgba(34,197,94,0.25)',
+            display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20,
+          }}>
+            <Check size={14} style={{ color: 'var(--ma-green)' }} />
+            <span style={{ fontSize: 12, color: 'var(--ma-green)' }}>Generation Complete</span>
+          </div>
+
+          <div style={{ borderRadius: 10, overflow: 'hidden', marginBottom: 16 }}>
+            <ImageWithFallback
+              src={outputs[selectedOutput]}
+              alt="Selected output"
+              style={{ width: '100%', aspectRatio: '1/1', objectFit: 'cover', display: 'block' }}
+            />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: numOutputs > 1 ? 'repeat(4, 1fr)' : '1fr', gap: 6, marginBottom: 16 }}>
+            {outputs.map((src: string, i: number) => (
+              <div
+                key={i}
+                onClick={() => setSelectedOutput(i)}
+                style={{
+                  borderRadius: 6, overflow: 'hidden', cursor: 'pointer', aspectRatio: '1/1',
+                  border: `2px solid ${selectedOutput === i ? 'var(--ma-accent)' : 'transparent'}`,
+                  transition: 'all 0.15s',
+                }}
+              >
+                <ImageWithFallback src={src} alt={`Thumb ${i}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <button style={{
+              width: '100%', padding: '10px', background: 'var(--ma-accent)',
+              border: 'none', borderRadius: 8, color: 'white', cursor: 'pointer',
+              fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center',
+              justifyContent: 'center', gap: 6, fontFamily: 'var(--font-body)',
+            }} onClick={() => window.api.external.open(outputs[selectedOutput])}>
+              <Download size={14} /> Download Selected
+            </button>
+            <button style={{
+              width: '100%', padding: '10px', background: 'rgba(255,255,255,0.04)',
+              border: '1px solid var(--ma-border)', borderRadius: 8, color: 'rgba(255,255,255,0.5)',
+              cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center',
+              justifyContent: 'center', gap: 6, fontFamily: 'var(--font-body)',
+            }}>
+              <Download size={14} /> Download All (ZIP)
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
