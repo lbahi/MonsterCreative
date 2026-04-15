@@ -2,7 +2,7 @@ import { createBrowserRouter, Navigate } from 'react-router';
 import { Shell } from './components/Shell';
 import { DashboardScreen } from './screens/DashboardScreen';
 import { AdCopyScreen } from './screens/AdCopyScreen';
-import { ImageGenScreen } from './screens/ImageGenScreen';
+import { ImageGenScreen } from './screens/image-gen';
 import { AudioLabScreen } from './screens/AudioLabScreen';
 import { VideoGenScreen } from './screens/VideoGenScreen';
 import { ApiCostsScreen } from './screens/ApiCostsScreen';
