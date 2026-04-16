@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from 'react-router';
 
 import { useApp } from '../../contexts/AppContext';
 import { falService } from '../../services/fal.service';
-import { IMG_STEPS, MODEL_FALLBACK_PRICES, MODES, SAMPLE_OUTPUTS } from './constants';
+import { IMG_STEPS, MODEL_FALLBACK_PRICES, MODES, SAMPLE_OUTPUTS, NANO_BANANA_MODELS } from './constants';
 import { useImageGenPricing } from './hooks/useImageGenPricing';
 import { LandingForm } from './modes/LandingForm';
 import { NanoBananaLayout } from './modes/NanoBananaLayout';
@@ -53,7 +53,7 @@ export function ImageGenScreen() {
   const [nbSafety, setNbSafety] = useState(3);
   const [nbWebSearch, setNbWebSearch] = useState(false);
   const [nbThinkingLevel, setNbThinkingLevel] = useState<NanoBananaThinkingLevel>('minimal');
-  const [nbModel, setNbModel] = useState('Nano Banana 2');
+  const [nbModel, setNbModel] = useState(NANO_BANANA_MODELS[0]);
   const [nbLimitGen, setNbLimitGen] = useState(true);
 
   const [generating, setGenerating] = useState(false);
@@ -180,7 +180,7 @@ export function ImageGenScreen() {
   }, [activeMode, numImages]);
 
   useEffect(() => {
-    if (activeMode === 'generate') {
+    if (activeMode === 'generate' || activeMode === 'vton') {
       setRightPanelContent(
         <NanoBananaRightPanel
           generating={generating}
@@ -245,7 +245,7 @@ export function ImageGenScreen() {
       <ImageGenHeader />
       <ModeSelector modes={MODES} activeMode={activeMode} onSelect={handleModeChange} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 20, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: activeMode === 'vton' ? '1fr 380px' : '1fr 320px', gap: 20, alignItems: 'start' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {activeMode === 'generate' ? (
             <NanoBananaLayout
@@ -280,9 +280,23 @@ export function ImageGenScreen() {
               nbModel={nbModel}
               setNbModel={setNbModel}
             />
+          ) : activeMode === 'vton' ? (
+            <VtonForm 
+              generating={generating}
+              setGenerating={setGenerating}
+              setGeneratedImages={setGeneratedImages}
+              setGenerated={setGenerated}
+              model={nbModel}
+              setModel={setNbModel}
+              numImages={nbNumOutputs}
+              setNumImages={setNbNumOutputs}
+              resolution={nbResolution}
+              setResolution={setNbResolution}
+              refImage={nbReferenceImage}
+              setRefImage={setNbReferenceImage}
+            />
           ) : (
             <>
-              {activeMode === 'vton' && <VtonForm />}
               {activeMode === 'resize' && <ResizeForm />}
               {activeMode === 'landing' && <LandingForm prompt={prompt} setPrompt={setPrompt} />}
 

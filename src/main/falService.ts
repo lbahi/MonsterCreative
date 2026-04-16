@@ -456,8 +456,8 @@ export class FalService {
     let endpoint = '';
     let body: any = {};
 
-    if (params.model === 'Nano Banana 2') {
-      endpoint = 'fal-ai/nano-banana-2/edit';
+    if (params.model === 'Nano Banana Pro') {
+      endpoint = 'fal-ai/nano-banana-pro/edit';
       body = {
         prompt: params.prompt,
         image_urls: params.image_urls,
@@ -468,18 +468,31 @@ export class FalService {
         output_format: params.output_format || 'png',
         safety_tolerance: params.safety_tolerance || '4',
         enable_web_search: params.enable_web_search || false,
-        thinking_level: params.thinking_level || undefined,
         limit_generations: params.limit_generations ?? true
       };
-    } else if (params.model === 'Seedream 4.5') {
-      endpoint = 'fal-ai/bytedance/seedream/v4.5/edit';
+    } else if (params.model === 'Nano Banana 2') {
+      endpoint = 'fal-ai/nano-banana-2/edit';
       body = {
         prompt: params.prompt,
         image_urls: params.image_urls,
+        aspect_ratio: params.aspect_ratio || 'auto',
         num_images: params.num_images || 1,
-        max_images: 1,
         seed: params.seed ? parseInt(params.seed) : undefined,
-        enable_safety_checker: true
+        output_format: params.output_format || 'png',
+        safety_tolerance: params.safety_tolerance || '4',
+        limit_generations: params.limit_generations ?? true
+      };
+    } else if (params.model === 'Nano Banana') {
+      endpoint = 'fal-ai/nano-banana/edit';
+      body = {
+        prompt: params.prompt,
+        image_urls: params.image_urls,
+        aspect_ratio: params.aspect_ratio || 'auto',
+        num_images: params.num_images || 1,
+        seed: params.seed ? parseInt(params.seed) : undefined,
+        output_format: params.output_format || 'png',
+        safety_tolerance: params.safety_tolerance || '4',
+        limit_generations: params.limit_generations ?? true
       };
     }
 

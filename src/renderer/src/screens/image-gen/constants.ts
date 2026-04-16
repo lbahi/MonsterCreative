@@ -13,11 +13,19 @@ export const MODES: ModeOption[] = [
 export const STYLES = ['Photorealistic', 'Studio Lit', 'Cinematic', 'Editorial', 'Flat Design', 'Illustration', 'Dark Premium', 'Vibrant'];
 export const RATIOS = ['1:1', '4:5', '9:16', '16:9', '2:3', '1.91:1'];
 export const MODELS = ['FLUX.1 Pro', 'FLUX.1 Dev', 'FLUX Schnell', 'Stable Diffusion XL'];
-export const NANO_BANANA_MODELS = ['Nano Banana 2', 'Seedream 4.5'];
+export const NANO_BANANA_MODELS = ['Nano Banana Pro', 'Nano Banana', 'Nano Banana 2'];
 export const NANO_BANANA_RATIOS = ['auto', '1:1', '4:5', '3:4', '2:3', '9:16', '16:9', '4:1', '1:4', '8:1', '1:8'];
 export const NANO_BANANA_RESOLUTIONS = ['0.5K', '1K', '2K', '4K'];
 export const NANO_BANANA_FORMATS = ['png', 'jpeg', 'webp'];
 
+export const VIBES = [
+  { id: 'Studio', label: 'Studio Minimal', desc: 'Professional minimalist studio, white backdrop, high-key lighting', image: 'https://images.unsplash.com/photo-1600607686527-6fb886090705?w=400&q=80' },
+  { id: 'Urban', label: 'Urban Street', desc: 'City street scene, concrete textures, natural daylight', image: 'https://images.unsplash.com/photo-1542466500-dccb2789cbbb?w=400&q=80' },
+  { id: 'Nature', label: 'Lush Nature', desc: 'Golden hour in a lush park or beach setting, warm lighting', image: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=80' },
+  { id: 'Luxury', label: 'Luxury', desc: 'High-end penthouse, dramatic lighting, marble surfaces', image: 'https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=400&q=80' },
+  { id: 'Vintage', label: 'Vintage Retro', desc: '35mm film grain aesthetic, warm amber tones, soft focus', image: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&q=80' },
+  { id: 'Candid', label: 'Candid Life', desc: 'Handheld smartphone style, realistic home setting', image: 'https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?w=400&q=80' },
+];
 export const MODEL_ENDPOINT_MAP: Record<string, string> = {
   'FLUX.1 Pro': 'fal-ai/flux-pro',
   'FLUX.1 Dev': 'fal-ai/flux/dev',

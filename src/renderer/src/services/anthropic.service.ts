@@ -24,6 +24,12 @@ export interface ConsultationResponse {
   isFinished: boolean;
 }
 
+export interface VtonIdeationResponse {
+  garment_category: string;
+  modelPrompt: string;
+  sceneVariations: string[];
+}
+
 export interface ProductAnalysis {
   product: string;
   material: string;
@@ -370,6 +376,81 @@ ${transcript}
       Return a descriptive prompt fragment for an AI model choice.`
 
     return await falService.generateCopy(prompt, 'google/gemini-3-pro')
+  }
+
+  /**
+   * Virtual Try-On (VTON) "AI Casting Director"
+   * Analyzes an uploaded garment image and a selected Vibe to generate
+   * the ideal model description and perfectly stylized scene variations.
+   */
+  async generateVirtualTryOnIdeas(
+    garmentImageUrl: string,
+    vibeDescription: string,
+    variationCount: number = 2,
+    modelId: string = 'google/gemini-3-flash-preview'
+  ): Promise<VtonIdeationResponse> {
+    const systemPrompt = `You are a fashion campaign director. Analyze the garment image and output JSON only.
+
+GARMENT: ${garmentImageUrl}
+VIBE: ${vibeDescription}
+SHOTS NEEDED: ${variationCount}
+
+STEP 1 — INTERNAL ANALYSIS (do not output):
+Size: Mini/small plastic hanger = CHILDREN's garment (age 2-10). NEVER cast an adult for children's clothing.
+Gender: Ruffles/lace/bows/floral/pastels/dress = GIRL. Cargo/structured/dark/athletic = BOY.
+Small hanger + feminine cues = young GIRL (age 3-6). Non-negotiable.
+Cast model with exact age, gender, skin tone, specific hair style, expression.
+
+STEP 2 — GENERATE ${variationCount} SCENES:
+All scenes set within the VIBE above. Each scene MUST use a DIFFERENT camera angle:
+1=Front full-body  2=Three-quarter  3=Side/back  4=Close-up face  5=Low angle  6=Wide environmental  7=Candid motion  8=Overhead
+For ${variationCount} shots, pick ${variationCount} maximally different angles from the list above.
+
+Each scene: 1-2 sentences. Specify angle, pose/action, lighting, background, mood. NO garment description.
+CRITICAL INSTRUCTION: The generative model MUST be explicitly directed to REMOVE any paper price tags, hanger clips, cardboard packaging, or external brand labels visible in the source garment. Add "No paper tags or hangers" to the scene context.
+
+OUTPUT — strict JSON, compact, no markdown:
+{
+  "garment_category": "upper_body|lower_body|dresses",
+  "modelPrompt": "A [age] year old [girl/boy/woman/man] with [hair]. [Skin tone]. [Expression/energy].",
+  "sceneVariations": ["Scene 1: [angle] — [1-2 sentence direction]", "Scene 2: [different angle] — ..."]
+}
+
+Rules: modelPrompt FIRST. Exactly ${variationCount} scenes. JSON only. Be concise to fit within token budget.`;
+
+    const userMsg = `Garment image is provided.
+Selected vibe: ${vibeDescription}
+Number of scene prompts required: ${variationCount}
+Output valid JSON only.`;
+
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      { 
+        role: 'user', 
+        content: [
+          { type: 'text', text: userMsg },
+          { type: 'image_url', image_url: { url: garmentImageUrl } }
+        ] 
+      }
+    ];
+
+    const response = await window.api.fal.chatCompletion(messages, modelId);
+    if (response.error) throw new Error(response.error);
+
+    let jsonStr = response.data!.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim();
+
+    try {
+      return JSON.parse(jsonStr) as VtonIdeationResponse;
+    } catch (e) {
+      if (jsonStr[jsonStr.length - 1] !== '}') {
+        jsonStr = jsonStr.replace(/,\s*$/, '') + ']}';
+      }
+      try {
+        return JSON.parse(jsonStr) as VtonIdeationResponse;
+      } catch (err) {
+        throw new Error('Failed to parse VTON JSON.');
+      }
+    }
   }
 }
 
