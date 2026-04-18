@@ -456,7 +456,18 @@ export class FalService {
     let endpoint = '';
     let body: any = {};
 
-    if (params.model === 'Nano Banana Pro') {
+    if (params.model === 'Seedream V4.5 Edit') {
+      endpoint = 'fal-ai/bytedance/seedream/v4.5/edit';
+      body = {
+        prompt: params.prompt,
+        image_urls: params.image_urls,
+        image_size: params.resolution === '4K' ? 'auto_4K' : undefined, // Maps resolution roughly
+        num_images: params.num_images || 1,
+        max_images: params.num_images || 1,
+        seed: params.seed ? parseInt(params.seed) : undefined,
+        enable_safety_checker: true
+      };
+    } else if (params.model === 'Nano Banana Pro') {
       endpoint = 'fal-ai/nano-banana-pro/edit';
       body = {
         prompt: params.prompt,

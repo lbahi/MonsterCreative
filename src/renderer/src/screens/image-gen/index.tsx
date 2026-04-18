@@ -43,7 +43,7 @@ export function ImageGenScreen() {
   const [numImages, setNumImages] = useState(4);
 
   const [nbReferenceImage, setNbReferenceImage] = useState<string | null>(null);
-  const [nbAssetImage, setNbAssetImage] = useState<string | null>(null);
+  const [nbAssetImages, setNbAssetImages] = useState<string[]>([]);
   const [nbAdvancedOpen, setNbAdvancedOpen] = useState(false);
   const [nbRatio, setNbRatio] = useState('auto');
   const [nbResolution, setNbResolution] = useState('1K');
@@ -212,7 +212,7 @@ export function ImageGenScreen() {
         const uploadedUrls = (
           await Promise.all([
             resolveImageInput(nbReferenceImage, 'Reference'),
-            resolveImageInput(nbAssetImage, 'Asset'),
+            ...nbAssetImages.map((asset, i) => resolveImageInput(asset, `Asset ${i + 1}`)),
           ])
         ).filter(Boolean) as string[];
 
@@ -264,7 +264,7 @@ export function ImageGenScreen() {
   }, [
     activeMode,
     nbReferenceImage,
-    nbAssetImage,
+    nbAssetImages,
     nbModel,
     prompt,
     style,
@@ -388,8 +388,8 @@ export function ImageGenScreen() {
             <NanoBananaLayout
               refImage={nbReferenceImage}
               setRefImage={setNbReferenceImage}
-              assetImage={nbAssetImage}
-              setAssetImage={setNbAssetImage}
+              assetImages={nbAssetImages}
+              setAssetImages={setNbAssetImages}
               prompt={prompt}
               setPrompt={setPrompt}
               generating={generating}

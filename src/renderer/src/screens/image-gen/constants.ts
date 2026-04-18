@@ -19,13 +19,13 @@ export const MODES: ModeOption[] = [
   { id: 'generate', path: '/image-gen/generate', label: 'Generate', description: 'Create original ad images from text prompts', icon: Wand2, color: '#6C63FF' },
   { id: 'vton', path: '/image-gen/vton', label: 'Virtual Try-On', description: 'AI Casting Director for your garments', icon: Shirt, color: '#EC4899' },
   { id: 'resize', path: '/image-gen/resize', label: 'Format Resizer', description: 'Resize and adapt creatives for every platform', icon: Crop, color: '#F59E0B' },
-  { id: 'landing', path: '/image-gen/landing', label: 'Landing Page', description: 'Generate a hero image for landing pages', icon: Monitor, color: '#22C55E' },
+  { id: 'landing', path: '/image-gen/landing', label: 'Landing Page', description: 'Generate a hero image for landing pages', icon: Monitor, color: '#22C55E', comingSoon: true },
 ];
 
 export const STYLES = ['Photorealistic', 'Studio Lit', 'Cinematic', 'Editorial', 'Flat Design', 'Illustration', 'Dark Premium', 'Vibrant'];
 export const RATIOS = ['1:1', '4:5', '9:16', '16:9', '2:3', '1.91:1'];
 export const MODELS = ['FLUX.1 Pro', 'FLUX.1 Dev', 'FLUX Schnell', 'Stable Diffusion XL'];
-export const NANO_BANANA_MODELS = ['Nano Banana Pro', 'Nano Banana', 'Nano Banana 2'];
+export const NANO_BANANA_MODELS = ['Seedream V4.5 Edit', 'Nano Banana Pro', 'Nano Banana', 'Nano Banana 2'];
 export const NANO_BANANA_RATIOS = ['auto', '1:1', '4:5', '3:4', '2:3', '9:16', '16:9', '4:1', '1:4', '8:1', '1:8'];
 export const NANO_BANANA_RESOLUTIONS = ['0.5K', '1K', '2K', '4K'];
 export const NANO_BANANA_FORMATS = ['png', 'jpeg', 'webp'];

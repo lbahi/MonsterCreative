@@ -41,8 +41,8 @@ type NanoBananaLayoutProps = {
 export function NanoBananaLayout({
   refImage,
   setRefImage,
-  assetImage,
-  setAssetImage,
+  assetImages,
+  setAssetImages,
   prompt,
   setPrompt,
   advOpen,
@@ -92,6 +92,48 @@ export function NanoBananaLayout({
     const reader = new FileReader();
     reader.onload = (loadEvent) => setter(loadEvent.target?.result as string);
     reader.readAsDataURL(file);
+  };
+
+  const handleMultipleImageUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    if (files.length === 0) return;
+    
+    const maxAllowed = 9 - assetImages.length;
+    const filesToProcess = files.slice(0, maxAllowed);
+    
+    const newImages = await Promise.all(filesToProcess.map(file => {
+      return new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.readAsDataURL(file);
+      });
+    }));
+    if (newImages.length > 0) setAssetImages([...assetImages, ...newImages]);
+    event.target.value = ''; // reset input
+  };
+  
+  const handleMultipleDrop = async (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    setDragAsset(false);
+
+    const files = Array.from(event.dataTransfer.files || []);
+    if (files.length === 0) return;
+    
+    const maxAllowed = 9 - assetImages.length;
+    const filesToProcess = files.slice(0, maxAllowed);
+    
+    const newImages = await Promise.all(filesToProcess.map(file => {
+      return new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => resolve(e.target?.result as string);
+        reader.readAsDataURL(file);
+      });
+    }));
+    if (newImages.length > 0) setAssetImages([...assetImages, ...newImages]);
+  };
+
+  const removeAssetImage = (indexToRemove: number) => {
+    setAssetImages(assetImages.filter((_, i) => i !== indexToRemove));
   };
 
   const uploadBoxStyle = (isDragging: boolean, hasImage: boolean) => ({
@@ -147,31 +189,51 @@ export function NanoBananaLayout({
         <div style={{ background: 'var(--ma-elevated)', border: '1px solid var(--ma-border)', borderRadius: 12, padding: 16 }}>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
             <span style={{ width: 22, height: 22, borderRadius: '50%', background: 'rgba(255,255,255,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: '#FFF' }}>2</span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#FFF' }}>Your Asset</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: '#FFF' }}>Your Assets</span>
           </div>
-          <label
-            style={uploadBoxStyle(dragAsset, !!assetImage)}
+
+          <div
+            style={uploadBoxStyle(dragAsset, assetImages.length > 0)}
             onDragOver={(event) => {
               event.preventDefault();
               setDragAsset(true);
             }}
             onDragLeave={() => setDragAsset(false)}
-            onDrop={(event) => handleDrop(event, setAssetImage as (value: string) => void, setDragAsset)}
+            onDrop={handleMultipleDrop}
           >
-            <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(event) => handleImageUpload(event, setAssetImage as (value: string) => void)} />
-            {assetImage ? (
-              <>
-                <img src={assetImage} style={{ width: '100%', height: '100%', objectFit: 'cover', position: 'absolute', top: 0, left: 0 }} />
-                <button onClick={(event) => { event.preventDefault(); setAssetImage(null); }} style={{ position: 'absolute', top: 8, right: 8, background: 'rgba(0,0,0,0.6)', border: 'none', color: '#FFF', borderRadius: '50%', width: 26, height: 26, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><X size={14} /></button>
-              </>
+            {assetImages.length > 0 ? (
+              <div style={{ display: 'flex', width: '100%', height: '100%', gap: 8, overflowX: 'auto', padding: '0 8px', alignItems: 'center' }}>
+                {assetImages.map((asset, index) => (
+                  <div key={index} style={{ width: 80, height: 100, flexShrink: 0, position: 'relative', borderRadius: 8, overflow: 'hidden', border: '1px solid rgba(255,255,255,0.1)' }}>
+                    <img src={asset} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <div style={{ position: 'absolute', top: 4, left: 4, background: 'rgba(0,0,0,0.7)', borderRadius: 4, padding: '2px 4px', fontSize: 9, color: 'white', fontWeight: 600 }}>Fig {index + 2}</div>
+                    <button 
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); removeAssetImage(index); }} 
+                      style={{ position: 'absolute', top: 4, right: 4, background: 'rgba(0,0,0,0.6)', border: 'none', color: '#FFF', borderRadius: '50%', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+                
+                {assetImages.length < 9 && (
+                  <label style={{ width: 80, height: 100, flexShrink: 0, border: '1px dashed rgba(255,255,255,0.2)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: 'rgba(255,255,255,0.02)' }} className="hover:bg-white/5">
+                    <input type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={handleMultipleImageUpload} />
+                    <Upload size={18} color="rgba(255,255,255,0.4)" />
+                  </label>
+                )}
+              </div>
             ) : (
-              <>
+              <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', cursor: 'pointer' }}>
+                <input type="file" multiple accept="image/*" style={{ display: 'none' }} onChange={handleMultipleImageUpload} />
                 <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 }}><Image size={16} color="rgba(255,255,255,0.5)" /></div>
-                <div style={{ fontSize: 12, fontWeight: 600, color: '#FFF', marginBottom: 4 }}>Upload Asset <span style={{ fontSize: 10, color: 'var(--ma-accent-light)', background: 'rgba(108,99,255,0.15)', borderRadius: 4, padding: '1px 6px', marginLeft: 4 }}>Optional</span></div>
-                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textAlign: 'center' }}>Face, logo or product image</div>
-              </>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#FFF', marginBottom: 4 }}>
+                  Upload Assets <span style={{ fontSize: 10, color: 'var(--ma-accent-light)', background: 'rgba(108,99,255,0.15)', borderRadius: 4, padding: '1px 6px', marginLeft: 4 }}>Optional / Multi</span>
+                </div>
+                <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textAlign: 'center' }}>Faces, logos or products (up to 9)</div>
+              </label>
             )}
-          </label>
+          </div>
         </div>
 
         <div style={{ background: 'var(--ma-elevated)', border: '1px solid var(--ma-border)', borderRadius: 12, padding: 16, display: 'flex', flexDirection: 'column' }}>

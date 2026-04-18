@@ -9,4 +9,5 @@ export type ModeOption = {
   description: string;
   color: string;
   icon: any;
+  comingSoon?: boolean;
 };
