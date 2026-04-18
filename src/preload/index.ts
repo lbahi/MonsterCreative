@@ -27,6 +27,8 @@ const api = {
     chatCompletion: (messages: any[], modelId: string) => ipcRenderer.invoke('fal:chatCompletion', messages, modelId),
     uploadImageFromDataUrl: (dataUrl: string) => ipcRenderer.invoke('fal:uploadImageFromDataUrl', dataUrl),
     nanoBananaEdit: (params: any) => ipcRenderer.invoke('fal:nanoBananaEdit', params),
+    reframeImage: (params: any) => ipcRenderer.invoke('fal:reframeImage', params),
+    kontextEdit: (params: any) => ipcRenderer.invoke('fal:kontextEdit', params),
   },
   external: {
     open: (url: string) => ipcRenderer.invoke('util:openExternal', url)

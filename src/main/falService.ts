@@ -513,6 +513,115 @@ export class FalService {
 
     return await response.json();
   }
+
+  /**
+   * Smart Reframe — fal-ai/image-editing/reframe
+   * Returns a normalized { images: [{ url }] } shape regardless of API response format.
+   */
+  async reframeImage(params: {
+    image_url: string;
+    aspect_ratio: string;
+    output_format?: string;
+    guidance_scale?: number;
+    num_inference_steps?: number;
+  }): Promise<any> {
+    const apiKey = await keystoreService.getFalKey();
+    if (!apiKey) throw new Error('No Fal.ai API key found.');
+
+    const body = {
+      image_url: params.image_url,
+      aspect_ratio: params.aspect_ratio,
+      output_format: params.output_format ?? 'jpeg',
+      guidance_scale: params.guidance_scale ?? 3.5,
+      num_inference_steps: params.num_inference_steps ?? 30,
+    };
+
+    const response = await fetch('https://fal.run/fal-ai/image-editing/reframe', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Key ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Reframe failed (${response.status}): ${errText}`);
+    }
+
+    const data = await response.json();
+    console.log('[reframeImage] raw response:', JSON.stringify(data).slice(0, 400));
+
+    // Normalize: API may return { image: {...} } OR { images: [...] }
+    const url: string | undefined =
+      data?.image?.url ??
+      data?.images?.[0]?.url ??
+      data?.output?.image?.url ??
+      data?.output?.images?.[0]?.url;
+
+    if (!url) throw new Error(`Reframe: no image URL in response. Keys: ${Object.keys(data).join(', ')}`);
+    return { images: [{ url }] };
+  }
+
+  /**
+   * FLUX.1 Kontext Pro — fal-ai/flux-pro/kontext
+   * Contextual image transformation with optional explicit width/height
+   * for non-standard (non-enum) target dimensions.
+   */
+  async kontextEdit(params: {
+    image_url: string;
+    prompt: string;
+    aspect_ratio?: string;   // standard enum formats
+    width?: number;           // non-standard; takes precedence if provided
+    height?: number;          // non-standard; takes precedence if provided
+    output_format?: string;
+    num_images?: number;
+  }): Promise<any> {
+    const apiKey = await keystoreService.getFalKey();
+    if (!apiKey) throw new Error('No Fal.ai API key found.');
+
+    const body: any = {
+      image_url: params.image_url,
+      prompt: params.prompt,
+      output_format: params.output_format ?? 'jpeg',
+      num_images: params.num_images ?? 1,
+    };
+
+    // Prefer explicit dimensions for non-standard ratios; fall back to enum
+    if (params.width && params.height) {
+      body.width = params.width;
+      body.height = params.height;
+    } else if (params.aspect_ratio) {
+      body.aspect_ratio = params.aspect_ratio;
+    }
+
+    const response = await fetch('https://fal.run/fal-ai/flux-pro/kontext', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Key ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`Kontext edit failed (${response.status}): ${errText}`);
+    }
+
+    const data = await response.json();
+    console.log('[kontextEdit] raw response:', JSON.stringify(data).slice(0, 400));
+
+    // Normalize: API may return { images: [...] } or { image: {...} }
+    const url: string | undefined =
+      data?.images?.[0]?.url ??
+      data?.image?.url ??
+      data?.output?.images?.[0]?.url;
+
+    if (!url) throw new Error(`Kontext: no image URL in response. Keys: ${Object.keys(data).join(', ')}`);
+    return { images: [{ url }] };
+  }
 }
 
 export const falService = new FalService()

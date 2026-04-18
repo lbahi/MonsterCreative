@@ -37,12 +37,13 @@ export function ApiCostsScreen() {
           'fal-ai/flux-pro', 'fal-ai/flux/dev', 'fal-ai/flux/schnell', 'fal-ai/fast-sdxl',
           'fal-ai/kling-video/v1.6/pro/text-to-video', 'fal-ai/wan/v2.1/1.3b/text-to-video'
         ];
-        // Fetch billing, usage and analytics concurrently
-        const [usageResponse, billingResponse, analyticsResponse] = await Promise.all([
-          window.api.fal.getUsage('day'),
-          window.api.fal.getBilling(),
-          window.api.fal.getAnalytics(FAL_MODEL_IDS).catch(() => ({ error: 'unavailable' }))
-        ]);
+        // Fetch billing, usage and analytics sequentially to prevent 429 rate limits from Fal.ai billing APIs
+        const usageResponse = await window.api.fal.getUsage('day');
+        // Give a tiny buffer specifically because Fal's billing endpoints are strictly rate limited
+        await new Promise(r => setTimeout(r, 200));
+        const billingResponse = await window.api.fal.getBilling();
+        await new Promise(r => setTimeout(r, 200));
+        const analyticsResponse = await window.api.fal.getAnalytics(FAL_MODEL_IDS).catch(() => ({ error: 'unavailable' }));
         
         if (usageResponse.error) {
           setError(usageResponse.error);
@@ -128,7 +129,7 @@ export function ApiCostsScreen() {
           setModelBreakdown(breakdown);
         }
 
-        setTotalRequests(requestsCount);
+        setTotalRequests(Math.round(requestsCount));
       } catch (err: any) {
         setError(err.message);
       } finally {

@@ -7,9 +7,10 @@ type OutputGridProps = {
   outputs: string[];
   selectedOutput: number;
   setSelectedOutput: (value: number) => void;
+  naturalRatio?: boolean;
 };
 
-export function OutputGrid({ outputs, selectedOutput, setSelectedOutput }: OutputGridProps) {
+export function OutputGrid({ outputs, selectedOutput, setSelectedOutput, naturalRatio = false }: OutputGridProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
 
   const handleNext = useCallback((e?: React.MouseEvent) => {
@@ -76,7 +77,7 @@ export function OutputGrid({ outputs, selectedOutput, setSelectedOutput }: Outpu
               cursor: 'zoom-in',
               transition: 'all 0.15s',
               boxShadow: selectedOutput === index ? '0 0 20px rgba(108,99,255,0.3)' : 'none',
-              aspectRatio: '1/1',
+              aspectRatio: naturalRatio ? undefined : '1/1',
             }}
           >
             <ImageWithFallback src={src} alt={`Output ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />

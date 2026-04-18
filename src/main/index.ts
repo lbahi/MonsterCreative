@@ -80,6 +80,8 @@ app.whenReady().then(() => {
   ipcMain.handle('fal:getAnalytics', (_, ids, start, end) => falService.getAnalytics(ids, start, end))
   ipcMain.handle('fal:uploadImageFromDataUrl', (_, dataUrl) => falService.uploadImageFromDataUrl(dataUrl))
   ipcMain.handle('fal:nanoBananaEdit', (_, params) => falService.nanoBananaEdit(params))
+  ipcMain.handle('fal:reframeImage', (_, params) => falService.reframeImage(params))
+  ipcMain.handle('fal:kontextEdit', (_, params) => falService.kontextEdit(params))
 
 
   // IPC Handlers: Utils

@@ -272,6 +272,28 @@ export class FalService {
   async uploadImageFromDataUrl(dataUrl: string): Promise<{ url?: string; error?: string }> {
     return await window.api.fal.uploadImageFromDataUrl(dataUrl);
   }
+
+  /** Smart Reframe bridge — routes to fal-ai/image-editing/reframe via IPC */
+  async reframeImage(params: {
+    image_url: string;
+    aspect_ratio: string;
+    output_format?: string;
+  }): Promise<{ images: Array<{ url: string }> }> {
+    return await window.api.fal.reframeImage(params);
+  }
+
+  /** FLUX.1 Kontext Pro bridge — routes to fal-ai/flux-pro/kontext via IPC */
+  async kontextEdit(params: {
+    image_url: string;
+    prompt: string;
+    aspect_ratio?: string;
+    width?: number;
+    height?: number;
+    output_format?: string;
+    num_images?: number;
+  }): Promise<{ images: Array<{ url: string }> }> {
+    return await window.api.fal.kontextEdit(params);
+  }
 }
 
 export const falService = new FalService()

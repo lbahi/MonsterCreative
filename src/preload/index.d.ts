@@ -26,6 +26,22 @@ declare global {
         generateCopy: (promptOrMessages: any, modelId: string) => Promise<{ data?: string; error?: string }>
         analyzeImageVision: (imageUrl: string, prompt: string, systemPrompt: string, modelId: string) => Promise<{ data?: string; error?: string }>
         chatCompletion: (messages: any[], modelId: string) => Promise<{ data?: string; error?: string }>
+        uploadImageFromDataUrl: (dataUrl: string) => Promise<{ url?: string; error?: string }>
+        nanoBananaEdit: (params: any) => Promise<any>
+        reframeImage: (params: {
+          image_url: string;
+          aspect_ratio: string;
+          output_format?: string;
+        }) => Promise<any>
+        kontextEdit: (params: {
+          image_url: string;
+          prompt: string;
+          aspect_ratio?: string;
+          width?: number;
+          height?: number;
+          output_format?: string;
+          num_images?: number;
+        }) => Promise<any>
       },
       external: {
         open: (url: string) => Promise<void>

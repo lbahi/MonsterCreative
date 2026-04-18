@@ -3,6 +3,18 @@ import { Crop, Monitor, Shirt, Wand2 } from 'lucide-react';
 
 import type { ModeOption } from './types';
 
+export interface PlatformFormat {
+  id: string;
+  label: string;
+  platform: string;
+  w: number;
+  h: number;
+  // Enum accepted by Reframe + Kontext. null = non-standard
+  aspectRatioEnum: string | null;
+  // Fallback enum for models that don't support explicit W×H
+  closestEnum: string;
+}
+
 export const MODES: ModeOption[] = [
   { id: 'generate', path: '/image-gen/generate', label: 'Generate', description: 'Create original ad images from text prompts', icon: Wand2, color: '#6C63FF' },
   { id: 'vton', path: '/image-gen/vton', label: 'Virtual Try-On', description: 'AI Casting Director for your garments', icon: Shirt, color: '#EC4899' },
@@ -17,6 +29,29 @@ export const NANO_BANANA_MODELS = ['Nano Banana Pro', 'Nano Banana', 'Nano Banan
 export const NANO_BANANA_RATIOS = ['auto', '1:1', '4:5', '3:4', '2:3', '9:16', '16:9', '4:1', '1:4', '8:1', '1:8'];
 export const NANO_BANANA_RESOLUTIONS = ['0.5K', '1K', '2K', '4K'];
 export const NANO_BANANA_FORMATS = ['png', 'jpeg', 'webp'];
+
+export const RESIZE_MODELS = [
+  { id: 'reframe',    label: 'Smart Reframe',       endpoint: 'fal-ai/image-editing/reframe', price: 0.04 },
+  { id: 'kontext',    label: 'FLUX.1 Kontext Pro',   endpoint: 'fal-ai/flux-pro/kontext',       price: 0.04 },
+  { id: 'nano-banana',label: 'Nano Banana (Budget)', endpoint: 'fal-ai/nano-banana/edit',       price: 0.039 },
+];
+
+export const PLATFORM_FORMATS: PlatformFormat[] = [
+  { id: 'instagram_post',  label: 'Instagram Post',  platform: 'Instagram', w: 1080, h: 1080, aspectRatioEnum: '1:1',  closestEnum: '1:1'  },
+  { id: 'meta_feed',       label: 'Meta Feed',       platform: 'Meta',      w: 1080, h: 1350, aspectRatioEnum: '3:4',  closestEnum: '3:4'  },
+  { id: 'meta_story',      label: 'Meta Story',      platform: 'Meta',      w: 1080, h: 1920, aspectRatioEnum: '9:16', closestEnum: '9:16' },
+  { id: 'tiktok',          label: 'TikTok',          platform: 'TikTok',    w: 1080, h: 1920, aspectRatioEnum: '9:16', closestEnum: '9:16' },
+  { id: 'pinterest',       label: 'Pinterest',       platform: 'Pinterest', w: 1000, h: 1500, aspectRatioEnum: '2:3',  closestEnum: '2:3'  },
+  { id: 'google_display',  label: 'Google Display',  platform: 'Google',    w: 1200, h: 628,  aspectRatioEnum: '16:9', closestEnum: '16:9' },
+  { id: 'woocommerce',     label: 'WooCommerce',     platform: 'WooCommerce', w: 800, h: 800, aspectRatioEnum: '1:1',  closestEnum: '1:1'  },
+  // Non-standard — requires exact W×H; closestEnum used as fallback for models without W/H support
+  { id: 'facebook_ad',     label: 'Facebook Ad',     platform: 'Facebook',  w: 1200, h: 630,  aspectRatioEnum: null,   closestEnum: '16:9' },
+  { id: 'twitter_header',  label: 'Twitter/X Header',platform: 'Twitter',   w: 1500, h: 500,  aspectRatioEnum: null,   closestEnum: '16:9' },
+];
+
+export const KONTEXT_RESIZE_PROMPT =
+  'Reformat this product image to the requested dimensions. Keep the main product centered and perfectly visible. ' +
+  'Extend the background to fill the new canvas naturally and seamlessly. Preserve colors, lighting, and overall style.';
 
 export const VIBES = [
   { id: 'Studio', label: 'Studio Minimal', desc: 'Professional minimalist studio, white backdrop, high-key lighting', image: 'https://images.unsplash.com/photo-1600607686527-6fb886090705?w=400&q=80' },

@@ -4,19 +4,19 @@ import { useLocation, useNavigate } from 'react-router';
 
 import { useApp } from '../../contexts/AppContext';
 import { falService } from '../../services/fal.service';
-import { IMG_STEPS, MODEL_FALLBACK_PRICES, MODES, SAMPLE_OUTPUTS, NANO_BANANA_MODELS } from './constants';
+import { IMG_STEPS, MODEL_FALLBACK_PRICES, MODES, SAMPLE_OUTPUTS, NANO_BANANA_MODELS, PLATFORM_FORMATS, KONTEXT_RESIZE_PROMPT, RESIZE_MODELS } from './constants';
 import { useImageGenPricing } from './hooks/useImageGenPricing';
 import { LandingForm } from './modes/LandingForm';
 import { NanoBananaLayout } from './modes/NanoBananaLayout';
-import { ResizeForm } from './modes/ResizeForm';
+import { ResizeForm, type ResizeCustomDimensions } from './modes/ResizeForm';
 import { VtonForm } from './modes/VtonForm';
 import { ImageGenRightPanel } from './panels/ImageGenRightPanel';
 import { NanoBananaRightPanel } from './panels/NanoBananaRightPanel';
+import { ResizeRightPanel } from './panels/ResizeRightPanel';
 import { CommonSettings } from './shared/CommonSettings';
 import { ImageGenHeader } from './shared/ImageGenHeader';
 import { ModeSelector } from './shared/ModeSelector';
 import { OutputGrid } from './shared/OutputGrid';
-import { PromptTips } from './shared/PromptTips';
 import type { ActiveImageGenMode, NanoBananaThinkingLevel } from './types';
 import { buildNanoBananaPrompt } from './utils/buildNanoBananaPrompt';
 import { estimateNanoBananaCost } from './utils/estimateNanoBananaCost';
@@ -61,6 +61,12 @@ export function ImageGenScreen() {
   const [selectedOutput, setSelectedOutput] = useState(0);
   const [generatedImages, setGeneratedImages] = useState<string[]>([]);
 
+  // ── Resize state ──────────────────────────────────────────────────────────
+  const [resizeFile, setResizeFile] = useState<File | null>(null);
+  const [resizeSelectedFormats, setResizeSelectedFormats] = useState<string[]>(['instagram_post', 'meta_story']);
+  const [resizeModel, setResizeModel] = useState('reframe');
+  const [resizeCustomDimensions, setResizeCustomDimensions] = useState<ResizeCustomDimensions>({});
+
   const handleStepsComplete = useCallback(() => {
     setGenerating(false);
     setGenerated(true);
@@ -76,6 +82,10 @@ export function ImageGenScreen() {
 
   const costPerImage = modelPrices[model] ?? MODEL_FALLBACK_PRICES[model] ?? 0.024;
   const totalCost = (costPerImage * numImages).toFixed(3);
+
+  const resizeModelPrice = RESIZE_MODELS.find((m) => m.id === resizeModel)?.price ?? 0.04;
+  const resizeTotalCost = (resizeSelectedFormats.length * resizeModelPrice).toFixed(3);
+
   const nbEstimatedCost = useMemo(
     () =>
       estimateNanoBananaCost({
@@ -89,6 +99,110 @@ export function ImageGenScreen() {
   );
 
   const handleGenerate = useCallback(async () => {
+    // ── Resize Mode ─────────────────────────────────────────────────────────
+    if (activeMode === 'resize') {
+      if (!resizeFile) { alert('Please upload a source image first.'); return; }
+      if (resizeSelectedFormats.length === 0) { alert('Please select at least one export format.'); return; }
+
+      setGenerating(true);
+      setGenerated(false);
+      setGeneratedImages([]);
+
+      try {
+        // Step 1: Convert File → Base64 dataURL, then upload via main process (avoids renderer CORS/fetch block)
+        const dataUrl = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error('Failed to read file'));
+          reader.readAsDataURL(resizeFile!);
+        });
+
+        const uploadResult = await falService.uploadImageFromDataUrl(dataUrl);
+        if (uploadResult.error || !uploadResult.url) {
+          throw new Error(uploadResult.error ?? 'Upload failed');
+        }
+        const hostedUrl = uploadResult.url;
+
+        // Step 2: Build payloads for each selected format
+        const selectedPlatforms = PLATFORM_FORMATS.filter((f) => resizeSelectedFormats.includes(f.id));
+
+        // Step 3: Parallel dispatch
+        const promises = selectedPlatforms.map(async (fmt) => {
+          const isNonStandard = fmt.aspectRatioEnum === null;
+          const customDims = resizeCustomDimensions[fmt.id];
+          const targetW = customDims?.w ?? fmt.w;
+          const targetH = customDims?.h ?? fmt.h;
+
+          if (resizeModel === 'reframe') {
+            // Reframe only supports standard enums; use closestEnum for non-standard
+            const result = await falService.reframeImage({
+              image_url: hostedUrl,
+              aspect_ratio: fmt.closestEnum,
+            });
+            return result?.images?.[0]?.url ?? null;
+
+          } else if (resizeModel === 'kontext') {
+            const result = await falService.kontextEdit({
+              image_url: hostedUrl,
+              prompt: KONTEXT_RESIZE_PROMPT,
+              // Use exact W×H for non-standard; enum for standard
+              ...(isNonStandard
+                ? { width: targetW, height: targetH }
+                : { aspect_ratio: fmt.aspectRatioEnum! }),
+            });
+            return result?.images?.[0]?.url ?? null;
+
+          } else {
+            // Nano Banana — use closestEnum for all (supports some 4:5 etc)
+            const nbResult = await falService.nanoBananaEdit({
+              model: 'Nano Banana',
+              prompt: KONTEXT_RESIZE_PROMPT,
+              image_urls: [hostedUrl],
+              aspect_ratio: fmt.closestEnum,
+              num_images: 1,
+              output_format: 'jpeg',
+              safety_tolerance: '4',
+              limit_generations: true,
+            });
+            return nbResult?.images?.[0]?.url ?? null;
+          }
+        });
+
+        const results = await Promise.allSettled(promises);
+
+        // Log any per-format failures for debugging
+        results.forEach((r, i) => {
+          if (r.status === 'rejected') {
+            console.error(`[resize] Format "${selectedPlatforms[i]?.label}" failed:`, r.reason);
+          }
+        });
+
+        const urls = results
+          .map((r) => (r.status === 'fulfilled' ? r.value : null))
+          .filter(Boolean) as string[];
+
+        if (urls.length === 0) {
+          const reasons = results
+            .filter((r) => r.status === 'rejected')
+            .map((r) => (r as PromiseRejectedResult).reason?.message)
+            .filter(Boolean)
+            .join('\n');
+          throw new Error(`All resize requests failed.\n${reasons}`);
+        }
+
+        setGeneratedImages(urls);
+        setGenerated(true);
+        setSelectedOutput(0);
+      } catch (err: any) {
+        console.error('Resize error:', err);
+        alert(`Resize failed: ${err.message}`);
+      } finally {
+        setGenerating(false);
+      }
+      return;
+    }
+
+    // ── Generate Mode ───────────────────────────────────────────────────────
     if (activeMode === 'generate') {
       try {
         setGenerating(true);
@@ -163,6 +277,11 @@ export function ImageGenScreen() {
     nbThinkingLevel,
     nbWebSearch,
     nbLimitGen,
+    // resize
+    resizeFile,
+    resizeSelectedFormats,
+    resizeModel,
+    resizeCustomDimensions,
   ]);
 
   const getGenerateButtonText = useCallback(() => {
@@ -196,6 +315,17 @@ export function ImageGenScreen() {
           selectedOutput={selectedOutput}
           setSelectedOutput={setSelectedOutput}
           refImage={nbReferenceImage}
+        />,
+      );
+    } else if (activeMode === 'resize') {
+      setRightPanelContent(
+        <ResizeRightPanel
+          generating={generating}
+          generated={generated}
+          resizeModel={resizeModel}
+          selectedFormats={resizeSelectedFormats}
+          totalCost={resizeTotalCost}
+          outputs={generatedImages}
         />,
       );
     } else {
@@ -236,16 +366,23 @@ export function ImageGenScreen() {
     selectedOutput,
     setRightPanelContent,
     style,
+    // resize
+    resizeSelectedFormats,
+    resizeModel,
+    resizeTotalCost,
   ]);
 
-  const outputs = generatedImages.length > 0 ? generatedImages : SAMPLE_OUTPUTS;
+  // Resize mode never falls back to SAMPLE_OUTPUTS — only show real generated images
+  const outputs = activeMode === 'resize'
+    ? generatedImages
+    : (generatedImages.length > 0 ? generatedImages : SAMPLE_OUTPUTS);
 
   return (
     <div style={{ padding: '32px 36px', fontFamily: 'var(--font-body)' }}>
       <ImageGenHeader />
       <ModeSelector modes={MODES} activeMode={activeMode} onSelect={handleModeChange} />
 
-      <div style={{ display: 'grid', gridTemplateColumns: activeMode === 'vton' ? '1fr 380px' : '1fr 320px', gap: 20, alignItems: 'start' }}>
+      <div style={{ display: activeMode === 'resize' ? 'block' : 'grid', gridTemplateColumns: activeMode === 'vton' ? '1fr 380px' : '1fr 320px', gap: 20, alignItems: 'start' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {activeMode === 'generate' ? (
             <NanoBananaLayout
@@ -295,9 +432,24 @@ export function ImageGenScreen() {
               refImage={nbReferenceImage}
               setRefImage={setNbReferenceImage}
             />
+          ) : activeMode === 'resize' ? (
+            <>
+              <ResizeForm
+                sourceFile={resizeFile}
+                setSourceFile={setResizeFile}
+                selectedFormats={resizeSelectedFormats}
+                setSelectedFormats={setResizeSelectedFormats}
+                resizeModel={resizeModel}
+                setResizeModel={setResizeModel}
+                customDimensions={resizeCustomDimensions}
+                setCustomDimensions={setResizeCustomDimensions}
+                onGenerate={handleGenerate}
+                generating={generating}
+                totalCost={resizeTotalCost}
+              />
+            </>
           ) : (
             <>
-              {activeMode === 'resize' && <ResizeForm />}
               {activeMode === 'landing' && <LandingForm prompt={prompt} setPrompt={setPrompt} />}
 
               <CommonSettings
@@ -361,11 +513,14 @@ export function ImageGenScreen() {
           )}
 
           {generated && activeMode !== 'generate' && (
-            <OutputGrid outputs={outputs} selectedOutput={selectedOutput} setSelectedOutput={setSelectedOutput} />
+            <OutputGrid
+              outputs={outputs}
+              selectedOutput={selectedOutput}
+              setSelectedOutput={setSelectedOutput}
+              naturalRatio={activeMode === 'resize'}
+            />
           )}
         </div>
-
-        {!generated && <PromptTips />}
       </div>
 
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
