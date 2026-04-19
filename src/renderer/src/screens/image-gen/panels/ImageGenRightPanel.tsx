@@ -1,4 +1,5 @@
-import { Check, Download } from 'lucide-react';
+import { Check, Download, Video } from 'lucide-react';
+import { useNavigate } from 'react-router';
 
 import { ImageWithFallback } from '../../../components/figma/ImageWithFallback';
 import { StepChecklist } from '../../../components/ui/StepChecklist';
@@ -31,6 +32,8 @@ export function ImageGenRightPanel({
   style,
   numImages,
 }: ImageGenRightPanelProps) {
+  const navigate = useNavigate();
+
   return (
     <div style={{ fontFamily: 'var(--font-body)' }}>
       <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--ma-border)' }}>
@@ -122,6 +125,30 @@ export function ImageGenRightPanel({
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <button
+              onClick={() => {
+                navigate('/video-gen', { state: { sourceImage: outputs[selectedOutput] } });
+              }}
+              style={{
+                width: '100%',
+                padding: '10px',
+                background: 'linear-gradient(135deg, #EC4899, #A855F7)',
+                border: 'none',
+                borderRadius: 8,
+                color: 'white',
+                cursor: 'pointer',
+                fontSize: 13,
+                fontWeight: 600,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                fontFamily: 'var(--font-body)',
+                marginBottom: 8
+              }}
+            >
+              <Video size={14} /> Animate Image
+            </button>
             <button
               style={{
                 width: '100%',

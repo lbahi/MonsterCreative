@@ -45,8 +45,7 @@ const navItems: NavItem[] = [
     label: 'Video Gen',
     icon: <Video size={18} />,
     children: [
-      { id: 'vid-text', label: 'Text to Video', path: '/video-gen/text', icon: <Film size={14} /> },
-      { id: 'vid-image', label: 'Image to Video', path: '/video-gen/image', icon: <Layers size={14} /> },
+      { id: 'vid-fashion', label: 'AI Fashion', path: '/video-gen/fashion', icon: <Wand2 size={14} /> },
     ],
   },
   {
