@@ -1,14 +1,14 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router';
-import { Sparkles, Settings2, Video, Wand2, Upload, CustomIconProvider, Image as ImageIcon, X } from 'lucide-react';
-import { useApp } from '../../contexts/AppContext';
-import { falService } from '../../services/fal.service';
+import { useState, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router';
+import { Sparkles, Settings2, Video, Wand2, Upload, Image as ImageIcon, X } from 'lucide-react';
 import { TemplateGallery } from './modes/TemplateGallery';
 import { ManualVideoForm } from './modes/ManualVideoForm';
 import { VideoRightPanel } from './panels/VideoRightPanel';
-import { VIDEO_MODELS, VIDEO_DURATIONS, VIDEO_ASPECT_RATIOS } from './constants';
+import { VIDEO_MODELS, VIDEO_DURATIONS, VIDEO_ASPECT_RATIOS, VIDEO_RESOLUTIONS, VIDEO_DEFAULTS, VideoResolution } from './constants';
 import type { VideoTemplate, ActiveVideoGenMode } from './types';
 import { resolveImageInput } from '../image-gen/utils/resolveImageInput';
+import { VideoPlayer } from '../../components/VideoPlayer';
+import { useApp } from '../../contexts/AppContext';
 
 export function VideoGenScreen() {
   const { setRightPanelContent } = useApp();
@@ -27,41 +27,37 @@ export function VideoGenScreen() {
 
   // Manual mode state
   const [prompt, setPrompt] = useState('');
-  const [model, setModel] = useState('kling-3');
-  const [duration, setDuration] = useState(5);
-  const [aspectRatio, setAspectRatio] = useState('16:9');
-  const [audio, setAudio] = useState(false);
+  const [modelId, setModelId] = useState(VIDEO_MODELS[0].id);
+  const [duration, setDuration] = useState(VIDEO_DEFAULTS.duration);
+  const [aspectRatio, setAspectRatio] = useState('auto');
+  const [resolution, setResolution] = useState<VideoResolution>(VIDEO_DEFAULTS.resolution);
+  const [audio, setAudio] = useState(VIDEO_DEFAULTS.audio);
 
-  // Cost calculator based on official Fal API Docs
-  const selectedModelInfo = VIDEO_MODELS.find(m => m.id === model);
+  const [error, setError] = useState<string | null>(null);
+  const [result, setResult] = useState<{ url: string; fileName: string; fileSize: number } | null>(null);
+
+  const selectedModelInfo = useMemo(
+    () => VIDEO_MODELS.find((item) => item.id === modelId) ?? VIDEO_MODELS[0],
+    [modelId],
+  );
+
   const estimatedCost = useMemo(() => {
-    if (!selectedModelInfo) return 0;
-    
-    if (model === 'kling-3') {
-      return audio ? (0.168 * duration) : (0.112 * duration);
-    } 
-    else if (model === 'kling-2.5-turbo') {
-      return 0.07 * duration;
-    } 
-    else if (model === 'seedance-2') {
-      // Audio costs the same as without audio for Seedance
-      return 0.3024 * duration;
+    const rate = audio ? selectedModelInfo.pricePerSec.withAudio : selectedModelInfo.pricePerSec.noAudio;
+    return (rate * duration).toFixed(3);
+  }, [selectedModelInfo, duration, audio]);
+
+  useEffect(() => {
+    if (!selectedModelInfo.supportedDurations.includes(duration)) {
+      setDuration(selectedModelInfo.supportedDurations[0]);
     }
-    else if (model === 'veo-3.1') {
-      // Assuming 720p/1080p tier
-      return audio ? (0.40 * duration) : (0.20 * duration);
-    }
-    
-    // Fallback legacy calculation if model not explicitly defined above
-    const audioMultiplier = audio ? 1.5 : 1.0; 
-    return selectedModelInfo.pricePerSec * duration * audioMultiplier;
-  }, [model, duration, audio, selectedModelInfo]);
+  }, [selectedModelInfo, duration]);
 
   const executeGeneration = async (
-    targetModel: string, 
+    targetModelId: string, 
     targetPrompt: string, 
     targetDur: number, 
-    targetAspect: string
+    targetAspect: string,
+    targetRes: string
   ) => {
     if (!sourceImage) {
       alert("Please upload a source image first.");
@@ -71,77 +67,57 @@ export function VideoGenScreen() {
     try {
       setGenerating(true);
       setGeneratedVideoUrl(null);
-      // Set right panel explicitly via context
-      setRightPanelContent(
-        <VideoRightPanel 
-          generating={true} 
-          generatedVideoUrl={null} 
-          model={targetModel} 
-          duration={targetDur} 
-          aspectRatio={targetAspect}
-          audio={audio}
-          estimatedCost={estimatedCost}
-        />
-      );
-
+      setError(null);
+      setResult(null);
+      
       const uploadedStart = await resolveImageInput(sourceImage, 'Video Source');
       if (!uploadedStart) throw new Error("Failed to upload source image");
+      const uploadedEnd = await resolveImageInput(endImage, 'Video End Frame');
       
-      const uploadedEnd = endImage ? await resolveImageInput(endImage, 'Video End Frame') : undefined;
-
-      const modelDef = VIDEO_MODELS.find(m => m.id === targetModel);
-      if (!modelDef) throw new Error("Invalid model");
-
-      console.log('--- EXECUTING VIDEO GEN ---', {
-        endpoint: modelDef.endpoint,
-        image_url: uploadedStart,
-        end_image_url: uploadedEnd,
+      const response = await (window as any).api.video.generate({
+        modelId: targetModelId,
         prompt: targetPrompt,
-        duration: targetDur.toString(),
-        aspect_ratio: targetAspect,
+        imageUrl: uploadedStart,
+        endImageUrl: uploadedEnd ?? undefined,
+        aspectRatio: targetAspect,
+        resolution: targetRes,
+        duration: targetDur,
+        audio: audio,
+        negativePrompt: 'blurry, low quality, pixelated, noisy, out of focus, poorly lit',
       });
 
-      // Mock completion
-      setTimeout(() => {
-        const url = 'https://videos.pexels.com/video-files/853889/853889-hd_1920_1080_25fps.mp4';
-        setGeneratedVideoUrl(url);
-        setGenerating(false);
-        setRightPanelContent(
-          <VideoRightPanel 
-            generating={false} 
-            generatedVideoUrl={url} 
-            model={targetModel} 
-            duration={targetDur} 
-            aspectRatio={targetAspect}
-            audio={audio}
-            estimatedCost={estimatedCost}
-          />
-        );
-      }, 3000);
+      if (!response.success) {
+        throw new Error(response.error);
+      }
+
+      const videoData = response.data;
+      setGeneratedVideoUrl(videoData.url);
+      setResult(videoData);
+      setGenerating(false);
 
     } catch (err: any) {
       console.error(err);
-      alert(`Generation failed: ${err.message}`);
+      setError(err.message);
       setGenerating(false);
-      setRightPanelContent(null);
     }
   };
 
   useEffect(() => {
-    if (!generating && !generatedVideoUrl) {
-      setRightPanelContent(
-        <VideoRightPanel 
-          generating={false} 
-          generatedVideoUrl={null} 
-          model={model} 
-          duration={duration} 
-          aspectRatio={aspectRatio}
-          audio={audio}
-          estimatedCost={estimatedCost}
-        />
-      );
-    }
-  }, [generating, generatedVideoUrl, model, duration, aspectRatio, audio, estimatedCost, setRightPanelContent]);
+    setRightPanelContent(
+      <VideoRightPanel 
+        isGenerating={generating} 
+        generatedVideoUrl={generatedVideoUrl} 
+        selectedModel={selectedModelInfo} 
+        selectedDuration={duration} 
+        selectedResolution={resolution}
+        audioEnabled={audio}
+        onGenerate={handleManualGenerate}
+        currentCost={Number(estimatedCost)}
+      />
+    );
+
+    return () => setRightPanelContent(null);
+  }, [generating, generatedVideoUrl, modelId, duration, aspectRatio, resolution, audio, estimatedCost, setRightPanelContent]);
 
   const handleTemplateSelect = (template: VideoTemplate, config: { model: string, duration: number, aspectRatio: string }) => {
     if (!sourceImage) {
@@ -149,17 +125,17 @@ export function VideoGenScreen() {
       return;
     }
     // Update local state to match template configs
-    setModel(config.model);
+    setModelId(config.model);
     setDuration(config.duration);
     setAspectRatio(config.aspectRatio);
     setPrompt(template.prompt);
 
     // Auto execute!
-    executeGeneration(config.model, template.prompt, config.duration, config.aspectRatio);
+    executeGeneration(config.model, template.prompt, config.duration, config.aspectRatio, resolution);
   };
 
   const handleManualGenerate = () => {
-    executeGeneration(model, prompt, duration, aspectRatio);
+    executeGeneration(modelId, prompt, duration, aspectRatio, resolution);
   };
 
   // Upload Box
@@ -234,7 +210,7 @@ export function VideoGenScreen() {
             </label>
           </div>
 
-          {activeMode === 'manual' && model === 'seedance-2' && (
+          {activeMode === 'manual' && model === 'fal-ai/kling-video/v2.6/pro/image-to-video' && (
             <div style={{ background: 'var(--ma-elevated)', border: '1px solid var(--ma-border)', borderRadius: 12, padding: 16 }}>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: '#FFF' }}>End Frame <span style={{ fontSize: 10, background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: 4, marginLeft: 4 }}>Optional</span></span>
@@ -251,7 +227,7 @@ export function VideoGenScreen() {
                 ) : (
                   <>
                     <ImageIcon size={20} color="rgba(255,255,255,0.5)" style={{ marginBottom: 8 }} />
-                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textAlign: 'center' }}>Upload end frame for Seedance transition</div>
+                    <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textAlign: 'center' }}>Upload end frame (optional)</div>
                   </>
                 )}
               </label>
@@ -267,8 +243,8 @@ export function VideoGenScreen() {
                 <span style={{ fontSize: 13, fontWeight: 600, color: '#FFF' }}>Engine</span>
               </div>
               <select 
-                value={model} 
-                onChange={e => setModel(e.target.value)}
+                value={modelId} 
+                onChange={e => setModelId(e.target.value)}
                 disabled={generating}
                 style={{ width: '100%', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--ma-border)', borderRadius: 8, padding: '10px 12px', color: '#FFF', outline: 'none', cursor: generating ? 'not-allowed' : 'pointer' }}
               >
@@ -294,8 +270,8 @@ export function VideoGenScreen() {
                   <label style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Duration</label>
                   <select value={duration} onChange={e => setDuration(Number(e.target.value))} disabled={generating} style={{ width: '100%', marginTop: 4, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--ma-border)', borderRadius: 8, padding: '8px 10px', color: '#FFF', fontSize: 12, outline: 'none' }}>
                     {VIDEO_DURATIONS.map(d => (
-                      <option key={d} value={d} disabled={selectedModelInfo && d > selectedModelInfo.maxDur} style={{ background: '#111' }}>
-                        {d}s {selectedModelInfo && d > selectedModelInfo.maxDur ? '(Too long)' : ''}
+                      <option key={d} value={d} disabled={!selectedModelInfo.supportedDurations.includes(d)} style={{ background: '#111' }}>
+                        {d}s {!selectedModelInfo.supportedDurations.includes(d) ? '(Unsupported)' : ''}
                       </option>
                     ))}
                   </select>
@@ -305,6 +281,14 @@ export function VideoGenScreen() {
                   <select value={aspectRatio} onChange={e => setAspectRatio(e.target.value)} disabled={generating} style={{ width: '100%', marginTop: 4, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--ma-border)', borderRadius: 8, padding: '8px 10px', color: '#FFF', fontSize: 12, outline: 'none' }}>
                     {VIDEO_ASPECT_RATIOS.map(r => (
                       <option key={r} value={r} style={{ background: '#111' }}>{r}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ gridColumn: 'span 2' }}>
+                  <label style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Resolution</label>
+                  <select value={resolution} onChange={e => setResolution(e.target.value)} disabled={generating} style={{ width: '100%', marginTop: 4, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--ma-border)', borderRadius: 8, padding: '8px 10px', color: '#FFF', fontSize: 12, outline: 'none' }}>
+                    {VIDEO_RESOLUTIONS.map(res => (
+                      <option key={res} value={res} style={{ background: '#111' }}>{res}</option>
                     ))}
                   </select>
                 </div>
@@ -328,11 +312,66 @@ export function VideoGenScreen() {
           </div>
         </div>
 
-        {/* Right Column: Settings or Templates */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          {activeMode === 'templates' ? (
+        {/* Right Column: Results & Progress */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          
+          {generating && (
+            <div style={{ 
+              background: 'rgba(255,255,255,0.03)', 
+              border: '1px solid var(--ma-border)', 
+              borderRadius: 16, 
+              padding: '40px 20px', 
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 16
+            }}>
+              <div className="animate-spin" style={{ width: 40, height: 40, border: '3px solid rgba(108, 99, 255, 0.2)', borderTopColor: 'var(--ma-accent)', borderRadius: '50%' }} />
+              <div>
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: '13px', color: '#FFF', margin: 0 }}>
+                  ⏳ Generating {duration}s @ {resolution}
+                </p>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', marginTop: 8 }}>
+                  {selectedModelInfo.label} generation is in progress...
+                </p>
+                <p style={{ fontSize: '11px', color: 'var(--ma-accent)', marginTop: 12, fontWeight: 600 }}>
+                  Estimated Cost: ${estimatedCost}
+                </p>
+              </div>
+            </div>
+          )}
+
+          {error && (
+            <div style={{
+              background: 'rgba(239, 68, 68, 0.1)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              borderRadius: '12px',
+              padding: '16px',
+              color: '#EF4444',
+              fontSize: '13px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8
+            }}>
+              <div style={{ fontWeight: 700 }}>Generation Failed</div>
+              <div>{error}</div>
+            </div>
+          )}
+
+          {result && (
+            <VideoPlayer 
+              url={result.url} 
+              fileName={result.fileName} 
+              fileSize={result.fileSize} 
+            />
+          )}
+
+          {!generating && !result && !error && activeMode === 'templates' && (
             <TemplateGallery onSelectTemplate={handleTemplateSelect} disabled={generating || !sourceImage} />
-          ) : (
+          )}
+
+          {!generating && !result && !error && activeMode === 'manual' && (
             <>
               <ManualVideoForm 
                 prompt={prompt} setPrompt={setPrompt}
@@ -353,7 +392,7 @@ export function VideoGenScreen() {
                 }}
               >
                 <Wand2 size={18} />
-                {generating ? 'Generating...' : `Generate Video • ~$${estimatedCost.toFixed(2)}`}
+                {generating ? 'Generating...' : `Generate Video • $${estimatedCost}`}
               </button>
             </>
           )}

@@ -63,6 +63,7 @@ app.whenReady().then(() => {
   ipcMain.handle('db:createCampaign', (_, name, platforms) => dbService.createCampaign(name, platforms))
   ipcMain.handle('db:saveImage', (_, img) => dbService.saveImage(img))
   ipcMain.handle('db:saveCopyVariant', (_, v) => dbService.saveCopyVariant(v))
+  ipcMain.handle('db:saveVideo', (_, vid) => dbService.saveVideo(vid))
 
   // IPC Handlers: Keystore
   ipcMain.handle('key:setFalKey', (_, key) => keystoreService.setFalKey(key))
@@ -82,11 +83,57 @@ app.whenReady().then(() => {
   ipcMain.handle('fal:nanoBananaEdit', (_, params) => falService.nanoBananaEdit(params))
   ipcMain.handle('fal:reframeImage', (_, params) => falService.reframeImage(params))
   ipcMain.handle('fal:kontextEdit', (_, params) => falService.kontextEdit(params))
+  ipcMain.handle('fal:generateVideo', (_, params) => falService.generateVideo(params))
+
+  ipcMain.handle('video:generate', async (_event, request: any) => {
+    try {
+      const result = await falService.generateVideo(request)
+
+      // Persist to database
+      await dbService.saveGeneratedVideo({
+        prompt: request.prompt,
+        model: request.modelId || 'fal-ai/pixverse/v6/image-to-video',
+        resolution: request.resolution,
+        duration: request.duration,
+        url: result.url,
+        fileName: result.fileName,
+        fileSize: result.fileSize,
+        createdAt: new Date().toISOString()
+      })
+
+      return { success: true, data: result }
+    } catch (error: any) {
+      console.error('[IPC video:generate] Error:', error)
+      return { success: false, error: error.message }
+    }
+  })
 
 
   // IPC Handlers: Utils
   ipcMain.handle('util:openExternal', async (_, url) => {
     await shell.openExternal(url)
+  })
+
+  ipcMain.handle('util:downloadFile', async (_, { url, filename }) => {
+    const { dialog } = require('electron')
+    const { writeFile } = require('fs/promises')
+    const { join } = require('path')
+    
+    const { filePath } = await dialog.showSaveDialog({
+      defaultPath: filename,
+      filters: [{ name: 'Videos', extensions: ['mp4'] }]
+    })
+
+    if (!filePath) return { success: false, cancelled: true }
+
+    try {
+      const resp = await fetch(url)
+      const buffer = Buffer.from(await resp.arrayBuffer())
+      await writeFile(filePath, buffer)
+      return { success: true, path: filePath }
+    } catch (err: any) {
+      return { success: false, error: err.message }
+    }
   })
 
   createWindow()

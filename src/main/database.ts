@@ -20,75 +20,99 @@ export class DatabaseService {
   }
 
   private init(): void {
-    this.db.exec(`
-      CREATE TABLE IF NOT EXISTS app_settings (
-        id INTEGER PRIMARY KEY,
-        default_copy_tone TEXT,
-        default_image_model TEXT,
-        default_video_model TEXT,
-        default_image_format TEXT,
-        auto_save_generations INTEGER,
-        asset_save_path TEXT,
-        accent_color TEXT
-      );
+    try {
+      this.db.exec(`
+        CREATE TABLE IF NOT EXISTS app_settings (
+          id INTEGER PRIMARY KEY,
+          default_copy_tone TEXT,
+          default_image_model TEXT,
+          default_video_model TEXT,
+          default_image_format TEXT,
+          auto_save_generations INTEGER,
+          asset_save_path TEXT,
+          accent_color TEXT
+        );
 
-      INSERT OR IGNORE INTO app_settings (id, default_copy_tone, default_image_model, default_video_model, default_image_format, auto_save_generations, asset_save_path, accent_color)
-      VALUES (1, 'Professional', 'FLUX Pro 1.1', 'Kling 2.0', '1:1', 1, 'C:\\MonsterCreative\\Assets', 'Blue');
+        INSERT OR IGNORE INTO app_settings (id, default_copy_tone, default_image_model, default_video_model, default_image_format, auto_save_generations, asset_save_path, accent_color)
+        VALUES (1, 'Professional', 'FLUX Pro 1.1', 'Kling 2.0', '1:1', 1, 'C:\\MonsterCreative\\Assets', 'Blue');
 
-      CREATE TABLE IF NOT EXISTS campaigns (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        platforms TEXT NOT NULL,
-        status TEXT NOT NULL DEFAULT 'Draft',
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-      );
+        CREATE TABLE IF NOT EXISTS campaigns (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          platforms TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'Draft',
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
 
-      CREATE TABLE IF NOT EXISTS generated_images (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        campaign_id INTEGER,
-        local_path TEXT,
-        prompt TEXT,
-        model TEXT,
-        format TEXT,
-        width INTEGER,
-        height INTEGER,
-        fal_request_id TEXT,
-        created_at TEXT
-      );
+        CREATE TABLE IF NOT EXISTS generated_images (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          campaign_id INTEGER,
+          local_path TEXT,
+          prompt TEXT,
+          model TEXT,
+          format TEXT,
+          width INTEGER,
+          height INTEGER,
+          fal_request_id TEXT,
+          created_at TEXT
+        );
 
-      CREATE TABLE IF NOT EXISTS generated_videos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        campaign_id INTEGER,
-        local_path TEXT,
-        prompt TEXT,
-        model TEXT,
-        format TEXT,
-        duration_seconds INTEGER,
-        source_type TEXT,
-        source_path TEXT,
-        fal_request_id TEXT,
-        created_at TEXT
-      );
+        CREATE TABLE IF NOT EXISTS generated_videos (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          campaign_id INTEGER,
+          local_path TEXT,
+          prompt TEXT,
+          model TEXT,
+          format TEXT,
+          duration_seconds INTEGER,
+          source_type TEXT,
+          source_path TEXT,
+          fal_request_id TEXT,
+          created_at TEXT
+        );
 
-      CREATE TABLE IF NOT EXISTS copy_variants (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        campaign_id INTEGER,
-        variant_type TEXT,
-        platform TEXT,
-        headline1 TEXT,
-        headline2 TEXT,
-        headline3 TEXT,
-        hook TEXT,
-        body_copy TEXT,
-        cta TEXT,
-        tone TEXT,
-        triggers_used TEXT,
-        landing_page_part TEXT,
-        video_scripts TEXT,
-        created_at TEXT
-      );
-    `)
+        CREATE TABLE IF NOT EXISTS copy_variants (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          campaign_id INTEGER,
+          variant_type TEXT,
+          platform TEXT,
+          headline1 TEXT,
+          headline2 TEXT,
+          headline3 TEXT,
+          hook TEXT,
+          body_copy TEXT,
+          cta TEXT,
+          tone TEXT,
+          triggers_used TEXT,
+          landing_page_part TEXT,
+          video_scripts TEXT,
+          created_at TEXT
+        );
+      `);
+    } catch (err) {
+      console.error('Database core init failed:', err);
+    }
+
+    // --- MIGRATIONS ---
+    const migrations = [
+      'ALTER TABLE generated_videos ADD COLUMN resolution TEXT;',
+      'ALTER TABLE generated_videos ADD COLUMN url TEXT;',
+      'ALTER TABLE generated_videos ADD COLUMN file_name TEXT;',
+      'ALTER TABLE generated_videos ADD COLUMN file_size INTEGER;',
+      'ALTER TABLE generated_videos ADD COLUMN created_at TEXT;'
+    ];
+
+    for (const sql of migrations) {
+      try {
+        this.db.exec(sql);
+      } catch (err: any) {
+        // Ignore "duplicate column name" errors
+        if (!err.message.includes('duplicate column name')) {
+          console.error('Migration failed:', sql, err);
+        }
+      }
+    }
   }
 
   // --- Settings ---
@@ -157,6 +181,24 @@ export class DatabaseService {
     return stmt.run(
       v.campaign_id, v.variant_type, v.platform, v.headline1, v.headline2, v.headline3,
       v.hook, v.body_copy, v.cta, v.tone, v.triggers_used, v.landing_page_part, v.video_scripts, new Date().toISOString()
+    ).lastInsertRowid
+  }
+
+  saveGeneratedVideo(video: any) {
+    const stmt = this.db.prepare(`
+      INSERT INTO generated_videos
+        (prompt, model, resolution, duration_seconds, url, file_name, file_size, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `)
+    return stmt.run(
+      video.prompt,
+      video.model,
+      video.resolution,
+      video.duration,
+      video.url,
+      video.fileName,
+      video.fileSize,
+      video.createdAt || new Date().toISOString()
     ).lastInsertRowid
   }
 }

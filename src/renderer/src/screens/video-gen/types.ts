@@ -4,10 +4,15 @@ export interface VideoModel {
   id: string;
   label: string;
   endpoint: string;
-  pricePerSec: number;
+  pricePerSec: {
+    noAudio: number;
+    withAudio: number;
+  };
   maxDur: number;
+  supportedDurations: number[];
   supportsAudio: boolean;
   desc: string;
+  purpose: 'testing' | 'production';
   badge?: string;
 }
 

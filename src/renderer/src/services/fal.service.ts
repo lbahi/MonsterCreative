@@ -270,7 +270,46 @@ export class FalService {
    * Forwards a data URL to the main process for upload to bypass renderer CORS/fetch restrictions.
    */
   async uploadImageFromDataUrl(dataUrl: string): Promise<{ url?: string; error?: string }> {
-    return await window.api.fal.uploadImageFromDataUrl(dataUrl);
+    let browserError: string | null = null
+    try {
+      const apiKey = await window.api.keystore.getFalKey()
+      if (!apiKey) {
+        const ipcRes = await window.api.fal.uploadImageFromDataUrl(dataUrl)
+        return ipcRes
+      }
+
+      const matches = dataUrl.match(/^data:([^;]+);base64,(.+)$/)
+      if (!matches) {
+        return { error: 'Invalid data URL format.' }
+      }
+
+      const mime = matches[1]
+      const base64Data = matches[2]
+      const binary = atob(base64Data)
+      const bytes = new Uint8Array(binary.length)
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i)
+      }
+
+      const ext = mime.split('/')[1] || 'png'
+      const file = new File([bytes], `upload.${ext}`, { type: mime })
+      const browserUpload = await this.uploadImage(file)
+      if (!browserUpload.error && browserUpload.url) {
+        return browserUpload
+      }
+      browserError = browserUpload.error ?? 'unknown browser upload error'
+    } catch (err: any) {
+      browserError = err?.message ?? 'unknown browser upload exception'
+    }
+
+    const ipcUpload = await window.api.fal.uploadImageFromDataUrl(dataUrl)
+    if (!ipcUpload.error || !browserError) {
+      return ipcUpload
+    }
+
+    return {
+      error: `Renderer upload failed: ${browserError}; IPC upload failed: ${ipcUpload.error}`
+    }
   }
 
   /** Smart Reframe bridge — routes to fal-ai/image-editing/reframe via IPC */
@@ -283,16 +322,17 @@ export class FalService {
   }
 
   /** FLUX.1 Kontext Pro bridge — routes to fal-ai/flux-pro/kontext via IPC */
-  async kontextEdit(params: {
-    image_url: string;
+  async generateVideo(params: {
+    model: string;
     prompt: string;
-    aspect_ratio?: string;
-    width?: number;
-    height?: number;
-    output_format?: string;
-    num_images?: number;
-  }): Promise<{ images: Array<{ url: string }> }> {
-    return await window.api.fal.kontextEdit(params);
+    image_url: string;
+    duration: number | string;
+    aspect_ratio: string;
+    resolution?: string;
+    audio: boolean;
+    end_image_url?: string;
+  }): Promise<FalResponse | any> {
+    return await window.api.fal.generateVideo(params);
   }
 }
 

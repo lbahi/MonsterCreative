@@ -35,6 +35,25 @@ export interface ValidationResult {
   error?: string
 }
 
+export interface VideoGenerationRequest {
+  modelId: string
+  prompt: string
+  imageUrl: string
+  endImageUrl?: string
+  aspectRatio?: string
+  resolution: string
+  duration: number
+  audio: boolean
+  negativePrompt?: string
+  seed?: number
+}
+
+export interface VideoGenerationResult {
+  url: string
+  fileName: string
+  fileSize: number
+}
+
 export class FalService {
   /**
    * Smoke-tests a key BEFORE saving it. Hits the billing endpoint directly.
@@ -268,8 +287,8 @@ export class FalService {
         return { error: `Vision queue submit failed (${response.status}): ${errBody}` }
       }
 
-      const queueData = await response.json()
-      const result = await this.pollVisionStatus(queueData.request_id, auth)
+      const queueData = await response.json();
+      const result = await this.pollStatus(queueData.request_id, 'openrouter/router/vision', auth, 120);
       // The vision endpoint returns { output: string, usage: {...} }
       return { data: result?.output ?? JSON.stringify(result) }
     } catch (err: any) {
@@ -334,31 +353,6 @@ export class FalService {
     return this.chatCompletion(messages, modelId, maxTokens)
   }
 
-  private async pollVisionStatus(requestId: string, auth: string, maxAttempts = 60, intervalMs = 1500): Promise<any> {
-    const endpoint = 'openrouter/router/vision'
-    const statusUrl = `https://queue.fal.run/${endpoint}/requests/${requestId}/status`
-
-    for (let attempts = 0; attempts < maxAttempts; attempts++) {
-      const res = await fetch(statusUrl, { headers: { 'Authorization': auth, 'Accept': 'application/json' } })
-
-      if (!res.ok) {
-        throw new Error(`Polling failed (${res.status}): ${await res.text()}`)
-      }
-
-      const data = await res.json()
-      if (data.status === 'COMPLETED') {
-        const finalRes = await fetch(`https://queue.fal.run/${endpoint}/requests/${requestId}`, {
-          headers: { 'Authorization': auth, 'Accept': 'application/json' }
-        })
-        return await finalRes.json()
-      } else if (data.status === 'FAILED') {
-        throw new Error(`Vision analysis failed on server: ${data.error}`)
-      }
-
-      await new Promise(r => setTimeout(r, intervalMs))
-    }
-    throw new Error('Vision polling timed out.')
-  }
 
   /**
    * Uploads a base64 data URL to fal.media CDN.
@@ -379,26 +373,50 @@ export class FalService {
       const buffer = Buffer.from(base64Data, 'base64')
       const ext = mime.split('/')[1] || 'jpg'
       const fileName = `upload.${ext}`
+      const authVariants = [`Bearer ${apiKey}`, `Key ${apiKey}`]
+      const bodyVariants: Array<{ label: string; body: any }> = [
+        { label: 'blob', body: new Blob([buffer], { type: mime }) },
+        { label: 'buffer', body: buffer }
+      ]
 
-      const response = await fetch('https://fal.media/files/upload', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Key ${apiKey}`,
-          'X-Fal-File-Name': fileName,
-          'Content-Type': mime,
-          'Accept': 'application/json'
-        },
-        body: buffer
-      })
+      const failures: string[] = []
 
-      if (!response.ok) {
-        const errBody = await response.text()
-        return { error: `CDN upload failed (${response.status}): ${errBody}` }
+      for (const auth of authVariants) {
+        for (const bodyVariant of bodyVariants) {
+          try {
+            const response = await fetch('https://fal.media/files/upload', {
+              method: 'POST',
+              headers: {
+                'Authorization': auth,
+                'X-Fal-File-Name': fileName,
+                'Content-Type': mime,
+                'Accept': 'application/json'
+              },
+              body: bodyVariant.body
+            })
+
+            if (!response.ok) {
+              const errBody = await response.text()
+              failures.push(`auth=${auth.startsWith('Bearer') ? 'Bearer' : 'Key'} body=${bodyVariant.label} status=${response.status} body=${errBody.slice(0, 160)}`)
+              continue
+            }
+
+            const data = await response.json() as any
+            const accessUrl = (data.access_url as string | undefined)?.replace(/ /g, '%20')
+            if (accessUrl) {
+              return { url: accessUrl }
+            }
+
+            failures.push(`auth=${auth.startsWith('Bearer') ? 'Bearer' : 'Key'} body=${bodyVariant.label} missing access_url`)
+          } catch (err: any) {
+            failures.push(`auth=${auth.startsWith('Bearer') ? 'Bearer' : 'Key'} body=${bodyVariant.label} error=${err?.message ?? 'unknown'}`)
+          }
+        }
       }
 
-      const data = await response.json() as any
-      const accessUrl = (data.access_url as string | undefined)?.replace(/ /g, '%20')
-      return { url: accessUrl }
+      return {
+        error: `CDN upload failed after retries. ${failures.join(' | ')}`
+      }
     } catch (err: any) {
       return { error: `Upload error: ${err.message}` }
     }
@@ -632,6 +650,177 @@ export class FalService {
 
     if (!url) throw new Error(`Kontext: no image URL in response. Keys: ${Object.keys(data).join(', ')}`);
     return { images: [{ url }] };
+  }
+
+  /**
+   * Universal Video Generation Handler
+   * Consolidates endpoint logic and uses model-specific payload builders.
+   */
+  async generateVideo(request: VideoGenerationRequest): Promise<VideoGenerationResult> {
+    const apiKey = await keystoreService.getFalKey()
+    if (!apiKey) throw new Error('No Fal.ai API key configured.')
+
+    const { modelId } = request
+    console.log(`[FalService:generateVideo] Targeting model: ${modelId}`)
+
+    // 1. Configurable Endpoints
+    const directRunEndpoint = `https://fal.run/${modelId}`
+    const queueEndpoint = `https://queue.fal.run/${modelId}`
+    const genericQueueBase = `https://queue.fal.run`
+
+    // 2. Build Model-Specific Payload
+    const payload = this.buildVideoPayload(request)
+    console.log(`[FalService:generateVideo] Payload prepared for ${modelId}`)
+
+    const toVideoResult = (data: any): VideoGenerationResult | null => {
+      const video = data?.video ?? data?.output?.video ?? data?.data?.video
+      const url = video?.url ?? data?.url
+      if (!url) return null
+
+      return {
+        url,
+        fileName: video?.file_name ?? data?.file_name ?? 'output.mp4',
+        fileSize: video?.file_size ?? data?.file_size ?? 0,
+      }
+    }
+
+    // --- EXECUTION: PRIMARY PATH (Direct Run) ---
+    try {
+      const runRes = await fetch(directRunEndpoint, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Key ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+
+      if (runRes.ok) {
+        const runData = await runRes.json()
+        const parsed = toVideoResult(runData)
+        if (parsed) {
+          console.log(`[FalService:generateVideo] Direct run success for ${modelId}`)
+          return parsed
+        }
+      }
+    } catch (err) {
+      console.warn(`[FalService:generateVideo] Direct run failed for ${modelId}, falling back to queue.`, err)
+    }
+
+    // --- EXECUTION: FALLBACK PATH (Queue + Polling) ---
+    const queueSubmit = await fetch(queueEndpoint, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Key ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    })
+
+    if (!queueSubmit.ok) {
+      const errBody = await queueSubmit.text()
+      throw new Error(`[${modelId}] Submit failed (${queueSubmit.status}): ${errBody}`)
+    }
+
+    const { request_id } = await queueSubmit.json()
+    if (!request_id) throw new Error(`[${modelId}] No request_id returned from queue submit`)
+    console.log(`[FalService:generateVideo] Queued: ${request_id}`)
+
+    const statusUrls = [
+      `${queueEndpoint}/requests/${request_id}/status`,
+      `${genericQueueBase}/requests/${request_id}/status`,
+    ]
+    const resultUrls = [
+      `${queueEndpoint}/requests/${request_id}`,
+      `${genericQueueBase}/requests/${request_id}`,
+    ]
+
+    // Unified Poller
+    let attempts = 0
+    const maxAttempts = 60 // 5 minutes at 5s intervals
+    
+    while (attempts < maxAttempts) {
+      // Check status
+      for (const sUrl of statusUrls) {
+        try {
+          const sRes = await fetch(sUrl, { headers: { 'Authorization': `Key ${apiKey}` } })
+          if (sRes.ok) {
+            const sData = await sRes.json()
+            if (sData.status === 'COMPLETED') {
+              // Try to get result
+              for (const rUrl of resultUrls) {
+                const rRes = await fetch(rUrl, { headers: { 'Authorization': `Key ${apiKey}` } })
+                if (rRes.ok) {
+                  const rData = await rRes.json()
+                  const parsed = toVideoResult(rData)
+                  if (parsed) return parsed
+                }
+              }
+            }
+          }
+        } catch (e) { /* ignore individual poll failure */ }
+      }
+
+      await new Promise(r => setTimeout(r, 5000))
+      attempts++
+    }
+
+    throw new Error(`[${modelId}] Polling timed out after 5 minutes.`)
+  }
+
+  /**
+   * Model-Specific Payload Mapping
+   */
+  private buildVideoPayload(request: VideoGenerationRequest): Record<string, unknown> {
+    const { modelId } = request
+    
+    const base: Record<string, any> = {
+      prompt: request.prompt,
+      resolution: request.resolution,
+      duration: request.duration,
+    }
+
+    // Aspect Ratio mapping
+    if (request.aspectRatio) {
+      base.aspect_ratio = request.aspectRatio
+    }
+
+    // Negative Prompt
+    if (request.negativePrompt) {
+      base.negative_prompt = request.negativePrompt
+    }
+
+    // Pixverse v6 Mapping
+    if (modelId.includes('pixverse')) {
+      return {
+        ...base,
+        image_url: request.imageUrl,
+        generate_audio_switch: request.audio,
+        thinking_type: 'disabled'
+      }
+    }
+
+    // Kling Mapping (Primary)
+    if (modelId.includes('kling')) {
+      const klingDuration = request.duration <= 5 ? '5' : '10'
+      const klingPayload: Record<string, any> = {
+        ...base,
+        duration: klingDuration,
+        start_image_url: request.imageUrl,
+        generate_audio: request.audio,
+      }
+      if (request.endImageUrl) {
+        klingPayload.end_image_url = request.endImageUrl
+      }
+      return klingPayload
+    }
+
+    // Default Fallback (handles most other models like Hailuo, Minimax)
+    return {
+      ...base,
+      image_url: request.imageUrl,
+      generate_audio: request.audio,
+    }
   }
 }
 

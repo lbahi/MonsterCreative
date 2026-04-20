@@ -1,21 +1,60 @@
 import { Download, Check, Film, Clock } from 'lucide-react';
 import { StepChecklist } from '../../../components/ui/StepChecklist';
-import { VIDEO_STEPS, VIDEO_MODELS } from '../constants';
+import { VIDEO_STEPS } from '../constants';
 import { InfoRow } from '../../image-gen/shared/InfoRow';
 
 interface VideoRightPanelProps {
-  generating: boolean;
+  selectedModel: any;
+  selectedDuration: number;
+  selectedResolution: string;
+  audioEnabled: boolean;
+  isGenerating: boolean;
   generatedVideoUrl: string | null;
-  model: string;
-  duration: number;
-  aspectRatio: string;
-  audio: boolean;
-  estimatedCost: number;
+  onGenerate: () => void;
+  currentCost?: number;
 }
 
-export function VideoRightPanel({ generating, generatedVideoUrl, model, duration, aspectRatio, audio, estimatedCost }: VideoRightPanelProps) {
-  const selectedModelInfo = VIDEO_MODELS.find(m => m.id === model);
-  const modelName = selectedModelInfo ? selectedModelInfo.label : model;
+export function VideoRightPanel({
+  selectedModel,
+  selectedDuration,
+  selectedResolution,
+  audioEnabled,
+  isGenerating,
+  generatedVideoUrl,
+  onGenerate,
+  currentCost
+}: VideoRightPanelProps) {
+  const handleDownload = async () => {
+    if (!generatedVideoUrl) return;
+    try {
+      const fileName = `monster-video-${Date.now()}.mp4`;
+      const result = await (window as any).api.utils.downloadFile({ 
+        url: generatedVideoUrl, 
+        filename: fileName 
+      });
+      
+      if (!result.success && !result.cancelled) {
+        alert('Failed to download video: ' + (result.error || 'Unknown error'));
+      }
+    } catch (err: any) {
+      console.error('Download failed:', err);
+      alert('Failed to download video: ' + err.message);
+    }
+  };
+
+  const calculateDisplayCost = () => {
+    if (currentCost) return currentCost.toFixed(3);
+
+    const noAudioRate = selectedModel?.pricePerSec?.noAudio ?? 0.05;
+    const withAudioRate = selectedModel?.pricePerSec?.withAudio ?? noAudioRate;
+    const rate = audioEnabled ? withAudioRate : noAudioRate;
+
+    return (selectedDuration * rate).toFixed(3);
+  };
+
+  const estimatedCost = calculateDisplayCost();
+  const modelName = selectedModel ? selectedModel.label : 'Unknown Model';
+
   return (
     <div style={{ fontFamily: 'var(--font-body)' }}>
       <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--ma-border)' }}>
@@ -27,7 +66,7 @@ export function VideoRightPanel({ generating, generatedVideoUrl, model, duration
         </p>
       </div>
 
-      {generating && (
+      {isGenerating && (
         <div style={{ padding: '24px 20px' }}>
           <div style={{ 
             width: '100%', aspectRatio: '16/9', borderRadius: 12, background: 'rgba(108,99,255,0.08)', 
@@ -47,7 +86,7 @@ export function VideoRightPanel({ generating, generatedVideoUrl, model, duration
         </div>
       )}
 
-      {!generating && !generatedVideoUrl && (
+      {!isGenerating && !generatedVideoUrl && (
         <div style={{ padding: '24px 20px' }}>
           <div style={{ padding: '0 0 16px 0', borderBottom: '1px solid var(--ma-border)', marginBottom: 16 }}>
             <h4 style={{ margin: '0 0 4px', fontSize: 13, color: '#FFF' }}>{modelName}</h4>
@@ -56,10 +95,10 @@ export function VideoRightPanel({ generating, generatedVideoUrl, model, duration
           
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <InfoRow label="Model" value={modelName} />
-            <InfoRow label="Duration" value={`${duration}s`} />
-            <InfoRow label="Ratio" value={aspectRatio} />
-            <InfoRow label="Audio" value={audio ? "ON" : "OFF"} />
-            <InfoRow label="Est. cost" value={`$${estimatedCost.toFixed(3)}`} valueColor="var(--ma-green)" />
+            <InfoRow label="Duration" value={`${selectedDuration}s`} />
+            <InfoRow label="Resolution" value={selectedResolution} />
+            <InfoRow label="Audio" value={audioEnabled ? 'ON' : 'OFF'} />
+            <InfoRow label="Est. cost" value={`$${estimatedCost}`} green />
           </div>
         </div>
       )}
@@ -82,14 +121,17 @@ export function VideoRightPanel({ generating, generatedVideoUrl, model, duration
             />
           </div>
 
-          <button style={{ width: '100%', padding: '10px', background: 'var(--ma-accent)', border: 'none', borderRadius: 8, color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'var(--font-body)' }}>
+          <button 
+            onClick={handleDownload}
+            style={{ width: '100%', padding: '10px', background: 'var(--ma-accent)', border: 'none', borderRadius: 8, color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'var(--font-body)' }}
+          >
             <Download size={14} /> Download MP4
           </button>
           
           <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 8 }}>
             <InfoRow label="Platform" value="Auto" />
-            <InfoRow label="Engine" value={model} mono />
-            <InfoRow label="Duration" value={`${duration}s`} mono />
+            <InfoRow label="Engine" value={selectedModel?.id ?? modelName} mono />
+            <InfoRow label="Duration" value={`${selectedDuration}s`} mono />
           </div>
         </div>
       )}
