@@ -40,6 +40,13 @@ const api = {
   },
   utils: {
     downloadFile: (params: { url: string, filename: string }) => ipcRenderer.invoke('util:downloadFile', params),
+  },
+  audio: {
+    generateSpeech: (params: any) => ipcRenderer.invoke('audio:generateSpeech', params),
+    speechToSpeech: (params: any) => ipcRenderer.invoke('audio:speechToSpeech', params),
+    cloneVoice: (params: any) => ipcRenderer.invoke('audio:cloneVoice', params),
+    playAudio: (filePath: string) => ipcRenderer.invoke('audio:playAudio', filePath),
+    saveAudio: (filePath: string, destPath: string) => ipcRenderer.invoke('audio:saveAudio', filePath, destPath),
   }
 }
 

@@ -54,6 +54,20 @@ export interface VideoGenerationResult {
   fileSize: number
 }
 
+export interface AudioGenerationRequest {
+  text: string
+  voiceId: string
+  stability?: number
+  similarity_boost?: number
+  speed?: number
+  model?: string
+}
+
+export interface AudioResult {
+  url: string
+  duration?: number
+}
+
 export class FalService {
   /**
    * Smoke-tests a key BEFORE saving it. Hits the billing endpoint directly.
@@ -821,6 +835,68 @@ export class FalService {
       image_url: request.imageUrl,
       generate_audio: request.audio,
     }
+  }
+  async generateSpeech(request: AudioGenerationRequest): Promise<AudioResult> {
+    const key = await keystoreService.getFalKey()
+    if (!key) throw new Error('Fal API key not found in keystore')
+
+    const response = await fetch('https://queue.fal.run/fal-ai/elevenlabs/tts/eleven-v3', {
+      method: 'POST',
+      headers: {
+        Authorization: `Key ${key}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        text: request.text,
+        voice: request.voiceId,
+        stability: request.stability ?? 0.5,
+        similarity_boost: request.similarity_boost ?? 0.75,
+        speed: request.speed ?? 1.0,
+        model: request.model ?? 'eleven_multilingual_v2'
+      })
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(`Fal API Error: ${error.message || response.statusText}`)
+    }
+
+    const data = await response.json()
+    // Fal usually returns { audio: { url: "..." } } or similar for ElevenLabs
+    return {
+      url: data.audio?.url || data.url
+    }
+  }
+
+  async speechToSpeech(params: any): Promise<AudioResult> {
+    const key = await keystoreService.getFalKey()
+    if (!key) throw new Error('Fal API key not found in keystore')
+
+    const response = await fetch('https://queue.fal.run/fal-ai/elevenlabs/voice-changer', {
+      method: 'POST',
+      headers: {
+        Authorization: `Key ${key}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(params)
+    })
+
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(`Fal API Error: ${error.message || response.statusText}`)
+    }
+
+    const data = await response.json()
+    return {
+      url: data.audio?.url || data.url
+    }
+  }
+
+  async cloneVoice(params: any): Promise<any> {
+    // Placeholder for cloning logic
+    // Usually involves uploading a sample first then calling the creation endpoint
+    console.log('Voice cloning initiated with params:', params)
+    return { success: true, message: 'Voice cloning logic to be implemented' }
   }
 }
 

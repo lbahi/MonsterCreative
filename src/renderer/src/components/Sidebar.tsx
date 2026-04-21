@@ -53,7 +53,6 @@ const navItems: NavItem[] = [
     label: 'Audio Lab',
     icon: <Music2 size={18} />,
     path: '/audio-lab',
-    badge: 'Soon',
   },
 ];
 

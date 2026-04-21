@@ -136,6 +136,53 @@ app.whenReady().then(() => {
     }
   })
 
+  // IPC Handlers: Audio
+  ipcMain.handle('audio:generateSpeech', async (_, params) => {
+    try {
+      const result = await falService.generateSpeech(params)
+      return { success: true, data: result }
+    } catch (error: any) {
+      return { success: false, error: error.message }
+    }
+  })
+
+  ipcMain.handle('audio:speechToSpeech', async (_, params) => {
+    try {
+      const result = await falService.speechToSpeech(params)
+      return { success: true, data: result }
+    } catch (error: any) {
+      return { success: false, error: error.message }
+    }
+  })
+
+  ipcMain.handle('audio:cloneVoice', async (_, params) => {
+    try {
+      const result = await falService.cloneVoice(params)
+      return { success: true, data: result }
+    } catch (error: any) {
+      return { success: false, error: error.message }
+    }
+  })
+
+  ipcMain.handle('audio:playAudio', async (_, filePath) => {
+    try {
+      await shell.openPath(filePath)
+      return { success: true }
+    } catch (error: any) {
+      return { success: false, error: error.message }
+    }
+  })
+
+  ipcMain.handle('audio:saveAudio', async (_, filePath, destPath) => {
+    const { copyFile } = require('fs/promises')
+    try {
+      await copyFile(filePath, destPath)
+      return { success: true }
+    } catch (error: any) {
+      return { success: false, error: error.message }
+    }
+  })
+
   createWindow()
 
   app.on('activate', function () {
