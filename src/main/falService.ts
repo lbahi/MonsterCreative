@@ -230,7 +230,10 @@ export class FalService {
       })
 
       if (responseWithExpand.ok) {
-        return await responseWithExpand.json()
+        const payload = await responseWithExpand.json()
+        console.log('[DEBUG] Fal billing response payload:', JSON.stringify(payload, null, 2))
+        try { require('fs').writeFileSync('C:/Users/bahaa/.gemini/antigravity/brain/e6d8ef9b-9cb4-4c0e-9a9b-7b6e37bd8135/scratch/debug_billing.json', JSON.stringify(payload, null, 2)); } catch(e){}
+        return payload
       }
 
       // Try 2: plain billing endpoint without expand
@@ -302,7 +305,7 @@ export class FalService {
       }
 
       const queueData = await response.json();
-      const result = await this.pollStatus(queueData.request_id, 'openrouter/router/vision', auth, 120);
+      const result = await this.pollStatus(queueData.request_id, 'openrouter/router/vision', 120, auth);
       // The vision endpoint returns { output: string, usage: {...} }
       return { data: result?.output ?? JSON.stringify(result) }
     } catch (err: any) {
@@ -911,8 +914,13 @@ export class FalService {
     })
 
     if (!response.ok) {
-      let msg = response.statusText
-      try { const e = await response.json(); msg = e.message || e.detail || msg } catch (_) {}
+      const rawText = await response.text()
+      console.error('[cloneVoice] Fal error response:', rawText)
+      let msg = rawText
+      try {
+        const e = JSON.parse(rawText)
+        msg = e.message || e.detail || e.error || JSON.stringify(e)
+      } catch (_) {}
       throw new Error(`Clone Voice Error: ${msg}`)
     }
 
@@ -941,8 +949,13 @@ export class FalService {
     })
 
     if (!response.ok) {
-      let msg = response.statusText
-      try { const e = await response.json(); msg = e.message || e.detail || msg } catch (_) {}
+      const rawText = await response.text()
+      console.error('[generateClonedSpeech] Fal error response:', rawText)
+      let msg = rawText
+      try {
+        const e = JSON.parse(rawText)
+        msg = e.message || e.detail || e.error || JSON.stringify(e)
+      } catch (_) {}
       throw new Error(`Cloned Speech Generation Error: ${msg}`)
     }
 

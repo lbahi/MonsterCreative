@@ -89,6 +89,14 @@ export class DatabaseService {
           video_scripts TEXT,
           created_at TEXT
         );
+
+        CREATE TABLE IF NOT EXISTS custom_voices (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          embedding_path TEXT NOT NULL,
+          sample_path TEXT,
+          created_at TEXT NOT NULL
+        );
       `);
     } catch (err) {
       console.error('Database core init failed:', err);
@@ -200,6 +208,24 @@ export class DatabaseService {
       video.fileSize,
       video.createdAt || new Date().toISOString()
     ).lastInsertRowid
+  }
+
+  // --- Custom Voices ---
+  saveCustomVoice(voice: { name: string; embeddingPath: string; samplePath?: string }) {
+    const stmt = this.db.prepare(`
+      INSERT INTO custom_voices (name, embedding_path, sample_path, created_at)
+      VALUES (?, ?, ?, ?)
+    `)
+    const result = stmt.run(voice.name, voice.embeddingPath, voice.samplePath || null, new Date().toISOString())
+    return result.lastInsertRowid
+  }
+
+  getAllCustomVoices() {
+    return this.db.prepare('SELECT * FROM custom_voices ORDER BY created_at DESC').all()
+  }
+
+  deleteCustomVoice(id: number) {
+    return this.db.prepare('DELETE FROM custom_voices WHERE id = ?').run(id)
   }
 }
 

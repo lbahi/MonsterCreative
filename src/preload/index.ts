@@ -45,6 +45,10 @@ const api = {
     generateSpeech: (params: any) => ipcRenderer.invoke('audio:generateSpeech', params),
     speechToSpeech: (params: any) => ipcRenderer.invoke('audio:speechToSpeech', params),
     cloneVoice: (params: any) => ipcRenderer.invoke('audio:cloneVoice', params),
+    generateClonedSpeech: (params: any) => ipcRenderer.invoke('audio:generateClonedSpeech', params),
+    saveCustomVoice: (params: any) => ipcRenderer.invoke('audio:saveCustomVoice', params),
+    getAllCustomVoices: () => ipcRenderer.invoke('audio:getAllCustomVoices'),
+    deleteCustomVoice: (id: number) => ipcRenderer.invoke('audio:deleteCustomVoice', id),
     playAudio: (filePath: string) => ipcRenderer.invoke('audio:playAudio', filePath),
     saveAudio: (filePath: string, destPath: string) => ipcRenderer.invoke('audio:saveAudio', filePath, destPath),
   }

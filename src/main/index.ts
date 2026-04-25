@@ -5,14 +5,23 @@ import icon from '../../resources/icon.png?asset'
 import { dbService } from './database'
 import { keystoreService } from './keystore'
 import { falService } from './falService'
+import fs from 'fs'
+import path from 'path'
 
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 670,
+    title: 'MonsterCreative',
+    width: 1200,
+    height: 800,
     show: false,
     autoHideMenuBar: true,
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: '#07070F',
+      symbolColor: '#FFFFFF',
+      height: 32
+    },
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -63,7 +72,7 @@ app.whenReady().then(() => {
   ipcMain.handle('db:createCampaign', (_, name, platforms) => dbService.createCampaign(name, platforms))
   ipcMain.handle('db:saveImage', (_, img) => dbService.saveImage(img))
   ipcMain.handle('db:saveCopyVariant', (_, v) => dbService.saveCopyVariant(v))
-  ipcMain.handle('db:saveVideo', (_, vid) => dbService.saveVideo(vid))
+  // ipcMain.handle('db:saveVideo', (_, vid) => dbService.saveVideo(vid))
 
   // IPC Handlers: Keystore
   ipcMain.handle('key:setFalKey', (_, key) => keystoreService.setFalKey(key))
@@ -117,7 +126,7 @@ app.whenReady().then(() => {
   ipcMain.handle('util:downloadFile', async (_, { url, filename }) => {
     const { dialog } = require('electron')
     const { writeFile } = require('fs/promises')
-    const { join } = require('path')
+
     
     const { filePath } = await dialog.showSaveDialog({
       defaultPath: filename,
@@ -168,6 +177,57 @@ app.whenReady().then(() => {
     try {
       const result = await falService.generateClonedSpeech(params)
       return { success: true, data: result }
+    } catch (error: any) {
+      return { success: false, error: error.message }
+    }
+  })
+
+  // Save speaker embedding to disk + register in DB
+  ipcMain.handle('audio:saveCustomVoice', async (_, params: { name: string; embeddingUrl: string; samplePath?: string }) => {
+    try {
+      const voicesDir = path.join(app.getPath('userData'), 'custom-voices')
+      if (!fs.existsSync(voicesDir)) fs.mkdirSync(voicesDir, { recursive: true })
+
+      // Download the .safetensors embedding file from Fal CDN
+      const safeName = params.name.replace(/[^a-zA-Z0-9_-]/g, '_')
+      const embeddingPath = path.join(voicesDir, `${safeName}_${Date.now()}.safetensors`)
+      const resp = await fetch(params.embeddingUrl)
+      if (!resp.ok) throw new Error('Failed to download embedding from Fal CDN')
+      const buffer = Buffer.from(await resp.arrayBuffer())
+      fs.writeFileSync(embeddingPath, buffer)
+
+      // Persist metadata to SQLite
+      const id = dbService.saveCustomVoice({
+        name: params.name,
+        embeddingPath,
+        samplePath: params.samplePath
+      })
+
+      return { success: true, data: { id, embeddingPath } }
+    } catch (error: any) {
+      return { success: false, error: error.message }
+    }
+  })
+
+  ipcMain.handle('audio:getAllCustomVoices', async () => {
+    try {
+      const voices = dbService.getAllCustomVoices()
+      return { success: true, data: voices }
+    } catch (error: any) {
+      return { success: false, error: error.message }
+    }
+  })
+
+  ipcMain.handle('audio:deleteCustomVoice', async (_, id: number) => {
+    try {
+      // Also remove the embedding file from disk
+      const voices = dbService.getAllCustomVoices() as any[]
+      const voice = voices.find(v => v.id === id)
+      if (voice?.embedding_path && fs.existsSync(voice.embedding_path)) {
+        fs.unlinkSync(voice.embedding_path)
+      }
+      dbService.deleteCustomVoice(id)
+      return { success: true }
     } catch (error: any) {
       return { success: false, error: error.message }
     }

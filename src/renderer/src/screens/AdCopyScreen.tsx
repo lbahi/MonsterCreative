@@ -18,13 +18,31 @@ function AdCopyRightPanel({ currentModelLabel }: { currentModelLabel: string }) 
   const [currency, setCurrency] = useState('USD');
   
   useEffect(() => {
-    // Fetch live API balance securely through IPC via preload api
     const api = (window as any).api;
     if (api && api.fal && api.fal.getBilling) {
       api.fal.getBilling().then((billing: any) => {
-        if (billing && typeof billing.balance === 'number') {
-          setBalance(billing.balance);
-          if (billing.currency) setCurrency(billing.currency);
+        if (!billing) return;
+        
+        let foundBalance = null;
+        let foundCurrency = 'USD';
+
+        // Robust parsing matching DashboardScreen
+        if (billing.credits?.current_balance !== undefined) {
+          foundBalance = billing.credits.current_balance;
+        } else if (typeof billing.current_balance === 'number') {
+          foundBalance = billing.current_balance;
+        } else if (typeof billing.credits === 'number') {
+          foundBalance = billing.credits;
+        } else if (billing.balance !== undefined) {
+          foundBalance = billing.balance;
+        }
+
+        if (billing.credits?.currency) foundCurrency = billing.credits.currency;
+        else if (billing.currency) foundCurrency = billing.currency;
+
+        if (foundBalance !== null) {
+          setBalance(foundBalance);
+          setCurrency(foundCurrency);
         }
       }).catch(err => console.error("Could not fetch billing for right panel:", err));
     }

@@ -1,81 +1,49 @@
-import { RefreshCw } from 'lucide-react';
+import { LayoutTemplate } from 'lucide-react';
 
-type LandingFormProps = {
-  prompt: string;
-  setPrompt: (value: string) => void;
-};
-
-export function LandingForm({ prompt, setPrompt }: LandingFormProps) {
+export function LandingForm() {
   return (
-    <div style={{ background: 'var(--ma-elevated)', border: '1px solid var(--ma-border)', borderRadius: 12, padding: 20 }}>
-      <button
-        style={{
-          width: '100%',
-          padding: '12px',
-          background: 'rgba(255,255,255,0.05)',
-          border: '1px solid var(--ma-border)',
-          borderRadius: 8,
-          color: '#FFF',
-          cursor: 'pointer',
-          fontSize: 13,
-          fontWeight: 600,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 6,
-          fontFamily: 'var(--font-body)',
-          marginBottom: 20,
-        }}
-      >
-        <RefreshCw size={14} /> Sync from Campaign
-      </button>
+    <div style={{
+      background: 'var(--ma-surface)',
+      border: '1px solid var(--ma-border)',
+      borderRadius: 16,
+      padding: '40px 24px',
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '16px',
+      textAlign: 'center',
+      minHeight: 300
+    }}>
+      <div style={{
+        width: 64, height: 64, borderRadius: '50%',
+        background: 'rgba(108,99,255,0.1)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: 'var(--ma-accent)'
+      }}>
+        <LayoutTemplate size={28} />
+      </div>
+      
+      <div>
+        <h3 style={{ fontSize: 20, fontWeight: 700, color: '#FFF', margin: '0 0 8px' }}>Landing Page Wizard</h3>
+        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', margin: '0 auto', maxWidth: 400, lineHeight: 1.6 }}>
+          Generate high-conversion, dual-mode (HTML/Image) hero sections automatically synced with your active campaigns.
+        </p>
+      </div>
 
-      <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-        Hero Image Concept
-      </label>
-      <textarea
-        value={prompt}
-        onChange={(event) => setPrompt(event.target.value)}
-        placeholder="Describe the hero section of your landing page. Include product, brand feel, and target customer..."
-        style={{
-          width: '100%',
-          minHeight: 100,
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid var(--ma-border)',
-          borderRadius: 8,
-          color: '#FFF',
-          fontSize: 13,
-          padding: '12px 14px',
-          resize: 'vertical',
-          outline: 'none',
-          fontFamily: 'var(--font-body)',
-          lineHeight: 1.6,
-          boxSizing: 'border-box',
-        }}
-      />
-      <div style={{ marginTop: 12 }}>
-        <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', display: 'block', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.8px' }}>
-          Layout Type
-        </label>
-        <div style={{ display: 'flex', gap: 8 }}>
-          {['Split Hero', 'Centered', 'Full Bleed'].map((layout) => (
-            <button
-              key={layout}
-              style={{
-                padding: '7px 14px',
-                background: layout === 'Split Hero' ? 'rgba(108,99,255,0.2)' : 'rgba(255,255,255,0.04)',
-                border: `1px solid ${layout === 'Split Hero' ? 'var(--ma-border-accent)' : 'var(--ma-border)'}`,
-                borderRadius: 8,
-                color: layout === 'Split Hero' ? 'var(--ma-accent-light)' : 'rgba(255,255,255,0.4)',
-                fontSize: 12,
-                cursor: 'pointer',
-                fontFamily: 'var(--font-body)',
-              }}
-            >
-              {layout}
-            </button>
-          ))}
-        </div>
+      <div style={{
+        padding: '6px 12px',
+        borderRadius: 20,
+        background: 'rgba(255,255,255,0.05)',
+        border: '1px solid rgba(255,255,255,0.1)',
+        color: 'rgba(255,255,255,0.6)',
+        fontSize: 11,
+        fontWeight: 600,
+        letterSpacing: 1,
+        textTransform: 'uppercase',
+        marginTop: 8
+      }}>
+        In Development
       </div>
     </div>
   );

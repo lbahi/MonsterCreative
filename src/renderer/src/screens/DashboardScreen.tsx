@@ -103,6 +103,10 @@ export function DashboardScreen() {
           credits = billingRes.credits.current_balance;
         } else if (typeof billingRes.current_balance === 'number') {
           credits = billingRes.current_balance;
+        } else if (typeof billingRes.credits === 'number') {
+          credits = billingRes.credits;
+        } else if (billingRes.balance !== undefined) {
+          credits = billingRes.balance;
         }
       }
 
@@ -156,7 +160,7 @@ export function DashboardScreen() {
         ? 'N/A'
         : stats?.credits !== null
         ? `$${(stats?.credits ?? 0).toFixed(2)}`
-        : '—',
+        : 'DEBUG_NULL',
       delta: stats?.creditsRestricted ? 'admin key needed' : 'fal.ai balance',
       icon: <CreditCard size={16} />,
       color: '#F59E0B',
@@ -203,7 +207,7 @@ export function DashboardScreen() {
           fontSize: 30, fontWeight: 700, color: '#FFFFFF',
           margin: 0, letterSpacing: '-0.5px',
         }}>
-          {getGreeting()}, Media Buyer 👋
+          {getGreeting()}, Creator 👋
         </h1>
         <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: 14, marginTop: 6 }}>
           You've generated{' '}

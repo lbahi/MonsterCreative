@@ -98,9 +98,11 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 }
 
 function WelcomePhase({ onGetStarted }: { onGetStarted: () => void }) {
+  const [isPlaying, setIsPlaying] = useState(false);
+
   return (
     <div style={{
-      width: 680,
+      width: 840, // Increased from 680
       background: 'var(--ma-elevated)',
       border: '1px solid var(--ma-border)',
       borderRadius: 16,
@@ -108,17 +110,63 @@ function WelcomePhase({ onGetStarted }: { onGetStarted: () => void }) {
       boxShadow: '0 40px 120px rgba(7,7,15,0.8), 0 0 60px rgba(108,99,255,0.1)',
     }}>
       {/* Video */}
-      <div style={{ width: '100%', height: 382, background: '#000', position: 'relative', overflow: 'hidden' }}>
+      <div 
+        style={{ 
+          width: '100%', 
+          height: 472, // Increased from 382 to maintain 16:9
+          background: '#000', 
+          position: 'relative', 
+          overflow: 'hidden',
+          cursor: isPlaying ? 'default' : 'pointer'
+        }}
+        onClick={() => !isPlaying && setIsPlaying(true)}
+      >
         <iframe
           width="100%"
           height="100%"
-          src="https://www.youtube.com/embed/Mlt0BqtmOls?autoplay=1&mute=1&loop=1&playlist=Mlt0BqtmOls&controls=0&modestbranding=1&rel=0"
+          src={`https://www.youtube.com/embed/Mlt0BqtmOls?autoplay=1&mute=${isPlaying ? '0' : '1'}&loop=1&playlist=Mlt0BqtmOls&controls=${isPlaying ? '1' : '0'}&modestbranding=1&rel=0`}
           title="MonsterCreative Promo"
           frameBorder="0"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
-          style={{ border: 'none' }}
+          style={{ border: 'none', pointerEvents: isPlaying ? 'auto' : 'none' }}
         />
+        
+        {!isPlaying && (
+          <div style={{ 
+            position: 'absolute', 
+            inset: 0, 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            background: 'rgba(0,0,0,0.3)',
+            transition: 'background 0.3s'
+          }}>
+            <div style={{
+              width: 80, height: 80, borderRadius: '50%',
+              background: 'rgba(108,99,255,0.9)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 0 40px rgba(108,99,255,0.5)',
+            }}>
+              <div style={{ 
+                width: 0, height: 0, 
+                borderTop: '15px solid transparent',
+                borderBottom: '15px solid transparent',
+                borderLeft: '25px solid white',
+                marginLeft: 6
+              }} />
+            </div>
+            <p style={{
+              position: 'absolute',
+              bottom: 40,
+              color: 'white',
+              fontSize: 16,
+              fontWeight: 600,
+              textShadow: '0 2px 10px rgba(0,0,0,0.5)'
+            }}>Click to Play with Sound</p>
+          </div>
+        )}
+        
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, var(--ma-elevated), transparent 40%)', pointerEvents: 'none' }} />
       </div>
 

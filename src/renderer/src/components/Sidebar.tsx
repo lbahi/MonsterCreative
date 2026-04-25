@@ -6,6 +6,7 @@ import {
   Film, Layers, Zap, Mic, AudioWaveform
 } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
+import logo from '../assets/logo.svg';
 
 interface NavItem {
   id: string;
@@ -133,7 +134,7 @@ export function Sidebar() {
       {/* Title Bar - Electron custom */}
       <div
         style={{
-          height: 48,
+          height: 72,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -142,22 +143,23 @@ export function Sidebar() {
           WebkitAppRegion: 'drag' as any,
         } as React.CSSProperties}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
           {!sidebarCollapsed ? (
             <>
-              <div style={{
-                width: 22, height: 22, borderRadius: 6,
-                background: 'linear-gradient(135deg, var(--ma-accent), #9B8FFF)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-                boxShadow: '0 0 12px var(--ma-accent-glow)',
-              }}>
-                <Zap size={13} color="white" />
-              </div>
+              <img 
+                src={logo} 
+                alt="MonsterCreative" 
+                style={{ 
+                  width: 56, height: 56, borderRadius: 8, 
+                  objectFit: 'contain',
+                  boxShadow: '0 0 16px var(--ma-accent-glow)',
+                }} 
+              />
               <span style={{
                 color: '#FFFFFF',
-                fontSize: 14,
-                fontWeight: 600,
-                letterSpacing: '-0.2px',
+                fontSize: 15,
+                fontWeight: 700,
+                letterSpacing: '-0.3px',
                 whiteSpace: 'nowrap',
                 fontFamily: 'var(--font-display)',
               }}>
@@ -165,15 +167,11 @@ export function Sidebar() {
               </span>
             </>
           ) : (
-            <div style={{
-              width: 22, height: 22, borderRadius: 6,
-              background: 'linear-gradient(135deg, var(--ma-accent), #9B8FFF)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 0 12px var(--ma-accent-glow)',
-              margin: '0 auto',
-            }}>
-              <Zap size={12} color="white" />
-            </div>
+            <img 
+              src={logo} 
+              alt="M" 
+              style={{ width: 32, height: 32, borderRadius: 6, objectFit: 'contain' }} 
+            />
           )}
         </div>
 
@@ -233,8 +231,8 @@ export function Sidebar() {
               M
             </div>
             <div style={{ overflow: 'hidden' }}>
-              <p style={{ fontSize: 12, color: '#FFFFFF', fontWeight: 500, whiteSpace: 'nowrap', margin: 0 }}>Media Buyer Pro</p>
-              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', whiteSpace: 'nowrap', margin: 0 }}>Pro Plan</p>
+              <p style={{ fontSize: 12, color: '#FFFFFF', fontWeight: 500, whiteSpace: 'nowrap', margin: 0 }}>Monster Creator</p>
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', whiteSpace: 'nowrap', margin: 0 }}>Unlimited Plan</p>
             </div>
           </div>
           

@@ -43,17 +43,18 @@ export function Shell() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '0 24px',
+          padding: '0 140px 0 24px', // Added 140px right padding for window controls
           background: 'rgba(7, 7, 15, 0.5)',
           backdropFilter: 'blur(12px)',
           zIndex: 50,
-          flexShrink: 0
+          flexShrink: 0,
+          WebkitAppRegion: 'drag' as any // Allow dragging
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, WebkitAppRegion: 'no-drag' as any }}>
             {/* Left side reserved for future breadcrumbs/title */}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, WebkitAppRegion: 'no-drag' as any }}>
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
               <Search size={14} style={{ position: 'absolute', left: 10, color: 'var(--ma-text-muted)' }} />
               <input 
