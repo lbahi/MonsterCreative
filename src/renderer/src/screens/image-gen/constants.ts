@@ -25,7 +25,7 @@ export const MODES: ModeOption[] = [
 export const STYLES = ['Photorealistic', 'Studio Lit', 'Cinematic', 'Editorial', 'Flat Design', 'Illustration', 'Dark Premium', 'Vibrant'];
 export const RATIOS = ['1:1', '4:5', '9:16', '16:9', '2:3', '1.91:1'];
 export const MODELS = ['FLUX.1 Pro', 'FLUX.1 Dev', 'FLUX Schnell', 'Stable Diffusion XL'];
-export const NANO_BANANA_MODELS = ['Seedream V4.5 Edit', 'Nano Banana Pro', 'Nano Banana', 'Nano Banana 2'];
+export const NANO_BANANA_MODELS = ['Nano Banana', 'Nano Banana 2', 'Nano Banana Pro', 'GPT Image 2'];
 export const NANO_BANANA_RATIOS = ['auto', '1:1', '4:5', '3:4', '2:3', '9:16', '16:9', '4:1', '1:4', '8:1', '1:8'];
 export const NANO_BANANA_RESOLUTIONS = ['0.5K', '1K', '2K', '4K'];
 export const NANO_BANANA_FORMATS = ['png', 'jpeg', 'webp'];
@@ -84,7 +84,8 @@ export const IMG_STEPS: Step[] = [
 ];
 
 export const NB_TEMPLATES = {
-  'Nano Banana 2': `NANO BANANA 2 â€” FULL TEMPLATE (SMART MODE)
+  'Nano Banana': `{{USER_PROMPT}}`,
+  'Nano Banana 2': `NANO BANANA 2 — FULL TEMPLATE (SMART MODE)
 You are a professional AI image editor.
 
 Goal:
@@ -121,7 +122,19 @@ Output:
 - {{NUM_IMAGES}} high-quality images
 - consistent colors and lighting
 - format optimized for {{OUTPUT_FORMAT}}`,
-  'Seedream 4.5': `{{USER_PROMPT}}`
+  'Nano Banana Pro': `NANO BANANA PRO — HIGH FIDELITY MODE
+Goal: Execute the following professional image edit with extreme realism and precision.
+
+User Instruction: {{USER_PROMPT}}
+Aesthetic Style: {{STYLE}}
+Resolution: {{RESOLUTION}}
+Ratio: {{ASPECT_RATIO}}
+
+Requirements:
+- Photorealistic results with perfect lighting and shadows.
+- Preserve all key features of the product/subject.
+- High-resolution textures and crisp details.`,
+  'GPT Image 2': `{{USER_PROMPT}}`
 };
 
 export const SAMPLE_OUTPUTS = [

@@ -496,7 +496,7 @@ export class FalService {
       body = {
         prompt: params.prompt,
         image_urls: params.image_urls,
-        image_size: params.resolution === '4K' ? 'auto_4K' : undefined, // Maps resolution roughly
+        image_size: params.resolution === '4K' ? 'auto_4K' : undefined,
         num_images: params.num_images || 1,
         max_images: params.num_images || 1,
         seed: params.seed ? parseInt(params.seed) : undefined,
@@ -539,6 +539,27 @@ export class FalService {
         output_format: params.output_format || 'png',
         safety_tolerance: params.safety_tolerance || '4',
         limit_generations: params.limit_generations ?? true
+      };
+    } else if (params.model === 'GPT Image 2') {
+      endpoint = 'openai/gpt-image-2/edit';
+      
+      // Map standard ratios to GPT Image 2 enums
+      let gptImageSize = 'auto';
+      const ratio = params.aspect_ratio || 'auto';
+      if (ratio === '1:1') gptImageSize = 'square';
+      else if (ratio === '4:3') gptImageSize = 'landscape_4_3';
+      else if (ratio === '3:4') gptImageSize = 'portrait_4_3';
+      else if (ratio === '16:9') gptImageSize = 'landscape_16_9';
+      else if (ratio === '9:16') gptImageSize = 'portrait_16_9';
+      else if (ratio === 'auto') gptImageSize = 'auto';
+
+      body = {
+        prompt: params.prompt,
+        image_urls: params.image_urls,
+        image_size: gptImageSize,
+        quality: 'high',
+        num_images: params.num_images || 1,
+        output_format: params.output_format || 'png'
       };
     }
 

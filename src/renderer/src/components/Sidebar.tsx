@@ -6,7 +6,7 @@ import {
   Film, Layers, Zap, Mic, AudioWaveform
 } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
-import logo from '../assets/logo.svg';
+import logo from '../assets/logo.png';
 
 interface NavItem {
   id: string;
@@ -143,34 +143,22 @@ export function Sidebar() {
           WebkitAppRegion: 'drag' as any,
         } as React.CSSProperties}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden', width: '100%', justifyContent: 'center' }}>
           {!sidebarCollapsed ? (
-            <>
-              <img 
-                src={logo} 
-                alt="MonsterCreative" 
-                style={{ 
-                  width: 56, height: 56, borderRadius: 8, 
-                  objectFit: 'contain',
-                  boxShadow: '0 0 16px var(--ma-accent-glow)',
-                }} 
-              />
-              <span style={{
-                color: '#FFFFFF',
-                fontSize: 15,
-                fontWeight: 700,
-                letterSpacing: '-0.3px',
-                whiteSpace: 'nowrap',
-                fontFamily: 'var(--font-display)',
-              }}>
-                MonsterCreative
-              </span>
-            </>
+            <img 
+              src={logo} 
+              alt="MonsterCreative" 
+              style={{ 
+                width: 160,
+                height: 160,
+                objectFit: 'contain',
+              }} 
+            />
           ) : (
             <img 
               src={logo} 
               alt="M" 
-              style={{ width: 32, height: 32, borderRadius: 6, objectFit: 'contain' }} 
+              style={{ width: 36, height: 36, objectFit: 'contain' }} 
             />
           )}
         </div>

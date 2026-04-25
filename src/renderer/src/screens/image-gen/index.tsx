@@ -233,7 +233,13 @@ export function ImageGenScreen() {
           prompt: finalPrompt,
           image_urls: uploadedUrls,
           resolution: nbResolution,
-          aspect_ratio: nbRatio,
+          aspect_ratio: nbModel === 'GPT Image 2' 
+            ? (nbRatio === '1:1' ? 'square' : 
+               nbRatio === '16:9' ? 'landscape_16_9' : 
+               nbRatio === '9:16' ? 'portrait_16_9' : 
+               nbRatio === '4:3' ? 'landscape_4_3' : 
+               nbRatio === '3:4' ? 'portrait_4_3' : nbRatio)
+            : nbRatio,
           num_images: nbNumOutputs,
           seed: nbSeed,
           output_format: nbOutputFormat,
