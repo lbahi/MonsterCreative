@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router';
 import { 
   Music2, Mic, AudioWaveform, Play, Pause, 
   Download, History, Settings, Filter, 
   Sparkles, Globe, User, Check, AlertCircle,
   Volume2, FastForward, Rewind, ChevronRight,
-  Plus
+  Plus, BarChart3
 } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 import { VOICE_REGISTRY, VoiceEntry } from '../data/voices';
@@ -12,15 +13,25 @@ import { UnifiedAudioPlayer } from './audio-lab/components/UnifiedAudioPlayer';
 
 export function AudioLabScreen() {
   const { setRightPanelContent } = useApp();
-  const [activeTab, setActiveTab] = useState<'tts' | 'clone' | 's2s'>('tts');
+  const location = useLocation();
+  
+  const activeTab = location.pathname.includes('/clone') ? 'clone' : 
+                    location.pathname.includes('/s2s') ? 's2s' : 'tts';
+  
   const [script, setScript] = useState('');
   const [selectedVoice, setSelectedVoice] = useState<VoiceEntry>(VOICE_REGISTRY[0]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [results, setResults] = useState<any[]>([]);
+  const [regionFilter, setRegionFilter] = useState('');
+
   
   // Clone State
   const [cloneName, setCloneName] = useState('');
   const [cloneFile, setCloneFile] = useState<File | null>(null);
+  const [cloneReferenceText, setCloneReferenceText] = useState('');
+  const [cloneStep, setCloneStep] = useState<'upload' | 'generate'>('upload');
+  const [speakerEmbeddingUrl, setSpeakerEmbeddingUrl] = useState<string | null>(null);
+  const [cloneScript, setCloneScript] = useState('');
 
   // S2S State
   const [sourceAudio, setSourceAudio] = useState<File | null>(null);
@@ -32,9 +43,9 @@ export function AudioLabScreen() {
   const [speed, setSpeed] = useState(1.0);
 
   useEffect(() => {
-    setRightPanelContent(<AudioLabRightPanel results={results} />);
+    setRightPanelContent(<AudioLabRightPanel results={results} scriptLength={script.length} activeTab={activeTab} />);
     return () => setRightPanelContent(null);
-  }, [setRightPanelContent, results]);
+  }, [setRightPanelContent, results, script.length, activeTab]);
 
   const handleGenerate = async () => {
     if (activeTab === 'tts') {
@@ -45,27 +56,75 @@ export function AudioLabScreen() {
           text: script,
           voiceId: selectedVoice.elevenLabsId,
           stability: stability / 100,
-          similarity_boost: similarity / 100,
-          speed: speed
         });
-
         if (response.success) {
-          const newResult = {
+          setResults(prev => [{
             id: Date.now().toString(),
             url: response.data.url,
             text: script,
             voice: selectedVoice.name,
             createdAt: new Date().toISOString(),
             type: 'TTS'
+          }, ...prev]);
+        } else { alert('Generation failed: ' + response.error); }
+      } catch (err: any) {
+        alert('Error: ' + err.message);
+      } finally { setIsGenerating(false); }
+
+    } else if (activeTab === 'clone') {
+      // STEP 1: Upload file + call clone-voice endpoint to get speaker_embedding
+      if (cloneStep === 'upload') {
+        if (!cloneFile) return;
+        setIsGenerating(true);
+        try {
+          const reader = new FileReader();
+          reader.readAsDataURL(cloneFile);
+          reader.onload = async () => {
+            const dataUrl = reader.result as string;
+            const uploadRes = await (window as any).api.fal.uploadImageFromDataUrl(dataUrl);
+            if (!uploadRes) throw new Error('Failed to upload audio sample');
+
+            const cloneRes = await (window as any).api.audio.cloneVoice({
+              audioUrl: uploadRes,
+              referenceText: cloneReferenceText || undefined
+            });
+
+            if (cloneRes.success) {
+              setSpeakerEmbeddingUrl(cloneRes.data.speakerEmbeddingUrl);
+              setCloneStep('generate');
+            } else { alert('Clone failed: ' + cloneRes.error); }
+            setIsGenerating(false);
           };
-          setResults(prev => [newResult, ...prev]);
+          reader.onerror = () => { setIsGenerating(false); alert('Failed to read file'); };
+        } catch (err: any) {
+          alert('Error: ' + err.message);
+          setIsGenerating(false);
         }
-      } catch (err) {
-        console.error('Error generating audio:', err);
-      } finally {
-        setIsGenerating(false);
+
+      // STEP 2: Use speaker_embedding + text to generate speech
+      } else if (cloneStep === 'generate') {
+        if (!speakerEmbeddingUrl || !cloneScript.trim()) return;
+        setIsGenerating(true);
+        try {
+          const response = await (window as any).api.audio.generateClonedSpeech({
+            text: cloneScript,
+            speakerEmbeddingUrl
+          });
+          if (response.success) {
+            setResults(prev => [{
+              id: Date.now().toString(),
+              url: response.data.url,
+              text: cloneScript,
+              voice: cloneName || 'Cloned Voice',
+              createdAt: new Date().toISOString(),
+              type: 'CLONE'
+            }, ...prev]);
+          } else { alert('Generation failed: ' + response.error); }
+        } catch (err: any) {
+          alert('Error: ' + err.message);
+        } finally { setIsGenerating(false); }
       }
-    } else if (activeTab === 's2s') {
+
       if (!sourceAudio) return;
       setIsGenerating(true);
       try {
@@ -101,14 +160,16 @@ export function AudioLabScreen() {
   };
 
   const handlePreview = async (voice: VoiceEntry) => {
-    const response = await (window as any).api.audio.generateSpeech({
-      text: "Hi, I am " + voice.name + ". I can help you with your ads.",
-      voiceId: voice.elevenLabsId,
-      speed: 1.0
-    });
-    if (response.success) {
-      const audio = new Audio(response.data.url);
-      audio.play();
+    try {
+      // 100% Free Local Preview (Method 1)
+      const audioUrl = `/OutputVoices/${voice.name}.mp4`;
+      const audio = new Audio(audioUrl);
+      audio.volume = 0.8;
+      
+      await audio.play();
+    } catch (err) {
+      console.error("Failed to play local preview:", err);
+      alert(`Could not play the local preview for ${voice.name}. Ensure ${voice.name}.mp4 exists in the public/OutputVoices folder.`);
     }
   };
 
@@ -129,46 +190,6 @@ export function AudioLabScreen() {
         overflowY: 'auto',
         paddingRight: '4px'
       }}>
-        {/* Mode Switcher */}
-        <div style={{
-          background: 'var(--ma-surface)',
-          border: '1px solid var(--ma-border)',
-          borderRadius: 12,
-          padding: 4,
-          display: 'flex',
-          gap: 4
-        }}>
-          {[
-            { id: 'tts', label: 'Script', icon: <Sparkles size={14} /> },
-            { id: 'clone', label: 'Clone', icon: <Mic size={14} /> },
-            { id: 's2s', label: 'Design', icon: <AudioWaveform size={14} /> }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              style={{
-                flex: 1,
-                padding: '8px 4px',
-                borderRadius: 8,
-                border: 'none',
-                background: activeTab === tab.id ? 'var(--ma-elevated)' : 'transparent',
-                color: activeTab === tab.id ? '#FFF' : 'rgba(255,255,255,0.4)',
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-                transition: 'all 0.2s'
-              }}
-            >
-              {tab.icon}
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
         {activeTab === 'tts' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={{
@@ -190,14 +211,42 @@ export function AudioLabScreen() {
               <textarea
                 value={script}
                 onChange={(e) => setScript(e.target.value)}
-                placeholder="Type your ad script here..."
+                placeholder="Type your ad script here... use [laughs] or [whispers] for emotion."
                 style={{
                   width: '100%', height: 200, background: 'rgba(255,255,255,0.03)',
                   border: '1px solid var(--ma-border)', borderRadius: 12,
                   padding: 16, color: '#FFF', fontSize: 14, lineHeight: 1.6,
-                  resize: 'none', outline: 'none', fontFamily: 'var(--font-body)'
+                  resize: 'none', outline: 'none', fontFamily: 'var(--font-body)',
+                  transition: 'border-color 0.2s',
+                  WebkitAppRegion: 'no-drag',
+                  WebkitUserSelect: 'auto',
+                  pointerEvents: 'auto'
                 }}
+                onFocus={(e) => e.target.style.borderColor = 'var(--ma-accent)'}
+                onBlur={(e) => e.target.style.borderColor = 'var(--ma-border)'}
               />
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {['[excited]', '[whispers]', '[laughs]', '[serious]', '[sarcastically]'].map(tag => (
+                  <button
+                    key={tag}
+                    onClick={() => setScript(prev => prev + ' ' + tag)}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: 6,
+                      border: '1px solid var(--ma-border)',
+                      background: 'rgba(255,255,255,0.05)',
+                      color: 'rgba(255,255,255,0.5)',
+                      fontSize: 11,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    className="hover:bg-white/10 hover:text-white"
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -212,45 +261,115 @@ export function AudioLabScreen() {
             flexDirection: 'column',
             gap: '20px'
           }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ 
-                width: 56, height: 56, borderRadius: '50%', background: 'rgba(108,99,255,0.1)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ma-accent)',
-                margin: '0 auto 16px'
-              }}>
-                <Mic size={24} />
-              </div>
-              <h3 style={{ fontSize: 16, fontWeight: 700, color: '#FFF', margin: '0 0 8px' }}>Clone Brand Voice</h3>
-              <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', margin: 0 }}>Upload a 30s sample of your brand's voice to create a unique identity.</p>
+            {/* Step Indicator */}
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              {['upload', 'generate'].map((step, i) => (
+                <div key={step} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{
+                    width: 24, height: 24, borderRadius: '50%', fontSize: 11, fontWeight: 700,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    background: cloneStep === step || (step === 'upload' && cloneStep === 'generate') ? 'var(--ma-accent)' : 'rgba(255,255,255,0.08)',
+                    color: '#FFF'
+                  }}>{i + 1}</div>
+                  <span style={{ fontSize: 11, color: cloneStep === step ? '#FFF' : 'rgba(255,255,255,0.3)', fontWeight: 600 }}>
+                    {step === 'upload' ? 'Clone Sample' : 'Generate Speech'}
+                  </span>
+                  {i === 0 && <ChevronRight size={12} style={{ color: 'rgba(255,255,255,0.2)' }} />}
+                </div>
+              ))}
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Voice Name</label>
-              <input 
-                type="text" value={cloneName} onChange={(e) => setCloneName(e.target.value)}
-                placeholder="e.g. Monster Brand Male"
-                style={{
-                  background: 'rgba(255,255,255,0.04)', border: '1px solid var(--ma-border)',
-                  borderRadius: 10, padding: '10px 14px', color: '#FFF', fontSize: 13, outline: 'none'
-                }}
-              />
-            </div>
+            {cloneStep === 'upload' && (
+              <>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Voice Name (optional label)</label>
+                  <input
+                    type="text" value={cloneName} onChange={(e) => setCloneName(e.target.value)}
+                    placeholder="e.g. My Brand Voice"
+                    style={{
+                      background: 'rgba(255,255,255,0.04)', border: '1px solid var(--ma-border)',
+                      borderRadius: 10, padding: '10px 14px', color: '#FFF', fontSize: 13, outline: 'none',
+                      WebkitAppRegion: 'no-drag', WebkitUserSelect: 'auto'
+                    }}
+                  />
+                </div>
 
-            <div style={{
-              border: '2px dashed var(--ma-border)', borderRadius: 12, padding: '32px 20px',
-              textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s'
-            }}
-            onClick={() => document.getElementById('clone-upload')?.click()}
-            >
-              <input type="file" id="clone-upload" hidden onChange={(e) => setCloneFile(e.target.files?.[0] || null)} />
-              <div style={{ color: cloneFile ? 'var(--ma-accent)' : 'rgba(255,255,255,0.2)', marginBottom: 12 }}>
-                <Plus size={32} />
-              </div>
-              <p style={{ fontSize: 13, color: cloneFile ? '#FFF' : 'rgba(255,255,255,0.4)', margin: 0 }}>
-                {cloneFile ? cloneFile.name : 'Click to upload audio sample'}
-              </p>
-              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', marginTop: 8 }}>MP3, WAV, or M4A supported</p>
-            </div>
+                <div
+                  style={{
+                    border: `2px dashed ${cloneFile ? 'var(--ma-accent)' : 'var(--ma-border)'}`,
+                    borderRadius: 12, padding: '32px 20px',
+                    textAlign: 'center', cursor: 'pointer', transition: 'all 0.2s',
+                    background: cloneFile ? 'rgba(108,99,255,0.05)' : 'transparent'
+                  }}
+                  onClick={() => document.getElementById('clone-upload')?.click()}
+                >
+                  <input type="file" id="clone-upload" hidden accept="audio/*" onChange={(e) => setCloneFile(e.target.files?.[0] || null)} />
+                  <Mic size={28} style={{ color: cloneFile ? 'var(--ma-accent)' : 'rgba(255,255,255,0.2)', marginBottom: 12 }} />
+                  <p style={{ fontSize: 13, color: cloneFile ? '#FFF' : 'rgba(255,255,255,0.4)', margin: '0 0 4px' }}>
+                    {cloneFile ? cloneFile.name : 'Upload voice sample (MP3, WAV, M4A)'}
+                  </p>
+                  <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', margin: 0 }}>Minimum 10 seconds of clean audio recommended</p>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Reference Text (optional — improves quality)</label>
+                  <textarea
+                    value={cloneReferenceText}
+                    onChange={(e) => setCloneReferenceText(e.target.value)}
+                    placeholder="Paste the transcript of the uploaded sample here..."
+                    rows={3}
+                    style={{
+                      background: 'rgba(255,255,255,0.03)', border: '1px solid var(--ma-border)',
+                      borderRadius: 10, padding: '10px 14px', color: '#FFF', fontSize: 13,
+                      outline: 'none', resize: 'none', fontFamily: 'var(--font-body)',
+                      WebkitAppRegion: 'no-drag', WebkitUserSelect: 'auto'
+                    }}
+                  />
+                </div>
+              </>
+            )}
+
+            {cloneStep === 'generate' && (
+              <>
+                <div style={{
+                  background: 'rgba(108,99,255,0.08)', border: '1px solid rgba(108,99,255,0.3)',
+                  borderRadius: 10, padding: '12px 14px', display: 'flex', alignItems: 'center', gap: 10
+                }}>
+                  <Check size={16} color="var(--ma-accent)" />
+                  <div>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: '#FFF', margin: 0 }}>
+                      Voice cloned successfully!
+                    </p>
+                    <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', margin: 0 }}>Now write the script you want spoken in this voice.</p>
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <label style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)' }}>Script to Speak</label>
+                  <textarea
+                    value={cloneScript}
+                    onChange={(e) => setCloneScript(e.target.value)}
+                    placeholder="Type the script you want spoken in the cloned voice..."
+                    rows={5}
+                    style={{
+                      background: 'rgba(255,255,255,0.03)', border: '1px solid var(--ma-border)',
+                      borderRadius: 10, padding: '12px 14px', color: '#FFF', fontSize: 13, lineHeight: 1.6,
+                      outline: 'none', resize: 'none', fontFamily: 'var(--font-body)',
+                      WebkitAppRegion: 'no-drag', WebkitUserSelect: 'auto'
+                    }}
+                  />
+                </div>
+
+                <button
+                  onClick={() => { setCloneStep('upload'); setSpeakerEmbeddingUrl(null); setCloneFile(null); }}
+                  style={{
+                    background: 'transparent', border: '1px solid var(--ma-border)',
+                    borderRadius: 8, padding: '8px', color: 'rgba(255,255,255,0.4)',
+                    fontSize: 12, cursor: 'pointer'
+                  }}
+                >← Use a different sample</button>
+              </>
+            )}
           </div>
         )}
 
@@ -347,7 +466,12 @@ export function AudioLabScreen() {
 
         <button 
           onClick={handleGenerate}
-          disabled={isGenerating || (activeTab === 'tts' && !script.trim()) || (activeTab === 'clone' && !cloneFile) || (activeTab === 's2s' && !sourceAudio)}
+          disabled={isGenerating 
+            || (activeTab === 'tts' && !script.trim()) 
+            || (activeTab === 'clone' && cloneStep === 'upload' && !cloneFile) 
+            || (activeTab === 'clone' && cloneStep === 'generate' && !cloneScript.trim()) 
+            || (activeTab === 's2s' && !sourceAudio)
+          }
           style={{
             width: '100%',
             padding: '16px',
@@ -370,14 +494,19 @@ export function AudioLabScreen() {
           {isGenerating ? (
             <>
               <div className="spinner" style={{ width: 18, height: 18, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#FFF', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-              {activeTab === 'clone' ? 'Creating Voice...' : 'Generating...'}
+              {activeTab === 'clone' 
+                ? (cloneStep === 'upload' ? 'Cloning Voice...' : 'Generating Speech...') 
+                : 'Generating...'}
             </>
           ) : (
             <>
               {activeTab === 'tts' && <Sparkles size={18} />}
               {activeTab === 'clone' && <Mic size={18} />}
               {activeTab === 's2s' && <AudioWaveform size={18} />}
-              {activeTab === 'tts' ? 'Generate Voiceover' : activeTab === 'clone' ? 'Clone Brand Voice' : 'Transform Audio'}
+              {activeTab === 'tts' ? 'Generate Voiceover' 
+                : activeTab === 'clone' 
+                  ? (cloneStep === 'upload' ? 'Clone Voice' : 'Generate with Cloned Voice') 
+                  : 'Transform Audio'}
             </>
           )}
         </button>
@@ -408,7 +537,10 @@ export function AudioLabScreen() {
           <div style={{ display: 'flex', gap: 12 }}>
             <div style={{ position: 'relative' }}>
               <Filter size={14} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)' }} />
-              <select style={{
+              <select 
+                value={regionFilter}
+                onChange={(e) => setRegionFilter(e.target.value)}
+                style={{
                 background: 'rgba(255,255,255,0.05)',
                 border: '1px solid var(--ma-border)',
                 borderRadius: 10,
@@ -419,11 +551,13 @@ export function AudioLabScreen() {
                 appearance: 'none',
                 cursor: 'pointer'
               }}>
-                <option>All Regions</option>
-                <option>Egypt</option>
-                <option>Gulf</option>
-                <option>Levant</option>
-                <option>Maghreb</option>
+                <option value="" style={{ background: '#1A1A1A', color: '#FFF' }}>All Regions</option>
+                <option value="English" style={{ background: '#1A1A1A', color: '#FFF' }}>English (US/UK)</option>
+                <option value="French" style={{ background: '#1A1A1A', color: '#FFF' }}>French (FR)</option>
+                <option value="Arabic (MENA)" style={{ background: '#1A1A1A', color: '#FFF' }}>Arabic (MENA)</option>
+                <option value="Egypt" style={{ background: '#1A1A1A', color: '#FFF' }}>Egypt</option>
+                <option value="Gulf" style={{ background: '#1A1A1A', color: '#FFF' }}>Gulf</option>
+                <option value="Maghreb" style={{ background: '#1A1A1A', color: '#FFF' }}>Maghreb</option>
               </select>
             </div>
           </div>
@@ -439,7 +573,7 @@ export function AudioLabScreen() {
           gap: '20px',
           alignContent: 'start'
         }}>
-          {VOICE_REGISTRY.map(voice => (
+          {VOICE_REGISTRY.filter(voice => regionFilter === '' || voice.region === regionFilter).map(voice => (
             <div 
               key={voice.id}
               onClick={() => setSelectedVoice(voice)}
@@ -588,10 +722,29 @@ export function AudioLabScreen() {
   );
 }
 
-function AudioLabRightPanel({ results }: { results: any[] }) {
+function AudioLabRightPanel({ results, scriptLength, activeTab }: { results: any[], scriptLength: number, activeTab: string }) {
+  // ElevenLabs pricing: $0.1 per 1000 chars for TTS
+  const estimatedCost = activeTab === 'tts' ? ((scriptLength / 1000) * 0.1).toFixed(4) : 'N/A (S2S)';
+
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', fontFamily: 'var(--font-body)' }}>
-      <div style={{ padding: '24px', borderBottom: '1px solid var(--ma-border)' }}>
+      {/* Cost Estimator */}
+      <div style={{ padding: '24px 24px 16px', borderBottom: '1px solid var(--ma-border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <h3 style={{ fontSize: 13, fontWeight: 600, color: '#FFF', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <BarChart3 size={14} color="var(--ma-accent)" />
+            Cost Estimator
+          </h3>
+          <span style={{ fontSize: 14, fontWeight: 700, color: '#FFF', fontFamily: 'var(--font-mono)' }}>
+            ${estimatedCost !== 'N/A (S2S)' ? estimatedCost : '0.00'}
+          </span>
+        </div>
+        <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', margin: 0 }}>
+          {activeTab === 'tts' ? 'ElevenLabs v3: $0.1 per 1k characters' : 'Voice-changer billing depends on audio length'}
+        </p>
+      </div>
+
+      <div style={{ padding: '16px 24px 8px' }}>
         <h3 style={{ fontSize: 14, fontWeight: 600, color: '#FFF', margin: '0 0 4px' }}>Recent Results</h3>
         <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', margin: 0 }}>Your generated voiceovers</p>
       </div>

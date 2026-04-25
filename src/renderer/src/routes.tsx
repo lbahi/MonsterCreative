@@ -22,7 +22,10 @@ export const router = createBrowserRouter([
       { path: 'image-gen/resize', Component: ImageGenScreen },
       { path: 'image-gen/landing', Component: ImageGenScreen },
       // Audio Lab
-      { path: 'audio-lab', Component: AudioLabScreen },
+      { path: 'audio-lab', element: <Navigate to="/audio-lab/tts" replace /> },
+      { path: 'audio-lab/tts', Component: AudioLabScreen },
+      { path: 'audio-lab/clone', Component: AudioLabScreen },
+      { path: 'audio-lab/s2s', Component: AudioLabScreen },
       // Video Generator sub-routes
       { path: 'video-gen', element: <Navigate to="/video-gen/fashion" replace /> },
       { path: 'video-gen/fashion', Component: VideoGenScreen },

@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router';
 import {
   LayoutDashboard, FileText, Image, Video, Music2, BarChart3,
   Settings, ChevronRight, ChevronLeft, Wand2, Copy, Crop, Monitor,
-  Film, Layers, Zap
+  Film, Layers, Zap, Mic, AudioWaveform
 } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 
@@ -52,7 +52,11 @@ const navItems: NavItem[] = [
     id: 'audio-lab',
     label: 'Audio Lab',
     icon: <Music2 size={18} />,
-    path: '/audio-lab',
+    children: [
+      { id: 'al-tts', label: 'Script', path: '/audio-lab/tts', icon: <FileText size={14} /> },
+      { id: 'al-clone', label: 'Clone', path: '/audio-lab/clone', icon: <Mic size={14} /> },
+      { id: 'al-s2s', label: 'Design', path: '/audio-lab/s2s', icon: <AudioWaveform size={14} /> },
+    ]
   },
 ];
 
@@ -75,7 +79,7 @@ export function Sidebar() {
   const { sidebarCollapsed, toggleSidebar, connectionStatus, falCredits, refreshConnectionStatus } = useApp();
   const navigate = useNavigate();
   const location = useLocation();
-  const [expandedMenus, setExpandedMenus] = useState<string[]>(['image-gen', 'video-gen']);
+  const [expandedMenus, setExpandedMenus] = useState<string[]>(['image-gen', 'video-gen', 'audio-lab']);
 
   const sidebarWidth = sidebarCollapsed ? 64 : 220;
 

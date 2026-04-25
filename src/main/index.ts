@@ -164,6 +164,15 @@ app.whenReady().then(() => {
     }
   })
 
+  ipcMain.handle('audio:generateClonedSpeech', async (_, params) => {
+    try {
+      const result = await falService.generateClonedSpeech(params)
+      return { success: true, data: result }
+    } catch (error: any) {
+      return { success: false, error: error.message }
+    }
+  })
+
   ipcMain.handle('audio:playAudio', async (_, filePath) => {
     try {
       await shell.openPath(filePath)

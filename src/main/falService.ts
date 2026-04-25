@@ -840,7 +840,7 @@ export class FalService {
     const key = await keystoreService.getFalKey()
     if (!key) throw new Error('Fal API key not found in keystore')
 
-    const response = await fetch('https://queue.fal.run/fal-ai/elevenlabs/tts/eleven-v3', {
+    const response = await fetch('https://fal.run/fal-ai/elevenlabs/tts/eleven-v3', {
       method: 'POST',
       headers: {
         Authorization: `Key ${key}`,
@@ -849,20 +849,20 @@ export class FalService {
       body: JSON.stringify({
         text: request.text,
         voice: request.voiceId,
-        stability: request.stability ?? 0.5,
-        similarity_boost: request.similarity_boost ?? 0.75,
-        speed: request.speed ?? 1.0,
-        model: request.model ?? 'eleven_multilingual_v2'
+        stability: request.stability ?? 0.5
       })
     })
 
     if (!response.ok) {
-      const error = await response.json()
-      throw new Error(`Fal API Error: ${error.message || response.statusText}`)
+      let errorMsg = response.statusText;
+      try {
+        const error = await response.json()
+        errorMsg = error.message || error.detail || response.statusText;
+      } catch (e) {}
+      throw new Error(`Fal API Error: ${errorMsg}`)
     }
 
     const data = await response.json()
-    // Fal usually returns { audio: { url: "..." } } or similar for ElevenLabs
     return {
       url: data.audio?.url || data.url
     }
@@ -892,11 +892,62 @@ export class FalService {
     }
   }
 
-  async cloneVoice(params: any): Promise<any> {
-    // Placeholder for cloning logic
-    // Usually involves uploading a sample first then calling the creation endpoint
-    console.log('Voice cloning initiated with params:', params)
-    return { success: true, message: 'Voice cloning logic to be implemented' }
+  /**
+   * STEP 1: Clone a voice from an audio sample.
+   * Endpoint: fal-ai/qwen-3-tts/clone-voice/1.7b
+   * Returns a `speaker_embedding` URL (safetensors file) to be used in Step 2.
+   */
+  async cloneVoice(params: { audioUrl: string; referenceText?: string }): Promise<{ speakerEmbeddingUrl: string }> {
+    const key = await keystoreService.getFalKey()
+    if (!key) throw new Error('Fal API key not found in keystore')
+
+    const body: Record<string, any> = { audio_url: params.audioUrl }
+    if (params.referenceText) body.reference_text = params.referenceText
+
+    const response = await fetch('https://fal.run/fal-ai/qwen-3-tts/clone-voice/1.7b', {
+      method: 'POST',
+      headers: { Authorization: `Key ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    })
+
+    if (!response.ok) {
+      let msg = response.statusText
+      try { const e = await response.json(); msg = e.message || e.detail || msg } catch (_) {}
+      throw new Error(`Clone Voice Error: ${msg}`)
+    }
+
+    const data = await response.json()
+    const embeddingUrl = data.speaker_embedding?.url
+    if (!embeddingUrl) throw new Error('No speaker_embedding URL returned from clone API')
+    return { speakerEmbeddingUrl: embeddingUrl }
+  }
+
+  /**
+   * STEP 2: Generate TTS using a cloned speaker embedding.
+   * Endpoint: fal-ai/qwen-3-tts/1.7b
+   * Takes the speaker_embedding URL from Step 1 + the text to speak.
+   */
+  async generateClonedSpeech(params: { text: string; speakerEmbeddingUrl: string }): Promise<AudioResult> {
+    const key = await keystoreService.getFalKey()
+    if (!key) throw new Error('Fal API key not found in keystore')
+
+    const response = await fetch('https://fal.run/fal-ai/qwen-3-tts/1.7b', {
+      method: 'POST',
+      headers: { Authorization: `Key ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        text: params.text,
+        speaker_embedding: params.speakerEmbeddingUrl
+      })
+    })
+
+    if (!response.ok) {
+      let msg = response.statusText
+      try { const e = await response.json(); msg = e.message || e.detail || msg } catch (_) {}
+      throw new Error(`Cloned Speech Generation Error: ${msg}`)
+    }
+
+    const data = await response.json()
+    return { url: data.audio?.url || data.url }
   }
 }
 
