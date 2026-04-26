@@ -1,3 +1,9 @@
+/**
+ * LAYOUT ONLY — No business logic in this file.
+ * State lives in hooks/use[ScreenName].ts
+ * Sub-components live in components/ or tabs/
+ * Max 100 lines. If growing beyond that, extract.
+ */
 import { useEffect } from 'react';
 import { AlertTriangle, Loader2 } from 'lucide-react';
 import { useApiCosts } from './hooks/useApiCosts';

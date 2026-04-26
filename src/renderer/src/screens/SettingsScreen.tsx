@@ -1,1 +1,1 @@
-export { SettingsScreen } from './settings';
+export { SettingsScreen } from './settings/index';

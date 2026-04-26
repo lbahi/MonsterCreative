@@ -60,17 +60,25 @@ export const useDashboard = () => {
       if (!('error' in billingRes)) {
         if ((billingRes as any).billing_restricted) {
           creditsRestricted = true;
+        } else if (billingRes.credits?.current_balance !== undefined) {
+          credits = billingRes.credits.current_balance;
+        } else if (typeof billingRes.current_balance === 'number') {
+          credits = billingRes.current_balance;
+        } else if (typeof billingRes.credits === 'number') {
+          credits = billingRes.credits;
+        } else if (billingRes.balance !== undefined) {
+          credits = billingRes.balance;
         } else {
-          credits = billingRes.balance ?? 0;
+          credits = 0;
         }
       }
 
       setStats({
-        totalGenerations,
-        mtdSpend,
+        totalGenerations: Math.round(totalGenerations),
+        mtdSpend: mtdSpend,
         credits,
         creditsRestricted,
-        timeSavedH: totalGenerations * 0.15, // Synthetic stat
+        timeSavedH: Math.round(totalGenerations * 0.15 * 10) / 10, // Round to 1 decimal
         avgCostPerGen: totalGenerations > 0 ? mtdSpend / totalGenerations : 0,
       });
     } catch (err) {

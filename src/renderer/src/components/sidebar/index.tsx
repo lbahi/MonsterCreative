@@ -1,3 +1,9 @@
+/**
+ * LAYOUT ONLY — No business logic in this file.
+ * State lives in hooks/use[ScreenName].ts
+ * Sub-components live in components/ or tabs/
+ * Max 100 lines. If growing beyond that, extract.
+ */
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
 import {
