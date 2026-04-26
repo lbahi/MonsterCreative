@@ -408,7 +408,6 @@ function ApiKeyCard({ apiKey, showValue, onToggleShow, isEditing, editValue, set
 }
 
 function GeneralSection() {
-  const [defaultModel, setDefaultModel] = useState('FLUX.1 Pro');
   const [autoSave, setAutoSave] = useState(true);
   const [currency, setCurrency] = useState('USD');
 
@@ -417,19 +416,6 @@ function GeneralSection() {
       <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: '#FFF', margin: '0 0 6px' }}>General</h2>
       <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', margin: '0 0 24px' }}>Application preferences and defaults.</p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <SettingRow
-          label="Default Image Model"
-          description="Used when no model is explicitly selected"
-          control={
-            <select value={defaultModel} onChange={e => setDefaultModel(e.target.value)} style={{
-              padding: '7px 12px', background: 'var(--ma-elevated)', border: '1px solid var(--ma-border)',
-              borderRadius: 7, color: '#FFF', fontSize: 12, outline: 'none', cursor: 'pointer',
-              fontFamily: 'var(--font-body)',
-            }}>
-              {['FLUX.1 Pro', 'FLUX.1 Dev', 'FLUX Schnell'].map(m => <option key={m} style={{ background: '#111124' }}>{m}</option>)}
-            </select>
-          }
-        />
         <SettingRow
           label="Auto-save generations"
           description="Automatically save all outputs to local library"

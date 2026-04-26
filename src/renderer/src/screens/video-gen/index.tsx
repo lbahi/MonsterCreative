@@ -210,7 +210,7 @@ export function VideoGenScreen() {
             </label>
           </div>
 
-          {activeMode === 'manual' && model === 'fal-ai/kling-video/v2.6/pro/image-to-video' && (
+          {activeMode === 'manual' && modelId === 'fal-ai/kling-video/v2.6/pro/image-to-video' && (
             <div style={{ background: 'var(--ma-elevated)', border: '1px solid var(--ma-border)', borderRadius: 12, padding: 16 }}>
               <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
                 <span style={{ fontSize: 13, fontWeight: 600, color: '#FFF' }}>End Frame <span style={{ fontSize: 10, background: 'rgba(255,255,255,0.1)', padding: '2px 6px', borderRadius: 4, marginLeft: 4 }}>Optional</span></span>

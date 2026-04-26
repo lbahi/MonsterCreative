@@ -74,7 +74,7 @@ export function ApiCostsScreen() {
               requestsCount += (res.quantity || res.request_count || 1); // fallback handling if different units
               
               const isVideo = res.endpoint_id.includes('video') || res.endpoint_id.includes('wan') || res.endpoint_id.includes('kling');
-              const isText = res.endpoint_id.includes('text') || res.endpoint_id.includes('gpt') || res.endpoint_id.match(/llm|whisper/i);
+              const isText = (res.endpoint_id.includes('text') || res.endpoint_id.includes('gpt') || res.endpoint_id.match(/llm|whisper/i)) && !res.endpoint_id.includes('image');
               const type = isVideo ? 'Video' : isText ? 'Text' : 'Image';
               
               const platform = res.endpoint_id.includes('chatgpt') || res.endpoint_id.includes('openai') ? 'OpenAI' : 'fal.ai';
@@ -82,7 +82,9 @@ export function ApiCostsScreen() {
               // Map properties to our row format
               txns.push({
                 id: `txn_${bucket.bucket}_${idx}`,
-                model: res.endpoint_id.split('/').pop() || res.endpoint_id,
+                model: res.endpoint_id.includes('/') 
+                  ? res.endpoint_id.split('/').slice(-3).join('/') 
+                  : res.endpoint_id,
                 operation: `${res.quantity} ${res.unit}s generated`,
                 type,
                 inputs: '—',
@@ -122,7 +124,7 @@ export function ApiCostsScreen() {
         // ── Model breakdown from usage summary ──
         if (!usageResponse.error && usageResponse.summary) {
           const breakdown = usageResponse.summary.map((row: any) => ({
-            model: row.endpoint_id?.split('/').slice(-2).join('/') ?? row.endpoint_id,
+            model: row.endpoint_id?.split('/').slice(-3).join('/') ?? row.endpoint_id,
             cost: row.cost ?? 0,
             quantity: row.quantity ?? 0,
           })).sort((a: any, b: any) => b.cost - a.cost);
