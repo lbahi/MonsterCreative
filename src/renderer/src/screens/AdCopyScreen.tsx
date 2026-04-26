@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Sparkles, ChevronDown, Copy, AlertCircle, RotateCcw, Zap, Users, DollarSign, Share2, Loader2, FileText, CheckCircle2 } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
-import { anthropicService, ProductAnalysis, OneShotResult } from '../services/anthropic.service';
-import { CopyVariant } from '../services/fal.service';
 import { AdCopyRightPanel } from './ad-copy/components/AdCopyRightPanel';
+import { useAdCopy } from './ad-copy/hooks/useAdCopy';
 
 const ANALYSIS_MODELS = [
   { id: 'google/gemini-2.5-flash', label: 'Gemini 2.5 Flash', description: 'سريع وذكي — مثالي لمعظم المنتجات.' },
@@ -14,17 +13,22 @@ const ANALYSIS_MODELS = [
 
 export function AdCopyScreen() {
   const { setRightPanelContent } = useApp();
-
-  // Core state — no consultation clutter
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [analysisModel, setAnalysisModel] = useState('google/gemini-2.5-flash');
-  const [productImageUrl, setProductImageUrl] = useState<string | null>(null);
-  const [aiAnalysis, setAiAnalysis] = useState<ProductAnalysis | null>(null);
-  const [generatedVariants, setGeneratedVariants] = useState<CopyVariant[]>([]);
-  const [generationError, setGenerationError] = useState<string | null>(null);
-  const [showResults, setShowResults] = useState(false);
-  const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
-  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const {
+    isGenerating,
+    analysisModel,
+    setAnalysisModel,
+    productImageUrl,
+    aiAnalysis,
+    generatedVariants,
+    generationError,
+    showResults,
+    modelDropdownOpen,
+    setModelDropdownOpen,
+    copiedIndex,
+    handleImageUpload,
+    handleStartOver,
+    copyToClipboard
+  } = useAdCopy();
 
   const selectedModelLabel = ANALYSIS_MODELS.find(m => m.id === analysisModel)?.label ?? analysisModel;
 
@@ -33,67 +37,6 @@ export function AdCopyScreen() {
     setRightPanelContent(<AdCopyRightPanel currentModelLabel={selectedModelLabel} />);
     return () => setRightPanelContent(null);
   }, [setRightPanelContent, selectedModelLabel]);
-
-  const compressImage = (file: File): Promise<string> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let { width, height } = img;
-          const maxSize = 1024;
-          if (width > maxSize || height > maxSize) {
-            if (width > height) { height = (height / width) * maxSize; width = maxSize; }
-            else { width = (width / height) * maxSize; height = maxSize; }
-          }
-          canvas.width = width; canvas.height = height;
-          canvas.getContext('2d')!.drawImage(img, 0, 0, width, height);
-          resolve(canvas.toDataURL('image/jpeg', 0.85));
-        };
-        img.src = e.target?.result as string;
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
-  // ONE-SHOT: upload → analyze + generate → results
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    setIsGenerating(true);
-    setGenerationError(null);
-    setShowResults(false);
-
-    try {
-      const dataUrl = await compressImage(file);
-      setProductImageUrl(dataUrl);
-
-      const result: OneShotResult = await anthropicService.generatePlanFromImage(dataUrl, analysisModel);
-      setAiAnalysis(result.analysis);
-      setGeneratedVariants(result.variants);
-      setShowResults(true);
-    } catch (err: any) {
-      setGenerationError(err.message);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  const handleStartOver = () => {
-    setShowResults(false);
-    setGeneratedVariants([]);
-    setGenerationError(null);
-    setAiAnalysis(null);
-    setProductImageUrl(null);
-  };
-
-  const copyToClipboard = (text: string, idx: number) => {
-    navigator.clipboard.writeText(text);
-    setCopiedIndex(idx);
-    setTimeout(() => setCopiedIndex(null), 2000);
-  };
 
 
   // === RENDER: GENERATING LOADING VIEW ===
