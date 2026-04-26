@@ -17,7 +17,7 @@ export function RightPanel() {
         fontFamily: 'var(--font-body)',
       }}
     >
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingTop: 32 }}>
         {rightPanelContent ?? <DefaultPanelContent />}
       </div>
     </div>
@@ -26,8 +26,9 @@ export function RightPanel() {
 
 function DefaultPanelContent() {
   return (
-    <div style={{ padding: 20, color: 'rgba(255,255,255,0.3)', textAlign: 'center', paddingTop: 60 }}>
+    <div style={{ padding: 20, color: 'rgba(255,255,255,0.3)', textAlign: 'center', paddingTop: 30 }}>
       <p style={{ fontSize: 13 }}>Select a tool to get started</p>
     </div>
   );
 }
+

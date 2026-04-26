@@ -55,9 +55,8 @@ const navItems: NavItem[] = [
     icon: <Music2 size={18} />,
     children: [
       { id: 'al-tts', label: 'Script', path: '/audio-lab/tts', icon: <FileText size={14} /> },
-      { id: 'al-clone', label: 'Clone', path: '/audio-lab/clone', icon: <Mic size={14} /> },
-      { id: 'al-s2s', label: 'Design', path: '/audio-lab/s2s', icon: <AudioWaveform size={14} /> },
     ]
+
   },
 ];
 

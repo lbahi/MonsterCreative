@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { VOICE_REGISTRY, VoiceEntry } from '../../data/voices';
+import { VOICE_REGISTRY, VoiceEntry } from '../../../data/voices';
 
 export const useAudioLab = () => {
   const [script, setScript] = useState('');
