@@ -143,14 +143,14 @@ export function Sidebar() {
           WebkitAppRegion: 'drag' as any,
         } as React.CSSProperties}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden', width: '100%', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, overflow: 'hidden', width: '75%', justifyContent: 'center' }}>
           {!sidebarCollapsed ? (
             <img 
               src={logo} 
               alt="MonsterCreative" 
               style={{ 
-                width: 160,
-                height: 160,
+                width: 100,
+                height: 100,
                 objectFit: 'contain',
               }} 
             />
