@@ -199,7 +199,6 @@ export function AudioLabScreen() {
               />
             </div>
           </div>
-        )}
 
         <button
           onClick={handleGenerate}
@@ -533,7 +532,7 @@ function AudioLabRightPanel({ results, scriptLength }: { results: any[], scriptL
           </span>
         </div>
         <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', margin: 0 }}>
-          ElevenLabs v3: $0.1 per 1k charactersn audio length'}
+          ElevenLabs v3: $0.1 per 1k characters
         </p>
       </div>
 
