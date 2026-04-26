@@ -272,7 +272,7 @@ export function VideoGenScreen() {
           )}
 
           {!generating && !result && !error && activeMode === 'templates' && (
-            <TemplateGallery onSelectTemplate={handleTemplateSelect} disabled={generating || !sourceImage} />
+            <TemplatesTab onTemplateSelect={handleTemplateSelect} disabled={generating || !sourceImage} />
           )}
 
           {!generating && !result && !error && activeMode === 'manual' && (
