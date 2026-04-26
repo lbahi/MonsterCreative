@@ -8,8 +8,8 @@ import type { NanoBananaThinkingLevel } from '../types';
 type NanoBananaLayoutProps = {
   refImage: string | null;
   setRefImage: (value: string | null) => void;
-  assetImage: string | null;
-  setAssetImage: (value: string | null) => void;
+  assetImages: string[];
+  setAssetImages: (value: string[]) => void;
   prompt: string;
   setPrompt: (value: string) => void;
   advOpen: boolean;

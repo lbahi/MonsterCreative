@@ -1,4 +1,4 @@
-import { Info, ExternalLink, AlertCircle, Globe } from 'lucide-react';
+import { ExternalLink, AlertCircle, Globe } from 'lucide-react';
 
 export const AboutSection = () => {
   return (

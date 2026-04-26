@@ -78,46 +78,6 @@ export class FalService {
   }
 
   /**
-   * Extracts the raw LLM text output from the fal.ai openrouter/router result.
-   * Mirrors the C# ExtractLlmOutput method exactly.
-   */
-  private extractLlmOutput(result: any): string {
-    let output = ''
-
-    // Shape: { "output": "...text..." }
-    if (typeof result.output === 'string') {
-      output = result.output
-    }
-
-    // Shape: { "output": { "text": "..." } }
-    if (!output && result.output && typeof result.output === 'object' && result.output.text) {
-      output = result.output.text
-    }
-
-    // Shape: { "text": "..." }
-    if (!output && typeof result.text === 'string') {
-      output = result.text
-    }
-
-    // Shape: { "choices": [{ "message": { "content": "..." } }] } (Standard OpenAI/OpenRouter)
-    if (!output && result.choices && result.choices[0]?.message?.content) {
-      output = result.choices[0].message.content
-    }
-
-    // Shape: { "choices": [{ "text": "..." }] } (Older Completion API)
-    if (!output && result.choices && result.choices[0]?.text) {
-      output = result.choices[0].text
-    }
-
-    // Fallback to entire JSON body
-    if (!output) {
-      output = JSON.stringify(result)
-    }
-
-    return output
-  }
-
-  /**
    * "Monster Search" — extract the JSON array from potentially chatty LLM output.
    * Finds the first [ and last ] to survive any preamble/postamble.
    */
@@ -172,7 +132,6 @@ export class FalService {
 
   /**
    * Nano Banana 2 Specialized Handler
-   * polymorphic method that supports NB2, FLUX, and Qwen schemas.
    */
   async nanoBananaEdit(params: {
     model: string,
@@ -192,28 +151,16 @@ export class FalService {
   }
 
   /**
-   * Sends a prompt to an LLM via fal.ai's openrouter/router bridge.
-   * Mirrors the C# AnthropicService.GenerateCopyAsync queue + poll pattern.
-   *
-   * @param prompt - The full system prompt
-   * @param modelId - OpenRouter model ID (e.g. 'google/gemini-3-pro', 'anthropic/claude-opus-4-20250514')
-   * @param maxTokens - Max tokens for the response
-   * @returns Raw text output from the LLM
+   * Sends a prompt to an LLM via fal.ai's generateCopy bridge.
    */
-  async generateCopy(promptOrMessages: string | any[], modelId: string = 'google/gemini-3-pro', maxTokens: number = 4096): Promise<string> {
+  async generateCopy(promptOrMessages: string | any[], modelId: string = 'google/gemini-3-pro'): Promise<string> {
     const response = await window.api.fal.generateCopy(promptOrMessages, modelId);
-    
-    if (response.error) {
-      throw new Error(response.error);
-    }
-    
-    // response.data is already the extracted plain text from chatCompletion
+    if (response.error) throw new Error(response.error);
     return response.data ?? '';
   }
 
   /**
    * High-level method: generates ad copy variants and parses them into structured objects.
-   * Combines generateCopy + Monster Search JSON extraction + parsing.
    */
   async generateAdCopyVariants(prompt: string, modelId: string): Promise<CopyVariant[]> {
     const rawOutput = await this.generateCopy(prompt, modelId)
@@ -232,7 +179,6 @@ export class FalService {
 
   /**
    * Uploads an image directly from the renderer using the native File object.
-   * Eliminates the need to base64 encode and bypasses Node.js native fetch Buffer bugs.
    */
   async uploadImage(file: File): Promise<{ url?: string; error?: string }> {
     try {
@@ -266,9 +212,8 @@ export class FalService {
       return { error: `Image upload failed: ${err.message}` }
     }
   }
-  /**
-   * Forwards a data URL to the main process for upload to bypass renderer CORS/fetch restrictions.
-   */
+
+  /** Dual-mode upload: Tries browser first, falls back to IPC if needed */
   async uploadImageFromDataUrl(dataUrl: string): Promise<{ url?: string; error?: string }> {
     let browserError: string | null = null
     try {
@@ -321,7 +266,19 @@ export class FalService {
     return await window.api.fal.reframeImage(params);
   }
 
-  /** FLUX.1 Kontext Pro bridge — routes to fal-ai/flux-pro/kontext via IPC */
+  /** Kontext Edit bridge — routes to fal-ai/kontext via IPC */
+  async kontextEdit(params: {
+    image_url: string;
+    prompt: string;
+    width?: number;
+    height?: number;
+    aspect_ratio?: string;
+    output_format?: string;
+  }): Promise<{ images: Array<{ url: string }> }> {
+    return await window.api.fal.kontextEdit(params);
+  }
+
+  /** Generation bridge — routes to video generation via IPC */
   async generateVideo(params: {
     model: string;
     prompt: string;

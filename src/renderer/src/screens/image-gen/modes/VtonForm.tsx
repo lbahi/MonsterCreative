@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react';
-import { Upload, X, Loader2, Sparkles } from 'lucide-react';
-import { useApp } from '../../../contexts/AppContext';
+import { Loader2, Sparkles, Upload, X } from 'lucide-react';
 import { falService } from '../../../services/fal.service';
 import { anthropicService } from '../../../services/anthropic.service';
 import { VIBES, NANO_BANANA_MODELS } from '../constants';

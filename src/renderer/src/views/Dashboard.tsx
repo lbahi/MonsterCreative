@@ -1,5 +1,5 @@
 import React from 'react'
-import { TrendingUp, Users, Target, MousePointer2, ExternalLink } from 'lucide-react'
+import { TrendingUp, Target, ExternalLink } from 'lucide-react'
 
 const Dashboard: React.FC = () => {
   const kpis = [

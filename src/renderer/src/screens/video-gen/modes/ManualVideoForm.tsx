@@ -1,5 +1,4 @@
-import { Play, Settings2, SlidersHorizontal, Image as ImageIcon } from 'lucide-react';
-import { VIDEO_MODELS, VIDEO_DURATIONS, VIDEO_ASPECT_RATIOS } from '../constants';
+// No imports needed
 
 interface ManualVideoFormProps {
   prompt: string;

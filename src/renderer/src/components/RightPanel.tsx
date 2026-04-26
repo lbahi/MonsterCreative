@@ -1,5 +1,5 @@
 import { useApp } from '../contexts/AppContext';
-import { X } from 'lucide-react';
+
 
 export function RightPanel() {
   const { rightPanelContent } = useApp();

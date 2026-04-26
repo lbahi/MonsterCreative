@@ -1,4 +1,4 @@
-import { Download, Check, Film, Clock } from 'lucide-react';
+import { Download, Check, Film } from 'lucide-react';
 import { StepChecklist } from '../../../components/ui/StepChecklist';
 import { VIDEO_STEPS } from '../constants';
 import { InfoRow } from '../../image-gen/shared/InfoRow';
@@ -10,7 +10,6 @@ interface VideoRightPanelProps {
   audioEnabled: boolean;
   isGenerating: boolean;
   generatedVideoUrl: string | null;
-  onGenerate: () => void;
   currentCost?: number;
 }
 
@@ -21,14 +20,13 @@ export function VideoRightPanel({
   audioEnabled,
   isGenerating,
   generatedVideoUrl,
-  onGenerate,
   currentCost
 }: VideoRightPanelProps) {
   const handleDownload = async () => {
     if (!generatedVideoUrl) return;
     try {
       const fileName = `monster-video-${Date.now()}.mp4`;
-      const result = await (window as any).api.utils.downloadFile({ 
+      const result = await window.api.utils.downloadFile({ 
         url: generatedVideoUrl, 
         filename: fileName 
       });
@@ -52,89 +50,92 @@ export function VideoRightPanel({
     return (selectedDuration * rate).toFixed(3);
   };
 
-  const estimatedCost = calculateDisplayCost();
-  const modelName = selectedModel ? selectedModel.label : 'Unknown Model';
-
   return (
-    <div style={{ fontFamily: 'var(--font-body)' }}>
-      <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--ma-border)' }}>
-        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: '#FFF', margin: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
-          <Film size={14} /> Video Panel
-        </h3>
-        <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', margin: '4px 0 0' }}>
-          Format: <span style={{ fontFamily: 'var(--font-mono)' }}>MP4 High Bitrate</span>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div style={{ padding: 24, borderBottom: '1px solid var(--ma-border)' }}>
+        <h2 style={{ fontSize: 16, fontWeight: 700, color: '#FFF', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Film size={18} color="var(--ma-accent)" /> Generation Pipeline
+        </h2>
+        <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', margin: '4px 0 0 0' }}>
+          Real-time status of your fashion video request.
         </p>
       </div>
 
-      {isGenerating && (
-        <div style={{ padding: '24px 20px' }}>
-          <div style={{ 
-            width: '100%', aspectRatio: '16/9', borderRadius: 12, background: 'rgba(108,99,255,0.08)', 
-            border: '1px solid rgba(108,99,255,0.15)', animation: 'pulse 1.5s ease-in-out infinite', 
-            marginBottom: 20, display: 'flex', alignItems: 'center', justifyContent: 'center'
-          }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-              <Clock size={24} color="var(--ma-accent)" style={{ animation: 'spin 4s linear infinite' }} />
-              <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', fontWeight: 600 }}>Rendering Video...</span>
+      <div style={{ flex: 1, overflowY: 'auto', padding: 24, display: 'flex', flexDirection: 'column', gap: 24 }}>
+        {/* Checklist */}
+        {isGenerating && (
+          <StepChecklist 
+            steps={VIDEO_STEPS} 
+            onComplete={() => {}}
+          />
+        )}
+
+        {/* Configuration Summary */}
+        <div style={{ background: 'rgba(255,255,255,0.02)', borderRadius: 12, border: '1px solid var(--ma-border)', padding: 16 }}>
+          <h3 style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.4)', margin: '0 0 12px 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Job Configuration
+          </h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <InfoRow label="Engine" value={selectedModel?.label || 'Kling v2.1'} />
+            <InfoRow label="Duration" value={`${selectedDuration} Seconds`} />
+            <InfoRow label="Resolution" value={selectedResolution} />
+            <InfoRow label="Audio" value={audioEnabled ? 'Enabled' : 'None'} />
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8, paddingTop: 12, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+              <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)' }}>Session Cost</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: 'var(--ma-accent)', fontFamily: 'var(--font-mono)' }}>
+                ${calculateDisplayCost()}
+              </span>
             </div>
           </div>
-          <StepChecklist steps={VIDEO_STEPS} onComplete={() => {}} estimatedTime="~45-180 seconds" />
-          <style>{`
-            @keyframes pulse { 0%,100% { opacity:0.4 } 50% { opacity:0.8 } }
-            @keyframes spin { 100% { transform: rotate(360deg); } }
-          `}</style>
         </div>
-      )}
 
-      {!isGenerating && !generatedVideoUrl && (
-        <div style={{ padding: '24px 20px' }}>
-          <div style={{ padding: '0 0 16px 0', borderBottom: '1px solid var(--ma-border)', marginBottom: 16 }}>
-            <h4 style={{ margin: '0 0 4px', fontSize: 13, color: '#FFF' }}>{modelName}</h4>
-            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>Workflow: Video Generation</div>
-          </div>
-          
+        {/* Post-Gen Actions */}
+        {generatedVideoUrl && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <InfoRow label="Model" value={modelName} />
-            <InfoRow label="Duration" value={`${selectedDuration}s`} />
-            <InfoRow label="Resolution" value={selectedResolution} />
-            <InfoRow label="Audio" value={audioEnabled ? 'ON' : 'OFF'} />
-            <InfoRow label="Est. cost" value={`$${estimatedCost}`} green />
+            <button 
+              onClick={handleDownload}
+              style={{
+                width: '100%', padding: '12px', borderRadius: 10, border: 'none',
+                background: 'var(--ma-accent)', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                fontSize: 14, fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s'
+              }}
+            >
+              <Download size={18} /> Download Master
+            </button>
+            
+            <button 
+              disabled
+              style={{
+                width: '100%', padding: '12px', borderRadius: 10, background: 'rgba(255,255,255,0.05)',
+                border: '1px solid var(--ma-border)', color: 'rgba(255,255,255,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                fontSize: 13, fontWeight: 500, cursor: 'not-allowed'
+              }}
+            >
+              <Check size={18} /> Saved to Campaign
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div style={{ padding: 20, background: 'rgba(255,255,255,0.02)', borderTop: '1px solid var(--ma-border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(34,197,94,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Zap size={16} color="var(--ma-green)" />
+          </div>
+          <div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: '#FFF' }}>Priority Queue Active</div>
+            <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)' }}>Credits will be deducted upon success.</div>
           </div>
         </div>
-      )}
-
-      {generatedVideoUrl && (
-        <div style={{ padding: '24px 20px' }}>
-          <div style={{ padding: 12, borderRadius: 8, background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.25)', display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20 }}>
-            <Check size={14} style={{ color: 'var(--ma-green)' }} />
-            <span style={{ fontSize: 12, color: 'var(--ma-green)' }}>Video rendered successfully</span>
-          </div>
-
-          <div style={{ borderRadius: 12, overflow: 'hidden', marginBottom: 16, border: '1px solid var(--ma-border)' }}>
-            <video 
-              src={generatedVideoUrl} 
-              controls 
-              autoPlay 
-              loop 
-              playsInline
-              style={{ width: '100%', display: 'block', backgroundColor: '#000' }} 
-            />
-          </div>
-
-          <button 
-            onClick={handleDownload}
-            style={{ width: '100%', padding: '10px', background: 'var(--ma-accent)', border: 'none', borderRadius: 8, color: 'white', cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: 'var(--font-body)' }}
-          >
-            <Download size={14} /> Download MP4
-          </button>
-          
-          <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <InfoRow label="Platform" value="Auto" />
-            <InfoRow label="Engine" value={selectedModel?.id ?? modelName} mono />
-            <InfoRow label="Duration" value={`${selectedDuration}s`} mono />
-          </div>
-        </div>
-      )}
+      </div>
     </div>
+  );
+}
+
+function Zap({ size, color }: { size: number, color?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color || "currentColor"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    </svg>
   );
 }

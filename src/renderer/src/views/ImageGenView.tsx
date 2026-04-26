@@ -1,13 +1,11 @@
 import React, { useState } from 'react'
 import { 
   Sparkles, 
-  Upload, 
   Image as ImageIcon, 
   Download, 
   Filter, 
   ChevronRight,
-  Loader2,
-  CheckCircle2
+  Loader2
 } from 'lucide-react'
 import { falService } from '../services/fal.service'
 

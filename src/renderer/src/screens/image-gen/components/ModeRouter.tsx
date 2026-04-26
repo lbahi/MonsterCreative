@@ -1,10 +1,9 @@
-import { RefreshCw, Wand2 } from 'lucide-react';
 import { MODES } from '../constants';
 import { LandingForm } from '../modes/LandingForm';
 import { NanoBananaLayout } from '../modes/NanoBananaLayout';
 import { ResizeForm } from '../modes/ResizeForm';
 import { VtonForm } from '../modes/VtonForm';
-import { CommonSettings } from '../shared/CommonSettings';
+import { CommonSettings } from './CommonSettings';
 import { ImageGenHeader } from '../shared/ImageGenHeader';
 import { ModeSelector } from '../shared/ModeSelector';
 import { OutputGrid } from '../shared/OutputGrid';

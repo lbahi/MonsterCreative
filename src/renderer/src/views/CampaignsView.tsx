@@ -4,10 +4,7 @@ import {
   Search, 
   Filter, 
   MoreVertical, 
-  ExternalLink, 
   Target,
-  Clock,
-  CheckCircle2,
   Calendar
 } from 'lucide-react'
 
@@ -22,7 +19,6 @@ interface Campaign {
 
 const CampaignsView: React.FC = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
-  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const fetchCampaigns = async () => {
@@ -48,7 +44,7 @@ const CampaignsView: React.FC = () => {
       } catch (err) {
         console.error(err)
       } finally {
-        setLoading(false)
+        // loading state removed
       }
     }
     fetchCampaigns()

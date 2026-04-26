@@ -6,12 +6,7 @@ import { falService, CopyVariant } from './fal.service'
  * Ported from C# AnthropicService.cs with identical prompt structure.
  */
 
-/** Maps the ANALYSIS_MODELS dropdown IDs to OpenRouter model IDs */
-const MODEL_ID_MAP: Record<string, string> = {
-  'gemini-3-pro': 'google/gemini-2.0-flash-exp:free',
-  'kimi-k2.5-thinking': 'moonshotai/kimi-k2.5-thinking',
-  'claude-opus-4-20250514-thinking-16k': 'anthropic/claude-opus-4-20250514'
-}
+// MODEL_ID_MAP removed
 
 export interface ChatMessage {
   role: 'user' | 'assistant' | 'system';
@@ -85,12 +80,7 @@ export interface ContentStrategyResult {
 }
 
 export class AnthropicService {
-  /**
-   * Resolves the user-facing model dropdown ID to the OpenRouter model ID.
-   */
-  private resolveModelId(dropdownId: string): string {
-    return MODEL_ID_MAP[dropdownId] || dropdownId;
-  }
+  // resolveModelId removed
 
   /**
    * ONE-SHOT: Analyzes the product image AND generates the full content plan

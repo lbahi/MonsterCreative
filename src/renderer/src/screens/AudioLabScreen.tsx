@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react';
-import { useLocation } from 'react-router';
+import { useEffect } from 'react';
 import { Sparkles } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 import { VOICE_REGISTRY } from '../data/voices';
@@ -73,8 +72,8 @@ export function AudioLabScreen() {
                   padding: 16, color: '#FFF', fontSize: 14, lineHeight: 1.6,
                   resize: 'none', outline: 'none', fontFamily: 'var(--font-body)',
                   transition: 'border-color 0.2s',
-                  WebkitAppRegion: 'no-drag',
-                  WebkitUserSelect: 'auto',
+                  ['WebkitAppRegion' as string]: 'no-drag',
+                  ['WebkitUserSelect' as string]: 'auto',
                   pointerEvents: 'auto'
                 }}
                 onFocus={(e) => e.target.style.borderColor = 'var(--ma-accent)'}

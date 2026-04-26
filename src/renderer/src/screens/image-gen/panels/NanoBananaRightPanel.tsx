@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Check, Download, X } from 'lucide-react';
 
 import { ImageWithFallback } from '../../../components/figma/ImageWithFallback';

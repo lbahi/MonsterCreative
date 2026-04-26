@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useApp } from '../../contexts/AppContext';
+import { useApp } from '../../../contexts/AppContext';
 import { IMG_STEPS, SAMPLE_OUTPUTS } from '../constants';
 import { ImageGenRightPanel } from '../panels/ImageGenRightPanel';
 import { NanoBananaRightPanel } from '../panels/NanoBananaRightPanel';

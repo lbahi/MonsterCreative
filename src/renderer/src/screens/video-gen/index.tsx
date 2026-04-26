@@ -38,7 +38,6 @@ export function VideoGenScreen() {
         selectedDuration={duration} 
         selectedResolution={resolution}
         audioEnabled={audio}
-        onGenerate={handleManualGenerate}
         currentCost={Number(estimatedCost)}
       />
     );

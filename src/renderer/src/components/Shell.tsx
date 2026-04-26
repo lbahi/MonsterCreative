@@ -2,13 +2,13 @@ import { Outlet, useNavigate } from 'react-router';
 import { Sidebar } from './Sidebar';
 import { RightPanel } from './RightPanel';
 import { useApp } from '../contexts/AppContext';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { OnboardingModal } from '../screens/OnboardingScreen';
-import { Share2, Users, ChevronDown, Bell, Search, Zap } from 'lucide-react';
+import { Bell, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function Shell() {
-  const { onboardingComplete, mcpEnabled } = useApp();
+  const { onboardingComplete } = useApp();
   const [showOnboarding, setShowOnboarding] = useState(!onboardingComplete);
   const { completeOnboarding } = useApp();
   const navigate = useNavigate();
@@ -48,13 +48,13 @@ export function Shell() {
           backdropFilter: 'blur(12px)',
           zIndex: 50,
           flexShrink: 0,
-          WebkitAppRegion: 'drag' as any // Allow dragging
+          ['WebkitAppRegion' as string]: 'drag' // Allow dragging
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, WebkitAppRegion: 'no-drag' as any }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, ['WebkitAppRegion' as string]: 'no-drag' }}>
             {/* Left side reserved for future breadcrumbs/title */}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, WebkitAppRegion: 'no-drag' as any }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, ['WebkitAppRegion' as string]: 'no-drag' }}>
             <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
               <Search size={14} style={{ position: 'absolute', left: 10, color: 'var(--ma-text-muted)' }} />
               <input 

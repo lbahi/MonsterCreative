@@ -8,7 +8,8 @@ import {
   ExternalLink, 
   Info,
   CheckCircle2,
-  Lock
+  Lock,
+  Loader2
 } from 'lucide-react'
 
 const SettingsView: React.FC = () => {

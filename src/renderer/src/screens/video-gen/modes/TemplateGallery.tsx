@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Play, Sparkles, Clock, Zap, X, Wand2 } from 'lucide-react';
-import { VIDEO_TEMPLATES, VIDEO_MODELS, VIDEO_DURATIONS, VIDEO_ASPECT_RATIOS } from '../constants';
+import { Play, Sparkles, Clock, Zap, X } from 'lucide-react';
+import { VIDEO_TEMPLATES } from '../constants';
 import type { VideoTemplate } from '../types';
 
 interface TemplateGalleryProps {
@@ -13,14 +13,13 @@ export function TemplateGallery({ onSelectTemplate, disabled }: TemplateGalleryP
   
   const [targetModel, setTargetModel] = useState('');
   const [targetDuration, setTargetDuration] = useState(5);
-  const [targetAspect, setTargetAspect] = useState('16:9');
+  const [targetAspect] = useState('16:9');
 
   const handleTemplateClick = (template: VideoTemplate) => {
     if (!disabled) {
       setPreviewTemplate(template);
       setTargetModel(template.recommendedModelId);
       setTargetDuration(template.recommendedDuration);
-      setTargetAspect('16:9');
     }
   };
 

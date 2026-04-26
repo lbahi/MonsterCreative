@@ -118,7 +118,7 @@ export function VideoGenLeftPanel(props: VideoGenLeftPanelProps) {
             </div>
             <div style={{ gridColumn: 'span 2' }}>
               <label style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Resolution</label>
-              <select value={resolution} onChange={e => setResolution(e.target.value)} disabled={generating} style={{ width: '100%', marginTop: 4, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--ma-border)', borderRadius: 8, padding: '8px 10px', color: '#FFF', fontSize: 12, outline: 'none' }}>
+              <select value={resolution} onChange={e => setResolution(e.target.value as any)} disabled={generating} style={{ width: '100%', marginTop: 4, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--ma-border)', borderRadius: 8, padding: '8px 10px', color: '#FFF', fontSize: 12, outline: 'none' }}>
                 {VIDEO_RESOLUTIONS.map(res => (
                   <option key={res} value={res} style={{ background: '#111' }}>{res}</option>
                 ))}

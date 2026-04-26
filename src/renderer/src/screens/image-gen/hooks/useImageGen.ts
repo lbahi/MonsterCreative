@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { falService } from '../../services/fal.service';
+import { falService } from '../../../services/fal.service';
 import { MODEL_FALLBACK_PRICES, MODES, SAMPLE_OUTPUTS, NANO_BANANA_MODELS, PLATFORM_FORMATS, KONTEXT_RESIZE_PROMPT, RESIZE_MODELS } from '../constants';
 import { useImageGenPricing } from './useImageGenPricing';
 import type { ActiveImageGenMode, NanoBananaThinkingLevel } from '../types';

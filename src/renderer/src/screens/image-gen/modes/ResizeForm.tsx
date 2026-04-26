@@ -54,7 +54,7 @@ function LogoWooCommerce() {
   );
 }
 
-const LOGOS: Record<string, JSX.Element> = {
+const LOGOS: Record<string, React.JSX.Element> = {
   Meta: <LogoMeta />, Instagram: <LogoInstagram />, TikTok: <LogoTikTok />,
   Facebook: <LogoFacebook />, Google: <LogoGoogle />, Pinterest: <LogoPinterest />,
   Twitter: <LogoTwitter />, WooCommerce: <LogoWooCommerce />,

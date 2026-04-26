@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useLocation } from 'react-router';
 import { VIDEO_MODELS, VIDEO_DEFAULTS, VideoResolution } from '../constants';
 import { VideoTemplate, ActiveVideoGenMode } from '../types';
@@ -15,10 +15,10 @@ export function useVideoGen() {
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
   const [prompt, setPrompt] = useState('');
   const [modelId, setModelId] = useState(VIDEO_MODELS[0].id);
-  const [duration, setDuration] = useState(VIDEO_DEFAULTS.duration);
+  const [duration, setDuration] = useState<number>(VIDEO_DEFAULTS.duration);
   const [aspectRatio, setAspectRatio] = useState('auto');
   const [resolution, setResolution] = useState<VideoResolution>(VIDEO_DEFAULTS.resolution);
-  const [audio, setAudio] = useState(VIDEO_DEFAULTS.audio);
+  const [audio, setAudio] = useState<boolean>(VIDEO_DEFAULTS.audio);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ url: string; fileName: string; fileSize: number } | null>(null);
 

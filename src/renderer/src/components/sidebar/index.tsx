@@ -102,7 +102,7 @@ export const Sidebar = () => {
         alignItems: 'center',
         padding: sidebarCollapsed ? '0 12px' : '0 16px',
         flexShrink: 0,
-        WebkitAppRegion: 'drag' as any,
+        ['WebkitAppRegion' as string]: 'drag',
         justifyContent: 'center',
       }}>
         <img 

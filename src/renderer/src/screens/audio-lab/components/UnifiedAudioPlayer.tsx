@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Volume2, RotateCcw } from 'lucide-react';
+import { Play, Pause } from 'lucide-react';
 
 export function UnifiedAudioPlayer({ url }: { url: string }) {
   const [isPlaying, setIsPlaying] = useState(false);
