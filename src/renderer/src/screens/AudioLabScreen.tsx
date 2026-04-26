@@ -511,7 +511,11 @@ export function AudioLabScreen() {
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.1); }
       `}</style>
-   function AudioLabRightPanel({ results, scriptLength }: { results: any[], scriptLength: number }) {
+    </div>
+  );
+}
+
+function AudioLabRightPanel({ results, scriptLength }: { results: any[], scriptLength: number }) {
   // ElevenLabs pricing: $0.1 per 1000 chars for TTS
   const estimatedCost = ((scriptLength / 1000) * 0.1).toFixed(4);
 
