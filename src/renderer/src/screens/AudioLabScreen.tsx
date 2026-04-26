@@ -21,20 +21,7 @@ export function AudioLabScreen() {
   const [results, setResults] = useState<any[]>([]);
   const [regionFilter, setRegionFilter] = useState('');
 
-  // Custom (Cloned) Voices - persisted
-  const [customVoices, setCustomVoices] = useState<any[]>([]);
-
   // Generation Settings
-  const [stability, setStability] = useState(50);
-  const [similarity, setSimilarity] = useState(75);
-  const [speed, setSpeed] = useState(1.0);
-
-  // Load custom voices from DB on mount
-  useEffect(() => {
-    (window as any).api.audio.getAllCustomVoices().then((res: any) => {
-      if (res.success) setCustomVoices(res.data);
-    });
-  }, []);
 
   useEffect(() => {
     setRightPanelContent(<AudioLabRightPanel results={results} scriptLength={script.length} />);
@@ -47,20 +34,12 @@ export function AudioLabScreen() {
     try {
       let response: any;
 
-      if (selectedVoice.id.startsWith('custom_')) {
-        // Cloned voice: use Qwen3 TTS with the saved embedding path
-        response = await (window as any).api.audio.generateClonedSpeech({
-          text: script,
-          speakerEmbeddingUrl: selectedVoice.elevenLabsId // stored as local path
-        });
-      } else {
-        // Standard ElevenLabs voice
-        response = await (window as any).api.audio.generateSpeech({
-          text: script,
-          voiceId: selectedVoice.elevenLabsId,
-          stability: stability / 100,
-        });
-      }
+      // Standard ElevenLabs voice
+      response = await (window as any).api.audio.generateSpeech({
+        text: script,
+        voiceId: selectedVoice.elevenLabsId,
+        stability: stability / 100,
+      });
 
       if (response.success) {
         setResults(prev => [{
@@ -69,7 +48,7 @@ export function AudioLabScreen() {
           text: script,
           voice: selectedVoice.name,
           createdAt: new Date().toISOString(),
-          type: selectedVoice.id.startsWith('custom_') ? 'CLONE' : 'TTS'
+          type: 'TTS'
         }, ...prev]);
       } else { alert('Generation failed: ' + response.error); }
     } catch (err: any) {
@@ -400,101 +379,7 @@ export function AudioLabScreen() {
             </div>
           ))}
 
-          {/* My Voices — Cloned Voices Section */}
-          {customVoices.length > 0 && (
-            <>
-              <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 12, margin: '8px 0 4px' }}>
-                <div style={{ height: 1, flex: 1, background: 'var(--ma-border)' }} />
-                <span style={{ fontSize: 11, fontWeight: 700, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: 1 }}>My Voices</span>
-                <div style={{ height: 1, flex: 1, background: 'var(--ma-border)' }} />
-              </div>
-              {customVoices.map((cv: any) => (
-                <div
-                  key={cv.id}
-                  style={{
-                    background: selectedVoice?.id === `custom_${cv.id}` ? 'rgba(108,99,255,0.08)' : 'rgba(255,255,255,0.02)',
-                    border: selectedVoice?.id === `custom_${cv.id}` ? '2px solid var(--ma-accent)' : '1px solid var(--ma-border)',
-                    borderRadius: 20, padding: '20px', cursor: 'pointer',
-                    transition: 'all 0.2s', display: 'flex', flexDirection: 'column', gap: 12
-                  }}
-                  onClick={() => setSelectedVoice({
-                    id: `custom_${cv.id}`,
-                    name: cv.name,
-                    elevenLabsId: cv.embedding_path, // used as embedding path reference
-                    region: 'My Voices',
-                    regionFlag: '🎙️',
-                    dialect: 'Cloned',
-                    gender: 'male',
-                    tier: 'premium',
-                    useCase: 'Custom cloned voice',
-                    sampleText: ''
-                  })}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <div style={{
-                      width: 44, height: 44, borderRadius: 12,
-                      background: 'linear-gradient(135deg, rgba(108,99,255,0.3), rgba(108,99,255,0.1))',
-                      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-                    }}>
-                      <Mic size={18} color="var(--ma-accent)" />
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ fontSize: 13, fontWeight: 700, color: '#FFF', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {cv.name}
-                      </p>
-                      <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', margin: 0, fontFamily: 'var(--font-mono)' }}>
-                        {new Date(cv.created_at).toLocaleDateString()}
-                      </p>
-                    </div>
-                    <div style={{
-                      padding: '3px 7px', borderRadius: 5,
-                      background: 'rgba(108,99,255,0.15)', border: '1px solid rgba(108,99,255,0.3)',
-                      color: 'var(--ma-accent)', fontSize: 9, fontWeight: 800, textTransform: 'uppercase'
-                    }}>Cloned</div>
-                  </div>
 
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button
-                      style={{
-                        flex: 1, padding: '7px', borderRadius: 8,
-                        background: 'rgba(108,99,255,0.1)', border: '1px solid rgba(108,99,255,0.3)',
-                        color: 'var(--ma-accent)', fontSize: 11, fontWeight: 600, cursor: 'pointer'
-                      }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedVoice({
-                          id: `custom_${cv.id}`,
-                          name: cv.name,
-                          elevenLabsId: cv.embedding_path,
-                          region: 'My Voices',
-                          regionFlag: '🎙️',
-                          dialect: 'Cloned',
-                          gender: 'male',
-                          tier: 'premium',
-                          useCase: 'Custom cloned voice',
-                          sampleText: ''
-                        });
-                      }}
-                    >Use Voice</button>
-                    <button
-                      style={{
-                        padding: '7px 10px', borderRadius: 8,
-                        background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)',
-                        color: '#EF4444', fontSize: 11, cursor: 'pointer'
-                      }}
-                      onClick={async (e) => {
-                        e.stopPropagation();
-                        if (!confirm(`Delete "${cv.name}"? This cannot be undone.`)) return;
-                        await (window as any).api.audio.deleteCustomVoice(cv.id);
-                        const res = await (window as any).api.audio.getAllCustomVoices();
-                        if (res.success) setCustomVoices(res.data);
-                      }}
-                    >✕</button>
-                  </div>
-                </div>
-              ))}
-            </>
-          )}
 
         </div>
       </div>
