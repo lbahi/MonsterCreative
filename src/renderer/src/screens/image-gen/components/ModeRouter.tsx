@@ -141,53 +141,12 @@ export function ModeRouter(props: ModeRouterProps) {
                     numImages={numImages}
                     setNumImages={setNumImages}
                     modelPrices={modelPrices}
+                    handleGenerate={handleGenerate}
+                    generating={generating}
+                    getGeneratingText={getGeneratingText}
+                    getGenerateButtonText={getGenerateButtonText}
+                    totalCost={totalCost}
                   />
-
-                  <button
-                    onClick={handleGenerate}
-                    disabled={generating}
-                    style={{
-                      width: '100%',
-                      padding: '14px 24px',
-                      background: generating ? 'rgba(108,99,255,0.3)' : 'var(--ma-accent)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: 10,
-                      cursor: generating ? 'not-allowed' : 'pointer',
-                      fontSize: 14,
-                      fontWeight: 600,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8,
-                      boxShadow: generating ? 'none' : '0 0 28px rgba(108,99,255,0.4)',
-                      transition: 'all 0.2s',
-                      fontFamily: 'var(--font-body)',
-                    }}
-                  >
-                    {generating ? (
-                      <>
-                        <RefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }} /> {getGeneratingText()}
-                      </>
-                    ) : (
-                      <>
-                        <Wand2 size={16} /> {getGenerateButtonText()}
-                      </>
-                    )}
-                    <span
-                      style={{
-                        marginLeft: 'auto',
-                        fontSize: 11,
-                        fontFamily: 'var(--font-mono)',
-                        color: 'rgba(255,255,255,0.7)',
-                        background: 'rgba(0,0,0,0.2)',
-                        padding: '2px 8px',
-                        borderRadius: 10,
-                      }}
-                    >
-                      ~${totalCost}
-                    </span>
-                  </button>
                 </>
               )}
             </>
