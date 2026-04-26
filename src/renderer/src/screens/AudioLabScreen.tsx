@@ -15,27 +15,11 @@ export function AudioLabScreen() {
   const { setRightPanelContent } = useApp();
   const location = useLocation();
 
-  const activeTab = location.pathname.includes('/clone') ? 'clone' :
-    location.pathname.includes('/s2s') ? 's2s' : 'tts';
-
   const [script, setScript] = useState('');
   const [selectedVoice, setSelectedVoice] = useState<VoiceEntry>(VOICE_REGISTRY[0]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [regionFilter, setRegionFilter] = useState('');
-
-
-  // Clone State
-  const [cloneName, setCloneName] = useState('');
-  const [cloneFile, setCloneFile] = useState<File | null>(null);
-  const [cloneReferenceText, setCloneReferenceText] = useState('');
-  const [cloneStep, setCloneStep] = useState<'upload' | 'generate'>('upload');
-  const [speakerEmbeddingUrl, setSpeakerEmbeddingUrl] = useState<string | null>(null);
-  const [cloneScript, setCloneScript] = useState('');
-
-  // S2S State
-  const [sourceAudio, setSourceAudio] = useState<File | null>(null);
-  const [isRecording, setIsRecording] = useState(false);
 
   // Custom (Cloned) Voices - persisted
   const [customVoices, setCustomVoices] = useState<any[]>([]);
@@ -53,145 +37,44 @@ export function AudioLabScreen() {
   }, []);
 
   useEffect(() => {
-    setRightPanelContent(<AudioLabRightPanel results={results} scriptLength={script.length} activeTab={activeTab} />);
+    setRightPanelContent(<AudioLabRightPanel results={results} scriptLength={script.length} />);
     return () => setRightPanelContent(null);
-  }, [setRightPanelContent, results, script.length, activeTab]);
+  }, [setRightPanelContent, results, script.length]);
 
   const handleGenerate = async () => {
-    if (activeTab === 'tts') {
-      if (!script.trim()) return;
-      setIsGenerating(true);
-      try {
-        let response: any;
+    if (!script.trim()) return;
+    setIsGenerating(true);
+    try {
+      let response: any;
 
-        if (selectedVoice.id.startsWith('custom_')) {
-          // Cloned voice: use Qwen3 TTS with the saved embedding path
-          response = await (window as any).api.audio.generateClonedSpeech({
-            text: script,
-            speakerEmbeddingUrl: selectedVoice.elevenLabsId // stored as local path
-          });
-        } else {
-          // Standard ElevenLabs voice
-          response = await (window as any).api.audio.generateSpeech({
-            text: script,
-            voiceId: selectedVoice.elevenLabsId,
-            stability: stability / 100,
-          });
-        }
-
-        if (response.success) {
-          setResults(prev => [{
-            id: Date.now().toString(),
-            url: response.data.url,
-            text: script,
-            voice: selectedVoice.name,
-            createdAt: new Date().toISOString(),
-            type: selectedVoice.id.startsWith('custom_') ? 'CLONE' : 'TTS'
-          }, ...prev]);
-        } else { alert('Generation failed: ' + response.error); }
-      } catch (err: any) {
-        alert('Error: ' + err.message);
-      } finally { setIsGenerating(false); }
-
-    } else if (activeTab === 'clone') {
-      // STEP 1: Upload file + call clone-voice endpoint to get speaker_embedding
-      if (cloneStep === 'upload') {
-        if (!cloneFile) return;
-        setIsGenerating(true);
-        try {
-          const reader = new FileReader();
-          reader.readAsDataURL(cloneFile);
-          reader.onload = async () => {
-            const dataUrl = reader.result as string;
-            const uploadRes = await (window as any).api.fal.uploadImageFromDataUrl(dataUrl);
-            if (!uploadRes) throw new Error('Failed to upload audio sample');
-
-            const cloneRes = await (window as any).api.audio.cloneVoice({
-              audioUrl: uploadRes,
-              referenceText: cloneReferenceText || undefined
-            });
-
-            if (cloneRes.success) {
-              const embUrl = cloneRes.data.speakerEmbeddingUrl;
-              setSpeakerEmbeddingUrl(embUrl);
-
-              // Persist embedding to disk + SQLite immediately
-              const saveRes = await (window as any).api.audio.saveCustomVoice({
-                name: cloneName || `Cloned Voice ${Date.now()}`,
-                embeddingUrl: embUrl
-              });
-              if (saveRes.success) {
-                // Reload custom voices so it appears in marketplace instantly
-                const voicesRes = await (window as any).api.audio.getAllCustomVoices();
-                if (voicesRes.success) setCustomVoices(voicesRes.data);
-              }
-
-              setCloneStep('generate');
-            } else { alert('Clone failed: ' + cloneRes.error); }
-            setIsGenerating(false);
-          };
-          reader.onerror = () => { setIsGenerating(false); alert('Failed to read file'); };
-        } catch (err: any) {
-          alert('Error: ' + err.message);
-          setIsGenerating(false);
-        }
-
-        // STEP 2: Use speaker_embedding + text to generate speech
-      } else if (cloneStep === 'generate') {
-        if (!speakerEmbeddingUrl || !cloneScript.trim()) return;
-        setIsGenerating(true);
-        try {
-          const response = await (window as any).api.audio.generateClonedSpeech({
-            text: cloneScript,
-            speakerEmbeddingUrl
-          });
-          if (response.success) {
-            setResults(prev => [{
-              id: Date.now().toString(),
-              url: response.data.url,
-              text: cloneScript,
-              voice: cloneName || 'Cloned Voice',
-              createdAt: new Date().toISOString(),
-              type: 'CLONE'
-            }, ...prev]);
-          } else { alert('Generation failed: ' + response.error); }
-        } catch (err: any) {
-          alert('Error: ' + err.message);
-        } finally { setIsGenerating(false); }
+      if (selectedVoice.id.startsWith('custom_')) {
+        // Cloned voice: use Qwen3 TTS with the saved embedding path
+        response = await (window as any).api.audio.generateClonedSpeech({
+          text: script,
+          speakerEmbeddingUrl: selectedVoice.elevenLabsId // stored as local path
+        });
+      } else {
+        // Standard ElevenLabs voice
+        response = await (window as any).api.audio.generateSpeech({
+          text: script,
+          voiceId: selectedVoice.elevenLabsId,
+          stability: stability / 100,
+        });
       }
 
-      if (!sourceAudio) return;
-      setIsGenerating(true);
-      try {
-        const reader = new FileReader();
-        reader.readAsDataURL(sourceAudio);
-        reader.onload = async () => {
-          const dataUrl = reader.result as string;
-          const uploadRes = await (window as any).api.fal.uploadImageFromDataUrl(dataUrl);
-
-          const response = await (window as any).api.audio.speechToSpeech({
-            audio_url: uploadRes,
-            voice: selectedVoice.elevenLabsId
-          });
-
-          if (response.success) {
-            const newResult = {
-              id: Date.now().toString(),
-              url: response.data.url,
-              text: 'Voice transformation result',
-              voice: selectedVoice.name,
-              createdAt: new Date().toISOString(),
-              type: 'S2S'
-            };
-            setResults(prev => [newResult, ...prev]);
-          }
-          setIsGenerating(false);
-        };
-      } catch (err) {
-        console.error('Error in S2S:', err);
-        setIsGenerating(false);
-      }
-    }
+      if (response.success) {
+        setResults(prev => [{
+          id: Date.now().toString(),
+          url: response.data.url,
+          text: script,
+          voice: selectedVoice.name,
+          createdAt: new Date().toISOString(),
+          type: selectedVoice.id.startsWith('custom_') ? 'CLONE' : 'TTS'
+        }, ...prev]);
+      } else { alert('Generation failed: ' + response.error); }
+    } catch (err: any) {
+      alert('Error: ' + err.message);
+    } finally { setIsGenerating(false); }
   };
 
   const handlePreview = async (voice: VoiceEntry) => {
@@ -225,7 +108,6 @@ export function AudioLabScreen() {
         overflowY: 'auto',
         paddingRight: '4px'
       }}>
-        {activeTab === 'tts' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
             <div style={{
               background: 'var(--ma-surface)',
@@ -284,25 +166,6 @@ export function AudioLabScreen() {
               </div>
             </div>
           </div>
-        )}
-
-        {activeTab === 'clone' && (
-          <ComingSoonCard
-            icon={<Mic size={28} />}
-            title="Voice Cloning"
-            description="Upload a 10-second audio sample and clone any voice into a reusable brand identity. Powered by Qwen3 TTS."
-          />
-        )}
-
-        {activeTab === 's2s' && (
-          <ComingSoonCard
-            icon={<AudioWaveform size={28} />}
-            title="Voice Design Studio"
-            description="Transform your own recorded audio into any premium voice from the marketplace using Speech-to-Speech conversion."
-          />
-        )}
-
-        {activeTab !== 'clone' && (
           <div style={{
             background: 'var(--ma-surface)',
             border: '1px solid var(--ma-border)',
@@ -340,22 +203,22 @@ export function AudioLabScreen() {
 
         <button
           onClick={handleGenerate}
-          disabled={isGenerating || activeTab !== 'tts' || (activeTab === 'tts' && !script.trim())}
+          disabled={isGenerating || !script.trim()}
           style={{
             width: '100%',
             padding: '16px',
             borderRadius: 12,
-            border: activeTab !== 'tts' ? '1px solid rgba(255,255,255,0.1)' : 'none',
-            background: activeTab !== 'tts' ? 'rgba(255,255,255,0.05)' : isGenerating ? 'var(--ma-border)' : 'linear-gradient(135deg, var(--ma-accent), #9B8FFF)',
-            color: activeTab !== 'tts' ? 'rgba(255,255,255,0.3)' : isGenerating ? 'rgba(255,255,255,0.3)' : '#FFF',
+            border: 'none',
+            background: isGenerating ? 'var(--ma-border)' : 'linear-gradient(135deg, var(--ma-accent), #9B8FFF)',
+            color: isGenerating ? 'rgba(255,255,255,0.3)' : '#FFF',
             fontSize: 15,
             fontWeight: 700,
-            cursor: (isGenerating || activeTab !== 'tts' || (activeTab === 'tts' && !script.trim())) ? 'not-allowed' : 'pointer',
+            cursor: (isGenerating || !script.trim()) ? 'not-allowed' : 'pointer',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             gap: 10,
-            boxShadow: (isGenerating || activeTab !== 'tts') ? 'none' : '0 8px 30px var(--ma-accent-glow)',
+            boxShadow: isGenerating ? 'none' : '0 8px 30px var(--ma-accent-glow)',
             transition: 'all 0.2s',
             marginBottom: 20
           }}
@@ -367,24 +230,14 @@ export function AudioLabScreen() {
             </>
           ) : (
             <>
-              {activeTab === 'tts' ? (
-                <>
-                  <Sparkles size={18} />
-                  Generate Voiceover
-                </>
-              ) : (
-                <>
-                  <Lock size={18} />
-                  Coming Soon
-                </>
-              )}
+              <Sparkles size={18} />
+              Generate Voiceover
             </>
           )}
         </button>
       </div>
 
-      {/* CENTER: Voice Marketplace (Only show for TTS) */}
-      {activeTab === 'tts' && (
+      {/* CENTER: Voice Marketplace */}
         <div style={{
           background: 'var(--ma-surface)',
           border: '1px solid var(--ma-border)',
@@ -644,37 +497,8 @@ export function AudioLabScreen() {
             </>
           )}
 
-          <div style={{
-            background: 'rgba(255,255,255,0.02)',
-            border: '2px dashed var(--ma-border)',
-            borderRadius: 20,
-            padding: '20px',
-            cursor: 'pointer',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '12px',
-            minHeight: 180
-          }}
-            onClick={() => setActiveTab('clone')}
-          >
-            <div style={{
-              width: 40, height: 40, borderRadius: '50%',
-              background: 'rgba(255,255,255,0.05)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'rgba(255,255,255,0.2)'
-            }}>
-              <Plus size={20} />
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <p style={{ fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.3)', margin: '0 0 2px' }}>Clone Brand Voice</p>
-              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.15)', margin: 0 }}>Add your own identity</p>
-            </div>
-          </div>
         </div>
       </div>
-      )}
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
@@ -687,13 +511,9 @@ export function AudioLabScreen() {
         ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.1); }
       `}</style>
-    </div>
-  );
-}
-
-function AudioLabRightPanel({ results, scriptLength, activeTab }: { results: any[], scriptLength: number, activeTab: string }) {
+   function AudioLabRightPanel({ results, scriptLength }: { results: any[], scriptLength: number }) {
   // ElevenLabs pricing: $0.1 per 1000 chars for TTS
-  const estimatedCost = activeTab === 'tts' ? ((scriptLength / 1000) * 0.1).toFixed(4) : 'N/A (S2S)';
+  const estimatedCost = ((scriptLength / 1000) * 0.1).toFixed(4);
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', fontFamily: 'var(--font-body)' }}>
@@ -705,11 +525,11 @@ function AudioLabRightPanel({ results, scriptLength, activeTab }: { results: any
             Cost Estimator
           </h3>
           <span style={{ fontSize: 14, fontWeight: 700, color: '#FFF', fontFamily: 'var(--font-mono)' }}>
-            ${estimatedCost !== 'N/A (S2S)' ? estimatedCost : '0.00'}
+            ${estimatedCost}
           </span>
         </div>
         <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', margin: 0 }}>
-          {activeTab === 'tts' ? 'ElevenLabs v3: $0.1 per 1k characters' : 'Voice-changer billing depends on audio length'}
+          ElevenLabs v3: $0.1 per 1k charactersn audio length'}
         </p>
       </div>
 
