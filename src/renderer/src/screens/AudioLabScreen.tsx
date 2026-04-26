@@ -22,6 +22,9 @@ export function AudioLabScreen() {
   const [regionFilter, setRegionFilter] = useState('');
 
   // Generation Settings
+  const [stability, setStability] = useState(50);
+  const [similarity, setSimilarity] = useState(75);
+  const [speed, setSpeed] = useState(1.0);
 
   useEffect(() => {
     setRightPanelContent(<AudioLabRightPanel results={results} scriptLength={script.length} />);
