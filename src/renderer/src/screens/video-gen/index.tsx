@@ -12,95 +12,28 @@ import { useApp } from '../../contexts/AppContext';
 
 export function VideoGenScreen() {
   const { setRightPanelContent } = useApp();
-  const location = useLocation();
-  const state = location.state as { sourceImage?: string } | null;
+  const videoGen = useVideoGen();
 
-  const [activeMode, setActiveMode] = useState<ActiveVideoGenMode>('templates');
-  
-  // Universal inputs
-  const [sourceImage, setSourceImage] = useState<string | null>(state?.sourceImage || null);
-  const [endImage, setEndImage] = useState<string | null>(null);
-  
-  // Generating state
-  const [generating, setGenerating] = useState(false);
-  const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
-
-  // Manual mode state
-  const [prompt, setPrompt] = useState('');
-  const [modelId, setModelId] = useState(VIDEO_MODELS[0].id);
-  const [duration, setDuration] = useState(VIDEO_DEFAULTS.duration);
-  const [aspectRatio, setAspectRatio] = useState('auto');
-  const [resolution, setResolution] = useState<VideoResolution>(VIDEO_DEFAULTS.resolution);
-  const [audio, setAudio] = useState(VIDEO_DEFAULTS.audio);
-
-  const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<{ url: string; fileName: string; fileSize: number } | null>(null);
-
-  const selectedModelInfo = useMemo(
-    () => VIDEO_MODELS.find((item) => item.id === modelId) ?? VIDEO_MODELS[0],
-    [modelId],
-  );
-
-  const estimatedCost = useMemo(() => {
-    const rate = audio ? selectedModelInfo.pricePerSec.withAudio : selectedModelInfo.pricePerSec.noAudio;
-    return (rate * duration).toFixed(3);
-  }, [selectedModelInfo, duration, audio]);
-
-  useEffect(() => {
-    if (!selectedModelInfo.supportedDurations.includes(duration)) {
-      setDuration(selectedModelInfo.supportedDurations[0]);
-    }
-  }, [selectedModelInfo, duration]);
-
-  const executeGeneration = async (
-    targetModelId: string, 
-    targetPrompt: string, 
-    targetDur: number, 
-    targetAspect: string,
-    targetRes: string
-  ) => {
-    if (!sourceImage) {
-      alert("Please upload a source image first.");
-      return;
-    }
-
-    try {
-      setGenerating(true);
-      setGeneratedVideoUrl(null);
-      setError(null);
-      setResult(null);
-      
-      const uploadedStart = await resolveImageInput(sourceImage, 'Video Source');
-      if (!uploadedStart) throw new Error("Failed to upload source image");
-      const uploadedEnd = await resolveImageInput(endImage, 'Video End Frame');
-      
-      const response = await (window as any).api.video.generate({
-        modelId: targetModelId,
-        prompt: targetPrompt,
-        imageUrl: uploadedStart,
-        endImageUrl: uploadedEnd ?? undefined,
-        aspectRatio: targetAspect,
-        resolution: targetRes,
-        duration: targetDur,
-        audio: audio,
-        negativePrompt: 'blurry, low quality, pixelated, noisy, out of focus, poorly lit',
-      });
-
-      if (!response.success) {
-        throw new Error(response.error);
-      }
-
-      const videoData = response.data;
-      setGeneratedVideoUrl(videoData.url);
-      setResult(videoData);
-      setGenerating(false);
-
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message);
-      setGenerating(false);
-    }
-  };
+  const {
+    activeMode, setActiveMode,
+    sourceImage, setSourceImage,
+    endImage, setEndImage,
+    generating,
+    generatedVideoUrl,
+    prompt, setPrompt,
+    modelId, setModelId,
+    duration, setDuration,
+    aspectRatio, setAspectRatio,
+    resolution, setResolution,
+    audio, setAudio,
+    error,
+    result,
+    selectedModelInfo,
+    estimatedCost,
+    handleTemplateSelect,
+    handleManualGenerate,
+    handleImageUpload
+  } = videoGen;
 
   useEffect(() => {
     setRightPanelContent(
@@ -117,36 +50,7 @@ export function VideoGenScreen() {
     );
 
     return () => setRightPanelContent(null);
-  }, [generating, generatedVideoUrl, modelId, duration, aspectRatio, resolution, audio, estimatedCost, setRightPanelContent]);
-
-  const handleTemplateSelect = (template: VideoTemplate, config: { model: string, duration: number, aspectRatio: string }) => {
-    if (!sourceImage) {
-      alert("Please select a source image before running a template.");
-      return;
-    }
-    // Update local state to match template configs
-    setModelId(config.model);
-    setDuration(config.duration);
-    setAspectRatio(config.aspectRatio);
-    setPrompt(template.prompt);
-
-    // Auto execute!
-    executeGeneration(config.model, template.prompt, config.duration, config.aspectRatio, resolution);
-  };
-
-  const handleManualGenerate = () => {
-    executeGeneration(modelId, prompt, duration, aspectRatio, resolution);
-  };
-
-  // Upload Box
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, setter: (v: string) => void) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const r = new FileReader();
-      r.onload = ev => setter(ev.target?.result as string);
-      r.readAsDataURL(file);
-    }
-  };
+  }, [generating, generatedVideoUrl, modelId, duration, aspectRatio, resolution, audio, estimatedCost, setRightPanelContent, selectedModelInfo, handleManualGenerate]);
 
   return (
     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: 24, background: 'var(--ma-bg)', overflowY: 'auto' }}>
