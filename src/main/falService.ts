@@ -13,8 +13,10 @@ import { BillingService } from './services/fal/billing.service'
 const billingService = new BillingService()
 
 import { TextService } from './services/fal/text.service'
+import { ImageService } from './services/fal/image.service'
 
 const textService = new TextService()
+const imageService = new ImageService()
 
 export class FalService {
   async validateKey(key: string): Promise<ValidationResult> {

@@ -85,8 +85,7 @@ export class ImageService extends FalClient {
     enable_web_search?: boolean,
     limit_generations?: boolean
   }): Promise<any> {
-    const apiKey = await this.getApiKey();
-    const auth = `Key ${apiKey}`;
+    // auth is handled by request() method
 
     let endpoint = '';
     let body: any = {};
