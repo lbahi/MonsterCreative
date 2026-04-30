@@ -4,9 +4,21 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { dbService } from './database'
 import { keystoreService } from './keystore'
-import { falService } from './falService'
+import { 
+  BillingService, 
+  TextService, 
+  ImageService, 
+  VideoService, 
+  AudioService 
+} from './services/fal'
 import fs from 'fs'
 import path from 'path'
+
+const billingService = new BillingService()
+const textService = new TextService()
+const imageService = new ImageService()
+const videoService = new VideoService()
+const audioService = new AudioService()
 
 function createWindow(): void {
   // Create the browser window.
@@ -80,23 +92,23 @@ app.whenReady().then(() => {
   ipcMain.handle('key:deleteFalKey', () => keystoreService.deleteFalKey())
 
   // IPC Handlers: Fal
-  ipcMain.handle('fal:generateCopy', (_, promptOrMessages, modelId) => falService.generateCopy(promptOrMessages, modelId))
-  ipcMain.handle('fal:analyzeImageVision', (_, imageUrl, prompt, systemPrompt, modelId) => falService.analyzeImageVision(imageUrl, prompt, systemPrompt, modelId))
-  ipcMain.handle('fal:chatCompletion', (_, messages, modelId) => falService.chatCompletion(messages, modelId))
-  ipcMain.handle('fal:getUsage', (_, timeframe, start, end) => falService.getUsage(timeframe, start, end))
-  ipcMain.handle('fal:getBilling', () => falService.getBilling())
-  ipcMain.handle('fal:validateKey', (_, key) => falService.validateKey(key))
-  ipcMain.handle('fal:getPricing', (_, ids) => falService.getPricing(ids))
-  ipcMain.handle('fal:getAnalytics', (_, ids, start, end) => falService.getAnalytics(ids, start, end))
-  ipcMain.handle('fal:uploadImageFromDataUrl', (_, dataUrl) => falService.uploadImageFromDataUrl(dataUrl))
-  ipcMain.handle('fal:nanoBananaEdit', (_, params) => falService.nanoBananaEdit(params))
-  ipcMain.handle('fal:reframeImage', (_, params) => falService.reframeImage(params))
-  ipcMain.handle('fal:kontextEdit', (_, params) => falService.kontextEdit(params))
-  ipcMain.handle('fal:generateVideo', (_, params) => falService.generateVideo(params))
+  ipcMain.handle('fal:generateCopy', (_, promptOrMessages, modelId) => textService.generateCopy(promptOrMessages, modelId))
+  ipcMain.handle('fal:analyzeImageVision', (_, imageUrl, prompt, systemPrompt, modelId) => textService.analyzeImageVision(imageUrl, prompt, systemPrompt, modelId))
+  ipcMain.handle('fal:chatCompletion', (_, messages, modelId) => textService.chatCompletion(messages, modelId))
+  ipcMain.handle('fal:getUsage', (_, timeframe, start, end) => billingService.getUsage(timeframe, start, end))
+  ipcMain.handle('fal:getBilling', () => billingService.getBilling())
+  ipcMain.handle('fal:validateKey', (_, key) => billingService.validateKey(key))
+  ipcMain.handle('fal:getPricing', (_, ids) => billingService.getPricing(ids))
+  ipcMain.handle('fal:getAnalytics', (_, ids, start, end) => billingService.getAnalytics(ids, start, end))
+  ipcMain.handle('fal:uploadImageFromDataUrl', (_, dataUrl) => imageService.uploadImageFromDataUrl(dataUrl))
+  ipcMain.handle('fal:nanoBananaEdit', (_, params) => imageService.nanoBananaEdit(params))
+  ipcMain.handle('fal:reframeImage', (_, params) => imageService.reframeImage(params))
+  ipcMain.handle('fal:kontextEdit', (_, params) => imageService.kontextEdit(params))
+  ipcMain.handle('fal:generateVideo', (_, params) => videoService.generateVideo(params))
 
   ipcMain.handle('video:generate', async (_event, request: any) => {
     try {
-      const result = await falService.generateVideo(request)
+      const result = await videoService.generateVideo(request)
 
       // Persist to database
       await dbService.saveGeneratedVideo({
@@ -148,7 +160,7 @@ app.whenReady().then(() => {
   // IPC Handlers: Audio
   ipcMain.handle('audio:generateSpeech', async (_, params) => {
     try {
-      const result = await falService.generateSpeech(params)
+      const result = await audioService.generateSpeech(params)
       return { success: true, data: result }
     } catch (error: any) {
       return { success: false, error: error.message }
@@ -157,7 +169,7 @@ app.whenReady().then(() => {
 
   ipcMain.handle('audio:speechToSpeech', async (_, params) => {
     try {
-      const result = await falService.speechToSpeech(params)
+      const result = await audioService.speechToSpeech(params)
       return { success: true, data: result }
     } catch (error: any) {
       return { success: false, error: error.message }
@@ -166,7 +178,7 @@ app.whenReady().then(() => {
 
   ipcMain.handle('audio:cloneVoice', async (_, params) => {
     try {
-      const result = await falService.cloneVoice(params)
+      const result = await audioService.cloneVoice(params)
       return { success: true, data: result }
     } catch (error: any) {
       return { success: false, error: error.message }
@@ -175,7 +187,7 @@ app.whenReady().then(() => {
 
   ipcMain.handle('audio:generateClonedSpeech', async (_, params) => {
     try {
-      const result = await falService.generateClonedSpeech(params)
+      const result = await audioService.generateClonedSpeech(params)
       return { success: true, data: result }
     } catch (error: any) {
       return { success: false, error: error.message }
