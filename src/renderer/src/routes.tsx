@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from 'react-router';
+import { createHashRouter, Navigate } from 'react-router';
 import { Shell } from './components/Shell';
 import { DashboardScreen } from './screens/DashboardScreen';
 import { AdCopyScreen } from './screens/AdCopyScreen';
@@ -8,7 +8,7 @@ import { VideoGenScreen } from './screens/video-gen';
 import { ApiCostsScreen } from './screens/ApiCostsScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 
-export const router = createBrowserRouter([
+export const router = createHashRouter([
   {
     path: '/',
     Component: Shell,

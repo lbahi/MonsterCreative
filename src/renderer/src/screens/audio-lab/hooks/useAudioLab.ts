@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { VOICE_REGISTRY, VoiceEntry } from '../../../data/voices';
 
 export const useAudioLab = () => {
@@ -13,7 +13,7 @@ export const useAudioLab = () => {
   const [similarity, setSimilarity] = useState(75);
   const [speed, setSpeed] = useState(1.0);
 
-  const handleGenerate = async () => {
+  const handleGenerate = useCallback(async () => {
     if (!script.trim()) return;
     setIsGenerating(true);
     try {
@@ -39,9 +39,9 @@ export const useAudioLab = () => {
     } catch (err: any) {
       alert('Error: ' + err.message);
     } finally { setIsGenerating(false); }
-  };
+  }, [script, selectedVoice, stability]);
 
-  const handlePreview = async (voice: VoiceEntry) => {
+  const handlePreview = useCallback(async (voice: VoiceEntry) => {
     try {
       // 100% Free Local Preview (Method 1)
       const audioUrl = `/OutputVoices/${voice.name}.mp4`;
@@ -53,7 +53,7 @@ export const useAudioLab = () => {
       console.error("Failed to play local preview:", err);
       alert(`Could not play the local preview for ${voice.name}. Ensure ${voice.name}.mp4 exists in the public/OutputVoices folder.`);
     }
-  };
+  }, []);
 
   return {
     script, setScript,

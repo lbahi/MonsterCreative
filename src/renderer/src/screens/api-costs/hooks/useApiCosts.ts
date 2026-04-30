@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useApp } from '../../../contexts/AppContext';
 
 type SortField = 'model' | 'cost' | 'time' | 'type';
@@ -144,10 +144,10 @@ export const useApiCosts = () => {
   
   const avgCost = totalRequests > 0 ? totalSpend / totalRequests : 0;
 
-  const handleSort = (field: SortField) => {
+  const handleSort = useCallback((field: SortField) => {
     if (sortField === field) setSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
     else { setSortField(field); setSortDir('desc'); }
-  };
+  }, [sortField]);
 
   const filtered = useMemo(() => {
     return transactions

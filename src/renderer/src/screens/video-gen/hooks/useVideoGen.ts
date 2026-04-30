@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useLocation } from 'react-router';
 import { VIDEO_MODELS, VIDEO_DEFAULTS, VideoResolution } from '../constants';
 import { VideoTemplate, ActiveVideoGenMode } from '../types';
@@ -38,7 +38,7 @@ export function useVideoGen() {
     }
   }, [selectedModelInfo, duration]);
 
-  const executeGeneration = async (
+  const executeGeneration = useCallback(async (
     targetModelId: string, 
     targetPrompt: string, 
     targetDur: number, 
@@ -86,9 +86,9 @@ export function useVideoGen() {
       setError(err.message);
       setGenerating(false);
     }
-  };
+  }, [sourceImage, endImage, audio]);
 
-  const handleTemplateSelect = (template: VideoTemplate, config: { model: string, duration: number, aspectRatio: string }) => {
+  const handleTemplateSelect = useCallback((template: VideoTemplate, config: { model: string, duration: number, aspectRatio: string }) => {
     if (!sourceImage) {
       alert("Please select a source image before running a template.");
       return;
@@ -98,20 +98,20 @@ export function useVideoGen() {
     setAspectRatio(config.aspectRatio);
     setPrompt(template.prompt);
     executeGeneration(config.model, template.prompt, config.duration, config.aspectRatio, resolution);
-  };
+  }, [sourceImage, executeGeneration, resolution]);
 
-  const handleManualGenerate = () => {
+  const handleManualGenerate = useCallback(() => {
     executeGeneration(modelId, prompt, duration, aspectRatio, resolution);
-  };
+  }, [executeGeneration, modelId, prompt, duration, aspectRatio, resolution]);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, setter: (v: string) => void) => {
+  const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>, setter: (v: string) => void) => {
     const file = e.target.files?.[0];
     if (file) {
       const r = new FileReader();
       r.onload = ev => setter(ev.target?.result as string);
       r.readAsDataURL(file);
     }
-  };
+  }, []);
 
   return {
     activeMode, setActiveMode,

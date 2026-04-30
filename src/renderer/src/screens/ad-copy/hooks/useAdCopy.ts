@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { anthropicService, ProductAnalysis, OneShotResult } from '../../../services/anthropic.service';
 import { CopyVariant } from '../../../services/fal.service';
 
@@ -13,7 +13,7 @@ export const useAdCopy = () => {
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
-  const compressImage = (file: File): Promise<string> => {
+  const compressImage = useCallback((file: File): Promise<string> => {
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -34,9 +34,9 @@ export const useAdCopy = () => {
       };
       reader.readAsDataURL(file);
     });
-  };
+  }, []);
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -57,21 +57,21 @@ export const useAdCopy = () => {
     } finally {
       setIsGenerating(false);
     }
-  };
+  }, [analysisModel, compressImage]);
 
-  const handleStartOver = () => {
+  const handleStartOver = useCallback(() => {
     setShowResults(false);
     setGeneratedVariants([]);
     setGenerationError(null);
     setAiAnalysis(null);
     setProductImageUrl(null);
-  };
+  }, []);
 
-  const copyToClipboard = (text: string, idx: number) => {
+  const copyToClipboard = useCallback((text: string, idx: number) => {
     navigator.clipboard.writeText(text);
     setCopiedIndex(idx);
     setTimeout(() => setCopiedIndex(null), 2000);
-  };
+  }, []);
 
   return {
     isGenerating, setIsGenerating,
