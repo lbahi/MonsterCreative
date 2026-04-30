@@ -15,7 +15,58 @@ export const VIDEO_MODELS: VideoModel[] = [
     desc: 'Production model with cinematic motion quality and native audio generation.',
     purpose: 'production',
     badge: 'Production',
+    fixedDuration: null,
   },
+  {
+    id: 'fal-ai/minimax/video-01',
+    label: 'Hailuo MiniMax',
+    endpoint: 'fal-ai/minimax/video-01',
+    pricePerSec: {
+      noAudio: 0.05,
+      withAudio: 0.05,
+    },
+    maxDur: 6,
+    supportedDurations: [6],
+    supportsAudio: false,
+    desc: 'High-quality cinematic video with stable character movement.',
+    purpose: 'quality',
+    badge: 'Standard',
+    fixedDuration: 6,
+    fixedDurationNote: 'Always generates 6s'
+  },
+  {
+    id: 'fal-ai/ltx-video',
+    label: 'LTX Video',
+    endpoint: 'fal-ai/ltx-video',
+    pricePerSec: {
+      noAudio: 0.02,
+      withAudio: 0.02,
+    },
+    maxDur: 2,
+    supportedDurations: [2],
+    supportsAudio: false,
+    desc: 'Ultra-fast video generation with realistic physics.',
+    purpose: 'speed',
+    badge: 'Fast',
+    fixedDuration: 2,
+    fixedDurationNote: 'Always generates 2s'
+  },
+  {
+    id: 'fal-ai/pixverse/v6/image-to-video',
+    label: 'Pixverse v6',
+    endpoint: 'fal-ai/pixverse/v6/image-to-video',
+    pricePerSec: {
+      noAudio: 0.04,
+      withAudio: 0.08,
+    },
+    maxDur: 10,
+    supportedDurations: [5, 10],
+    supportsAudio: true,
+    desc: 'Great for character animation and style consistency.',
+    purpose: 'style',
+    badge: 'Flexible',
+    fixedDuration: null,
+  }
 ];
 
 export const VIDEO_DEFAULTS = {
@@ -182,7 +233,7 @@ export const VIDEO_TEMPLATES: VideoTemplate[] = [
   }
 ];
 
-export const VIDEO_DURATIONS = [5, 10] as const;
+export const VIDEO_DURATIONS = [2, 5, 6, 10] as const;
 export type VideoDuration = typeof VIDEO_DURATIONS[number];
 
 export const VIDEO_ASPECT_RATIOS = ['auto', '16:9', '9:16', '1:1', '4:3', '3:4'];

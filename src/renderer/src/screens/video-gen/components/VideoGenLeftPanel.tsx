@@ -16,8 +16,11 @@ export function VideoGenLeftPanel(props: VideoGenLeftPanelProps) {
     audio, setAudio,
     selectedModelInfo,
     activeMode,
-    handleImageUpload
+    handleImageUpload,
+    selectedTemplate
   } = props;
+
+  const isFixedDuration = selectedModelInfo.fixedDuration !== null;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -100,13 +103,43 @@ export function VideoGenLeftPanel(props: VideoGenLeftPanelProps) {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
             <div>
               <label style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Duration</label>
-              <select value={duration} onChange={e => setDuration(Number(e.target.value))} disabled={generating} style={{ width: '100%', marginTop: 4, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--ma-border)', borderRadius: 8, padding: '8px 10px', color: '#FFF', fontSize: 12, outline: 'none' }}>
-                {VIDEO_DURATIONS.map(d => (
-                  <option key={d} value={d} disabled={!selectedModelInfo.supportedDurations.includes(d)} style={{ background: '#111' }}>
-                    {d}s {!selectedModelInfo.supportedDurations.includes(d) ? '(Unsupported)' : ''}
-                  </option>
-                ))}
+              <select 
+                value={isFixedDuration ? (selectedModelInfo.fixedDuration ?? duration) : duration} 
+                onChange={e => setDuration(Number(e.target.value))} 
+                disabled={generating || isFixedDuration} 
+                style={{ 
+                  width: '100%', marginTop: 4, background: 'rgba(255,255,255,0.05)', 
+                  border: '1px solid var(--ma-border)', borderRadius: 8, padding: '8px 10px', 
+                  color: '#FFF', fontSize: 12, outline: 'none',
+                  opacity: isFixedDuration ? 0.5 : 1,
+                  cursor: isFixedDuration ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {isFixedDuration ? (
+                  <option value={selectedModelInfo.fixedDuration ?? 0}>{selectedModelInfo.fixedDuration}s</option>
+                ) : (
+                  VIDEO_DURATIONS.map(d => (
+                    <option key={d} value={d} disabled={!selectedModelInfo.supportedDurations.includes(d)} style={{ background: '#111' }}>
+                      {d}s {!selectedModelInfo.supportedDurations.includes(d) ? '(Unsupported)' : ''}
+                    </option>
+                  ))
+                )}
               </select>
+              
+              {/* FIX C: Fixed model warning */}
+              {isFixedDuration && selectedModelInfo.fixedDurationNote && (
+                <div style={{ fontSize: 10, color: 'var(--ma-orange)', marginTop: 4, display: 'flex', gap: 4, alignItems: 'flex-start' }}>
+                  <span>⚠️</span>
+                  <span>{selectedModelInfo.fixedDurationNote}. Duration selection is disabled for this model.</span>
+                </div>
+              )}
+
+              {/* FIX A: Template recommended duration hint */}
+              {!isFixedDuration && selectedTemplate && (
+                <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>
+                  Tip: This template works best at {selectedTemplate.recommendedDuration}s
+                </div>
+              )}
             </div>
             <div>
               <label style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Ratio</label>

@@ -19,6 +19,7 @@ export function useVideoGen() {
   const [aspectRatio, setAspectRatio] = useState('auto');
   const [resolution, setResolution] = useState<VideoResolution>(VIDEO_DEFAULTS.resolution);
   const [audio, setAudio] = useState<boolean>(VIDEO_DEFAULTS.audio);
+  const [selectedTemplate, setSelectedTemplate] = useState<VideoTemplate | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ url: string; fileName: string; fileSize: number } | null>(null);
 
@@ -93,12 +94,21 @@ export function useVideoGen() {
       alert("Please select a source image before running a template.");
       return;
     }
+    setSelectedTemplate(template);
     setModelId(config.model);
-    setDuration(config.duration);
+    
+    // FIX A: Only pre-fill duration if user hasn't manually changed it from the default
+    if (duration === VIDEO_DEFAULTS.duration) {
+      setDuration(config.duration);
+    }
+    
     setAspectRatio(config.aspectRatio);
     setPrompt(template.prompt);
-    executeGeneration(config.model, template.prompt, config.duration, config.aspectRatio, resolution);
-  }, [sourceImage, executeGeneration, resolution]);
+    
+    // Use the potentially overridden duration for execution
+    const finalDuration = duration === VIDEO_DEFAULTS.duration ? config.duration : duration;
+    executeGeneration(config.model, template.prompt, finalDuration, config.aspectRatio, resolution);
+  }, [sourceImage, executeGeneration, resolution, duration]);
 
   const handleManualGenerate = useCallback(() => {
     executeGeneration(modelId, prompt, duration, aspectRatio, resolution);
@@ -129,6 +139,7 @@ export function useVideoGen() {
     result, setResult,
     selectedModelInfo,
     estimatedCost,
+    selectedTemplate,
     handleTemplateSelect,
     handleManualGenerate,
     handleImageUpload

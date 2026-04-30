@@ -143,6 +143,7 @@ export class VideoService extends FalClient {
     if (modelId.includes('pixverse')) {
       return {
         ...base,
+        duration: String(request.duration), // Pixverse v6 expects string "5" or "10"
         image_url: request.imageUrl,
         generate_audio_switch: request.audio,
         thinking_type: 'disabled'

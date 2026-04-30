@@ -12,8 +12,10 @@ export interface VideoModel {
   supportedDurations: number[];
   supportsAudio: boolean;
   desc: string;
-  purpose: 'testing' | 'production';
+  purpose: 'testing' | 'production' | 'quality' | 'speed' | 'style';
   badge?: string;
+  fixedDuration: number | null;
+  fixedDurationNote?: string;
 }
 
 export interface VideoTemplate {
