@@ -151,10 +151,10 @@ export class VideoService extends FalClient {
 
     // Kling Mapping (Primary)
     if (modelId.includes('kling')) {
-      const klingDuration = request.duration <= 5 ? '5' : '10'
       const klingPayload: Record<string, any> = {
         ...base,
-        duration: klingDuration,
+        // Passing the numeric duration directly to allow for precision
+        duration: request.duration, 
         start_image_url: request.imageUrl,
         generate_audio: request.audio,
       }
