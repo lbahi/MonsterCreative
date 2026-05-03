@@ -1,6 +1,28 @@
-node_modules
-dist
-out
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
+dist/
+out/
+release/
+*.exe
+
+# Environment variables (contains API keys)
+.env
+.env.local
+
+# OS files
 .DS_Store
-.eslintcache
-*.log*
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+debug_output.txt
+
+# Electron
+AppPackages/
