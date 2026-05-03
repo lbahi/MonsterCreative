@@ -19,6 +19,7 @@ export const router = createHashRouter([
       { path: 'image-gen', element: <Navigate to="/image-gen/generate" replace /> },
       { path: 'image-gen/generate', Component: ImageGenScreen },
       { path: 'image-gen/vton', Component: ImageGenScreen },
+      { path: 'image-gen/social', Component: ImageGenScreen },
       { path: 'image-gen/resize', Component: ImageGenScreen },
       { path: 'image-gen/landing', Component: ImageGenScreen },
       // Audio Lab

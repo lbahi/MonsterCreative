@@ -3,6 +3,7 @@ import { LandingForm } from '../modes/LandingForm';
 import { NanoBananaLayout } from '../modes/NanoBananaLayout';
 import { ResizeForm } from '../modes/ResizeForm';
 import { VtonForm } from '../modes/VtonForm';
+import { SocialAdsForm } from '../modes/SocialAdsForm';
 import { CommonSettings } from './CommonSettings';
 import { ImageGenHeader } from '../shared/ImageGenHeader';
 import { ModeSelector } from '../shared/ModeSelector';
@@ -107,6 +108,17 @@ export function ModeRouter(props: ModeRouterProps) {
               setResolution={setNbResolution}
               refImage={nbReferenceImage}
               setRefImage={setNbReferenceImage}
+            />
+          ) : activeMode === 'social' ? (
+            <SocialAdsForm
+              generating={generating}
+              setGenerating={setGenerating}
+              setGeneratedImages={setGeneratedImages}
+              setGenerated={setGenerated}
+              refImage={nbReferenceImage}
+              setRefImage={setNbReferenceImage}
+              resolution={nbResolution}
+              model={nbModel}
             />
           ) : activeMode === 'resize' ? (
             <>

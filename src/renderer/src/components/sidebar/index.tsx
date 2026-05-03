@@ -26,6 +26,7 @@ const navItems = [
     children: [
       { id: 'img-generate', label: 'Generate', path: '/image-gen/generate', icon: <Wand2 size={14} /> },
       { id: 'img-vton', label: 'Virtual Try-On', path: '/image-gen/vton', icon: <Copy size={14} /> },
+      { id: 'img-social', label: 'Social Ads', path: '/image-gen/social', icon: <Wand2 size={14} /> },
       { id: 'img-resize', label: 'Format Resizer', path: '/image-gen/resize', icon: <Crop size={14} /> },
       { id: 'img-landing', label: 'Landing Page', path: '/image-gen/landing', icon: <Monitor size={14} /> },
     ],

@@ -34,7 +34,7 @@ export function useImageGenRightPanel(activeMode: ActiveImageGenMode, imageGen: 
   } = imageGen;
 
   useEffect(() => {
-    if (activeMode === 'generate' || activeMode === 'vton') {
+    if (activeMode === 'generate' || activeMode === 'vton' || activeMode === 'social') {
       setRightPanelContent(
         <NanoBananaRightPanel
           generating={generating}

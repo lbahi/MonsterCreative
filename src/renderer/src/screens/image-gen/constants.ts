@@ -18,6 +18,7 @@ export interface PlatformFormat {
 export const MODES: ModeOption[] = [
   { id: 'generate', path: '/image-gen/generate', label: 'Generate', description: 'Create original ad images from text prompts', icon: Wand2, color: '#6C63FF' },
   { id: 'vton', path: '/image-gen/vton', label: 'Virtual Try-On', description: 'AI Casting Director for your garments', icon: Shirt, color: '#EC4899' },
+  { id: 'social', path: '/image-gen/social', label: 'Social Ads', description: 'Generate platform-ready social ads from product images', icon: Wand2, color: '#3B82F6' },
   { id: 'resize', path: '/image-gen/resize', label: 'Format Resizer', description: 'Resize and adapt creatives for every platform', icon: Crop, color: '#F59E0B' },
   { id: 'landing', path: '/image-gen/landing', label: 'Landing Page', description: 'Generate a hero image for landing pages', icon: Monitor, color: '#22C55E', comingSoon: true },
 ];
