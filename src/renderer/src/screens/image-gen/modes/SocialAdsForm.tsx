@@ -1,8 +1,5 @@
 import { useState, useRef } from 'react';
-import {
-  Loader2, Sparkles, Upload, X, FolderOpen,
-  Download, FileSpreadsheet, CheckCircle2
-} from 'lucide-react';
+import { Loader2, Sparkles, Upload, X, FolderOpen, Download, CheckCircle2 } from 'lucide-react';
 import { resolveImageInput } from '../utils/resolveImageInput';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -38,7 +35,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t1",
     label: "Upload product image as reference",
-    category: "Lifestyle",
+    category: "Outdoor & Sports",
     coverImage: "https://images.unsplash.com/photo-1600607686527-6fb886090705?w=400&q=80",
     bestFor: "Food & Health Supplements, Outdoor Gear, Sportswear",
     prompt: "Create an outdoor lifestyle product photography shot with a bright, fresh, adventurous feel. The image provided should be analyzed and used as a reference image. 85mm portrait lens look, shallow depth of field (f/2.8), sharp focus on The Provided Product, softly blurred background.",
@@ -46,7 +43,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t2",
     label: "Upload pendant light image",
-    category: "Home",
+    category: "Home & Décor",
     coverImage: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=80",
     bestFor: "Home Décor, Lighting, Interior Design",
     prompt: "Use the uploaded pendant light as the exact hero product. Preserve its original layered stone-textured dome shape, warm beige mineral finish. The image provided should be analyzed and used as a reference image. 85mm portrait lens look, shallow depth of field (f/2.8), sharp focus on the pendant face, softly blurred background.",
@@ -54,7 +51,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t3",
     label: "Upload pendant light image",
-    category: "Luxury",
+    category: "Home & Décor",
     coverImage: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=400&q=80",
     bestFor: "Home Décor, Lighting, Luxury Interiors",
     prompt: "Use the uploaded pendant light as the exact hero product. Create a luxurious classic European kitchen interior with ornate ceiling moldings, cream wall paneling, rich walnut cabinetry. The image provided should be analyzed and used as a reference image. 85mm portrait lens look, shallow depth of field (f/2.8), sharp focus on the pendant face, softly blurred background.",
@@ -62,7 +59,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t4",
     label: "Replace [your chair] with product",
-    category: "Home",
+    category: "Furniture",
     coverImage: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&q=80",
     bestFor: "Furniture, Home Goods, Fashion Accessories, Skincare",
     prompt: "A premium minimalist studio product photograph featuring The Provided Product as the hero subject, placed slightly left of center in a seamless burnt-orange matte studio environment with matching floor and backdrop. The image provided should be analyzed and used as a reference image. 85mm portrait lens look, shallow depth of field (f/2.8), sharp focus on The Provided Product, softly blurred background.",
@@ -70,7 +67,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t5",
     label: "Upload fabric/textile product image",
-    category: "Luxury",
+    category: "Textiles",
     coverImage: "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=400&q=80",
     bestFor: "Textiles, Scarves, Luxury Fashion, Heritage Brands",
     prompt: "Luxury heritage textile campaign scene featuring the uploaded image as the hero product, elegantly draped from an open vintage wooden treasure chest placed at the center of the composition. The image provided should be analyzed and used as a reference image. 85mm portrait lens look, shallow depth of field (f/2.8), sharp focus on The Provided Product, softly blurred background.",
@@ -78,7 +75,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t6",
     label: "Upload product image",
-    category: "Lifestyle",
+    category: "Skincare",
     coverImage: "https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=400&q=80",
     bestFor: "Organic Skincare, Agricultural Products, Outdoor Brands, Food",
     prompt: "Ultra-realistic commercial product photography of the uploaded product placed on slightly elevated loose soil in an open natural environment, with a wide clean sky occupying most of the background. The image provided should be analyzed and used as a reference image. 85mm portrait lens look, shallow depth of field (f/2.8), sharp focus on The Provided Product, softly blurred background.",
@@ -94,7 +91,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t8",
     label: "Upload dropper bottle",
-    category: "Beauty",
+    category: "Serums & Oils",
     coverImage: "https://images.unsplash.com/photo-1542466500-dccb2789cbbb?w=400&q=80",
     bestFor: "Skincare Serums, Dropper Bottles, Beauty Oils",
     prompt: "Ultra-premium skincare campaign photography, a replaceable amber glass dropper bottle held delicately between elegant feminine fingers, close-up beauty composition against a soft warm neutral studio background. The image provided should be analyzed and used as a reference image. 85mm portrait lens look, shallow depth of field (f/2.8), sharp focus on The Provided Product, softly blurred background.",
@@ -102,7 +99,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t9",
     label: "Upload product",
-    category: "Luxury",
+    category: "Beauty",
     coverImage: "https://images.unsplash.com/photo-1600607686527-6fb886090705?w=400&q=80",
     bestFor: "Skincare, Beauty, Luxury Cosmetics",
     prompt: "Ultra-premium skincare beauty campaign, close-up editorial portrait of a glowing female model resting her face sideways on a reflective glossy surface, one hand softly reaching toward the camera. The image provided should be analyzed and used as a reference image. 85mm portrait lens look, shallow depth of field (f/2.8), sharp focus on The Provided Product, softly blurred background.",
@@ -110,7 +107,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t10",
     label: "Upload sauce bottle",
-    category: "FMCG",
+    category: "Food & Condiments",
     coverImage: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=80",
     bestFor: "Food Sauces, Condiments, Street Food Brands",
     prompt: "Create a bold, colorful social media poster in a playful Vietnamese street-food inspired brand style, 3:4 vertical ratio. Use a vibrant hot pink background with subtle crumpled paper texture. Place one sauce bottle in the center as the hero product, upright, front-facing, sharp and realistic. Around the bottle, add oversized flat graphic arrows, sticker-style food icons, hand-drawn noodle swirls, lime wedges, coriander leaves, red chili slices, and small sauce splashes. The image provided should be analyzed and used as a reference image.",
@@ -118,7 +115,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t11",
     label: "Upload food product",
-    category: "FMCG",
+    category: "Fast Food",
     coverImage: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=400&q=80",
     bestFor: "Fast Food, QSR Brands, Chicken / Fried Food",
     prompt: "Create a vibrant 3:4 social media advertisement poster in a bold modern fast-food campaign style. Use a split complementary color palette of bright tangerine orange and fresh aqua blue. The scene should feel playful, premium, and highly commercial. Place the main food product in the center as the hero object: a branded takeaway bucket filled with crispy grilled chicken pieces, golden fried snacks, or any replaceable food item. The image provided should be analyzed and used as a reference image.",
@@ -126,7 +123,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t14",
     label: "Upload jars & dropper",
-    category: "Luxury",
+    category: "Beauty",
     coverImage: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&q=80",
     bestFor: "Skincare, Luxury Cosmetics, Face Creams",
     prompt: "High-end product photography of two white face cream jars and one dropper bottle made of clear glass containing a transparent liquid. The products are arranged in a balanced composition against a surreal background made of curved walls, archways, and steps in matte lavender and pink colors. An elegant young woman with a long flowing dress walks on one of the upper archways in the background. The lighting is soft and diffused. Shot on Sony A1, 24mm lens. The image provided should be analyzed and used as a reference image. 85mm portrait lens look, shallow depth of field (f/2.8), sharp focus on The Provided Product, softly blurred background.",
@@ -134,7 +131,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t15",
     label: "Upload product",
-    category: "Luxury",
+    category: "Skincare",
     coverImage: "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=400&q=80",
     bestFor: "Perfume, Luxury Skincare, Jewelry, Premium Bottles",
     prompt: "Place the uploaded product floating slightly above flowing deep red satin fabric. The product should be angled slightly, as if gracefully suspended in motion, with premium glass reflections and dramatic highlights. The image provided should be analyzed and used as a reference image. 85mm portrait lens look, shallow depth of field (f/2.8), sharp focus on The Provided Product, softly blurred background.",
@@ -142,7 +139,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t16",
     label: "Replace [BRAND NAME] and [PRODUCT]",
-    category: "General",
+    category: "Universal",
     coverImage: "https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=400&q=80",
     bestFor: "Any Brand / Product Category",
     prompt: "Create a bold, premium, high-conversion social media advertisement poster for [BRAND NAME], featuring [PRODUCT / SERVICE / OFFER] as the hero. Use a dramatic, modern commercial design style with a strong visual hierarchy, eye-catching typography, and a polished advertising look. The layout should be in 3:4 aspect ratio with clear negative space from the top, bottom, left, and right, so the design feels premium, balanced, and not overcrowded. The image provided should be analyzed and used as a reference image.",
@@ -150,7 +147,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t17",
     label: "Replace brand name & colors",
-    category: "FMCG",
+    category: "Fast Food",
     coverImage: "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?w=400&q=80",
     bestFor: "Fast Food, Food & Beverage Brands, QSR",
     prompt: "Create a bold, high-energy promotional social media poster for [BRAND NAME], inspired by loud modern fast-food advertising. Use the brand's official color palette as the main visual system: Primary color: [BRAND PRIMARY COLOR], Secondary color: [BRAND SECONDARY COLOR], Accent color: [BRAND ACCENT COLOR]. Design style: A vibrant, energetic food campaign poster with a rich gradient background, darker abstract flame/swoosh shapes, subtle halftone. The image provided should be analyzed and used as a reference image.",
@@ -158,7 +155,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t18",
     label: "Upload jar/condiment",
-    category: "FMCG",
+    category: "Food & Condiments",
     coverImage: "https://images.unsplash.com/photo-1542466500-dccb2789cbbb?w=400&q=80",
     bestFor: "Condiments, Jams, Sauces, Food Jars",
     prompt: "Ultra-realistic premium condiment product photography, three identical jars of the uploaded product stacked in a dramatic vertical balancing composition, one jar resting on top of the other two. The image provided should be analyzed and used as a reference image. 85mm portrait lens look, shallow depth of field (f/2.8), sharp focus on The Provided Product, softly blurred background.",
@@ -166,7 +163,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t19",
     label: "Upload open jar",
-    category: "FMCG",
+    category: "Food & Condiments",
     coverImage: "https://images.unsplash.com/photo-1600607686527-6fb886090705?w=400&q=80",
     bestFor: "Condiments, Spreads, Food Jars, Honey",
     prompt: "Ultra-realistic premium food condiment product photography, close-up editorial kitchen scene, an open glass jar of the uploaded product placed at the center foreground. The image provided should be analyzed and used as a reference image. 85mm portrait lens look, shallow depth of field (f/2.8), sharp focus on The Provided Product, softly blurred background.",
@@ -174,7 +171,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t20",
     label: "Upload product",
-    category: "Beauty",
+    category: "Spa & Wellness",
     coverImage: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=80",
     bestFor: "Skincare, Spa Products, Natural Beauty, Essential Oils",
     prompt: "The water forms a natural stream running diagonally through the frame, with subtle wave patterns and light reflections. Small floating white chamomile/daisy flowers are scattered naturally across the water to create a calm botanical spa aesthetic. Top-down product photography, luxury cosmetic campaign look. The image provided should be analyzed and used as a reference image.",
@@ -182,7 +179,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t21",
     label: "Upload product",
-    category: "Luxury",
+    category: "Beauty",
     coverImage: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=400&q=80",
     bestFor: "Skincare, Perfume, Baby Products, Luxury Cosmetics",
     prompt: "Ultra-premium pastel product photography with the uploaded image as the hero product, placed upright at the center on softly draped baby-blue flowing fabric forming elegant natural folds like a dreamy pedestal. 85mm lens look, shallow depth of field, sharp focus on product, softly blurred foreground and background floral elements. The image provided should be analyzed and used as a reference image.",
@@ -190,7 +187,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t22",
     label: "Upload facewash tube",
-    category: "Beauty",
+    category: "Skincare",
     coverImage: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&q=80",
     bestFor: "Facewash, Skincare, Cleansers",
     prompt: "A high-end skincare lifestyle shot featuring a single facewash tube (matching the product exactly in shape, design, and color) being held naturally in one hand. The hand is slightly wet, with visible water droplets and a soft, healthy glow on the skin, creating a fresh, just-washed feel. Rich, airy cleansing foam is spread across the hand and partially covering the tube. A few water droplets are seen dripping from the hand, adding movement and realism. The background is a soft light pink solid tone. Aspect ratio 4:5 (1080x1350), ultra-realistic, macro detail, commercial skincare photography with shallow depth of field and high texture clarity. The image provided should be analyzed and used as a reference image.",
@@ -198,7 +195,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t23",
     label: "Upload facewash tube",
-    category: "Beauty",
+    category: "Skincare",
     coverImage: "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=400&q=80",
     bestFor: "Facewash, Skincare, K-Beauty Brands",
     prompt: "A high-end skincare beauty shot featuring a female model holding a facewash tube (matching the product exactly in shape, design, and color) close to her face in a confident, editorial pose. The model has smooth, radiant skin with a luminous dewy glow, minimal makeup. The background is a soft light pink solid tone. Soft, diffused, slightly directional lighting. Close-up portrait shot, shallow depth of field. Overall mood is fresh, radiant, and minimal luxury with a Korean skincare aesthetic. 4:5 aspect ratio (1080x1350), ultra-realistic. The image provided should be analyzed and used as a reference image.",
@@ -206,7 +203,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t24",
     label: "Upload supplement tub",
-    category: "General",
+    category: "Fitness & Supplements",
     coverImage: "https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=400&q=80",
     bestFor: "Fitness Supplements, Protein, Sports Nutrition",
     prompt: "A highly realistic fitness advertisement photo of an athletic woman with a toned physique, wearing a pink sports bra and cyan/turquoise running shoes, sitting confidently on a dark gym floor. A large tub of Whey Protein supplement is placed in front of her. A black kettlebell is visible to her left. Bold typography overlaid reads 'TRAIN HARD RECOVER STRONGER' in white and fiery orange/red gradient letters. Dark, dramatic, high-contrast lighting with a cinematic feel. Photorealistic, professional sports photography style. AR 4:5. The image provided should be analyzed and used as a reference image.",
@@ -214,7 +211,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t25",
     label: "Upload supplement tub",
-    category: "General",
+    category: "Fitness & Supplements",
     coverImage: "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?w=400&q=80",
     bestFor: "Fitness Supplements, Protein, Shakers, Sports Nutrition",
     prompt: "A hyper-realistic fitness supplement product photography shot featuring an athletic woman with dark hair tied in a ponytail, wearing a black sports bra, standing in a modern gym near cable machine/TRX straps. She is captured in a candid mid-action pose — tilting her head back drinking from a dark black shaker bottle, while her left arm is extended toward the camera in the foreground holding a black supplement tub labeled 'Whey Protein'. The product tub is sharp and in focus close to the camera lens. Shot with a wide-aperture lens (f/1.8 style bokeh). Professional lifestyle product photography, photorealistic, 8K resolution. --ar 4:5. The image provided should be analyzed and used as a reference image.",
@@ -222,7 +219,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t26",
     label: "Upload pump bottle",
-    category: "Beauty",
+    category: "Haircare",
     coverImage: "https://images.unsplash.com/photo-1542466500-dccb2789cbbb?w=400&q=80",
     bestFor: "Organic Skincare, Natural Beauty, Botanical Haircare",
     prompt: "Hyper-realistic luxury botanical skincare product advertisement featuring a premium matte cream cosmetic pump bottle with a wooden textured collar and minimalist elegant branding. The bottle is placed on stacked natural stone slabs, surrounded by lush green moss, delicate white wildflowers, small twigs, and organic forest elements. Background features a deep emerald green forest-inspired backdrop with hanging moss. Dramatic studio lighting from top and sides. Shallow depth of field, ultra-detailed textures, photorealistic rendering, cinematic composition. The image provided should be analyzed and used as a reference image.",
@@ -230,7 +227,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t27",
     label: "Upload golden dropper bottle",
-    category: "Beauty",
+    category: "Haircare",
     coverImage: "https://images.unsplash.com/photo-1600607686527-6fb886090705?w=400&q=80",
     bestFor: "Hair Oil, Organic Haircare, Beauty Oils",
     prompt: "Hyper-realistic luxury organic hair oil product advertisement featuring a premium golden glass dropper bottle placed in the center foreground on a glossy reflective surface. Behind the bottle, flowing silky smooth brown hair strands create a dynamic wave background. Surrounding the product are natural organic ingredients including fresh coconut halves, black seeds, wheat grains, aloe vera slices, and herbal botanical elements. Floating golden oil droplets suspended in air around the bottle. Warm golden studio lighting. Professional commercial product photography, ultra-detailed, photorealistic rendering. The image provided should be analyzed and used as a reference image.",
@@ -238,7 +235,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t28",
     label: "Upload any product",
-    category: "FMCG",
+    category: "CGI & Brand",
     coverImage: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=80",
     bestFor: "Any Product, Brand Awareness Campaigns, FMCG",
     prompt: "Create a hyper-realistic CGI advertisement where the uploaded product is scaled up to a massive size, placed right in the middle of a bustling modern city street. The product should appear like a towering monument, blending seamlessly with skyscrapers, traffic, and pedestrians. Add realistic lighting, reflections, and shadows matching the urban environment. Crowds of people should be walking nearby, looking small in comparison, emphasizing the gigantic scale of the product. Camera angle wide, making the product look awe-inspiring. Ultra-detailed, photorealistic, 9:16 ratio. The image provided should be analyzed and used as a reference image.",
@@ -246,7 +243,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t29",
     label: "Upload product or brand asset",
-    category: "Luxury",
+    category: "Home & Décor",
     coverImage: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=400&q=80",
     bestFor: "Art Prints, Décor Brands, Wallpaper, Luxury Packaging Backgrounds",
     prompt: "Abstract fluid art — swirling acrylic pour painting in deep ocean colors: navy blue, teal, and gold metallic accents. Organic cell patterns, high contrast against a black base, gallery-quality art print, 4K detail. The image provided should be analyzed and used as a reference image to guide the color palette, mood, and environmental feel of the composition.",
@@ -254,7 +251,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t30",
     label: "Bauhaus style",
-    category: "General",
+    category: "Tech & Gadgets",
     coverImage: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&q=80",
     bestFor: "Design Brands, Tech Products, Posters, Event Marketing",
     prompt: "Abstract geometric composition — overlapping translucent shapes: circles, triangles, and lines — in a palette of coral, mint, gold, and white. Clean modern aesthetic, Bauhaus-inspired, poster quality. The image provided should be analyzed and used as a reference image to inform the visual style and environment of the composition.",
@@ -262,7 +259,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t31",
     label: "Upload brand mark or product",
-    category: "General",
+    category: "Tech & SaaS",
     coverImage: "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=400&q=80",
     bestFor: "Tech Brands, SaaS, Digital Products, Creative Agencies",
     prompt: "Generative art — thousands of tiny particles flowing in a magnetic field pattern, creating organic curves and density variations. Monochrome white on black, data-visualization aesthetic, minimal and hypnotic. The image provided should be analyzed and used as a reference image to shape the flow direction, density, and overall atmosphere.",
@@ -270,7 +267,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t32",
     label: "Bold primary colors",
-    category: "Luxury",
+    category: "Fashion",
     coverImage: "https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=400&q=80",
     bestFor: "Art Brands, Fashion Labels, Cultural Events, Premium Packaging",
     prompt: "Abstract expressionist painting — large gestural brushstrokes in bold primary colors: red, yellow, and blue — on raw white canvas. Visible paint texture and drips, energetic and spontaneous, de Kooning-inspired, museum quality. The image provided should be analyzed and used as a reference image to guide the emotional tone and compositional energy.",
@@ -278,7 +275,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t33",
     label: "Purple → pink → peach gradient",
-    category: "Beauty",
+    category: "General",
     coverImage: "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?w=400&q=80",
     bestFor: "Beauty Brands, SaaS, App Landing Pages, Digital Products",
     prompt: "Smooth gradient background — flowing transition from deep purple to soft pink to warm peach. Subtle aurora-like luminous waves, minimal and clean, suitable for a modern website hero background, ultra-smooth rendering. The image provided should be analyzed and used as a reference image to align the gradient direction and mood with the product or brand.",
@@ -286,7 +283,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t34",
     label: "Earthy terracotta/sand/rust texture",
-    category: "Luxury",
+    category: "Skincare",
     coverImage: "https://images.unsplash.com/photo-1542466500-dccb2789cbbb?w=400&q=80",
     bestFor: "Natural Skincare, Wellness, Artisan Food, Premium Apps",
     prompt: "Abstract noise texture background — soft organic grain pattern in warm earth tones: terracotta, sand, and rust. Subtle gradients, muted and calming, suitable as a premium app or packaging background, high resolution. The image provided should be analyzed and used as a reference image to align tone and texture with the product aesthetic.",
@@ -294,7 +291,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t35",
     label: "Purple/blue cosmic scene",
-    category: "Luxury",
+    category: "Fragrance",
     coverImage: "https://images.unsplash.com/photo-1600607686527-6fb886090705?w=400&q=80",
     bestFor: "Gaming, Tech, Fragrance, Luxury Brands, Creative Agencies",
     prompt: "Abstract cosmic nebula — vivid clouds of purple and blue gas illuminated from within by newborn stars, with tiny scattered star points. Space photography aesthetic but painterly, desktop wallpaper format 16:9. The image provided should be analyzed and used as a reference image to connect the nebula's color atmosphere with the product's visual identity.",
@@ -302,7 +299,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t36",
     label: "Upload product",
-    category: "General",
+    category: "Urban & Retail",
     coverImage: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=80",
     bestFor: "E-commerce, Amazon Listings, Retail, Any Product Category",
     prompt: "Place The Provided Product centered on a pure white background. Preserve the exact shape, proportions, branding, label text, and material finish. Apply soft studio lighting with a realistic shadow directly under the product. E-commerce packshot style, no props, no extra objects. The image provided should be analyzed and used as a reference image to faithfully reproduce the product's design.",
@@ -310,7 +307,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t37",
     label: "Upload product",
-    category: "General",
+    category: "Tech & Gadgets",
     coverImage: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=400&q=80",
     bestFor: "E-commerce, Tech Accessories, Cosmetics, Consumer Electronics",
     prompt: "Place The Provided Product in a clean studio setup with a light gray seamless background. Soft diffused lighting, subtle natural shadow, product fully visible, sharp edges, realistic reflections if the material is glossy. Premium e-commerce photography. The image provided should be analyzed and used as a reference image to accurately reproduce the product.",
@@ -318,7 +315,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t38",
     label: "Upload product",
-    category: "General",
+    category: "E-Commerce",
     coverImage: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&q=80",
     bestFor: "E-commerce, App Store Screenshots, Social Media Ads, Any Product",
     prompt: "Turn The Provided Product into a floating studio product image on a clean neutral background. Preserve exact product geometry, add a soft shadow below to ground it, keep all visible details realistic and accurate. The image provided should be analyzed and used as a reference image to replicate the product precisely.",
@@ -334,7 +331,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t40",
     label: "Upload product",
-    category: "FMCG",
+    category: "Universal",
     coverImage: "https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=400&q=80",
     bestFor: "Any Product Category, Lifestyle Brands, FMCG",
     prompt: "Place The Provided Product in its natural real-life environment, styled realistically. Preserve the exact product design, branding, and proportions. Use believable lighting and shadows to make the scene look like authentic commercial photography. The image provided should be analyzed and used as a reference image to match the product faithfully.",
@@ -342,7 +339,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t41",
     label: "Upload product",
-    category: "Home",
+    category: "Skincare",
     coverImage: "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?w=400&q=80",
     bestFor: "Home Décor, Furniture, Skincare, Tech Accessories",
     prompt: "Place The Provided Product in a modern minimal interior. Clean composition, neutral styling, realistic daylight, product remains the hero, no clutter, editorial e-commerce photography. The image provided should be analyzed and used as a reference image to preserve product design and inform the interior aesthetic.",
@@ -350,7 +347,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t42",
     label: "Upload product",
-    category: "Lifestyle",
+    category: "Outdoor & Sports",
     coverImage: "https://images.unsplash.com/photo-1542466500-dccb2789cbbb?w=400&q=80",
     bestFor: "Outdoor Gear, Sports, Food & Beverage, Health Supplements",
     prompt: "Place The Provided Product in an outdoor setting that matches its intended use. Natural light, realistic environment, accurate product texture and color, product clearly visible. Premium lifestyle product photography. The image provided should be analyzed and used as a reference image to match the product and guide the outdoor scene.",
@@ -358,7 +355,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t43",
     label: "Upload product",
-    category: "FMCG",
+    category: "Skincare",
     coverImage: "https://images.unsplash.com/photo-1600607686527-6fb886090705?w=400&q=80",
     bestFor: "Tech, Skincare, Food, Beverage, Mobile Apps, Small Consumer Products",
     prompt: "Show The Provided Product being interacted with by hands only — no full person visible. Realistic hand-product interaction, clean or contextual background, sharp focus on the product. Modern commercial photography. The image provided should be analyzed and used as a reference image to preserve exact product design.",
@@ -366,7 +363,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t44",
     label: "Upload product",
-    category: "Beauty",
+    category: "Skincare",
     coverImage: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=80",
     bestFor: "Tech Accessories, Stationery, Coffee, Skincare, Books",
     prompt: "Place The Provided Product in a realistic desk setup with complementary objects. Clean arrangement, soft window light, product as the clear focal point. Modern commercial photography. The image provided should be analyzed and used as a reference image to accurately reproduce the product.",
@@ -382,7 +379,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t46",
     label: "Upload product with packaging",
-    category: "Luxury",
+    category: "Food & Beverage",
     coverImage: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&q=80",
     bestFor: "Packaging, Cosmetics, Food, Luxury Boxes, Candles",
     prompt: "Show The Provided Product in both closed and open state in one clean composition. Preserve exact design, color, and proportions. Soft studio lighting, neutral background, e-commerce detail photography. The image provided should be analyzed and used as a reference image.",
@@ -390,7 +387,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t47",
     label: "Upload product",
-    category: "Luxury",
+    category: "Jewelry",
     coverImage: "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=400&q=80",
     bestFor: "Luxury Fashion, Leather Goods, Jewelry, Premium Skincare, Watches",
     prompt: "Create a close-up detail image of The Provided Product focused on its material texture, stitching, surface finish, or key feature. Soft directional lighting, shallow depth of field, premium quality feel. The image provided should be analyzed and used as a reference image to identify the key detail area.",
@@ -398,7 +395,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t48",
     label: "Upload product",
-    category: "FMCG",
+    category: "Skincare",
     coverImage: "https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=400&q=80",
     bestFor: "Skincare, Supplements, Mobile Accessories, Food & Beverage, Small Gadgets",
     prompt: "Show The Provided Product being held naturally in one hand to communicate scale. Realistic proportions, clean background, clear focus on the product, no distortion. E-commerce lifestyle photography. The image provided should be analyzed and used as a reference image to preserve exact product dimensions and design.",
@@ -414,7 +411,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t50",
     label: "Upload product",
-    category: "Luxury",
+    category: "Beauty",
     coverImage: "https://images.unsplash.com/photo-1542466500-dccb2789cbbb?w=400&q=80",
     bestFor: "Skincare, Nail Care, Jewelry, Luxury Beauty, Cosmetics",
     prompt: "Show elegant hands interacting with The Provided Product. No face visible, clean composition, soft studio lighting, sharp product focus. Premium beauty and skincare photography style. The image provided should be analyzed and used as a reference image.",
@@ -422,7 +419,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t51",
     label: "Upload product",
-    category: "Fashion",
+    category: "Beauty",
     coverImage: "https://images.unsplash.com/photo-1600607686527-6fb886090705?w=400&q=80",
     bestFor: "Beauty, Skincare, Food & Beverage, Fashion, Any Seasonal Campaign",
     prompt: "Place The Provided Product in a fresh spring-themed scene. Light, airy styling, soft natural light, clean composition, subtle seasonal details such as blossoms or pastel tones. Preserve the exact product shape, branding, and details. The image provided should be analyzed and used as a reference image.",
@@ -430,7 +427,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t52",
     label: "Upload product",
-    category: "Lifestyle",
+    category: "Fashion",
     coverImage: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=80",
     bestFor: "Beverages, Suncare, Fashion, Outdoor Products, FMCG",
     prompt: "Place The Provided Product in a bright summer setting. Warm natural light, fresh energetic atmosphere, clean composition, product clearly visible. Premium seasonal lifestyle photography. The image provided should be analyzed and used as a reference image.",
@@ -438,7 +435,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t53",
     label: "Upload product",
-    category: "Luxury",
+    category: "Luxury Fashion",
     coverImage: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=400&q=80",
     bestFor: "Skincare, Hot Beverages, Luxury Gifts, Winter Fashion",
     prompt: "Place The Provided Product in a crisp snowy winter setting. Bright, cold winter light, clean composition, subtle frost or snow atmosphere, preserve the exact product shape, branding, and details. The image provided should be analyzed and used as a reference image.",
@@ -446,7 +443,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t54",
     label: "Upload product",
-    category: "General",
+    category: "Urban & Retail",
     coverImage: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&q=80",
     bestFor: "Any Product Category, Retail Promotions, E-commerce Sales",
     prompt: "Place The Provided Product in a bold Black Friday themed campaign scene. Strong commercial composition, high-contrast dramatic lighting, modern promotional feel with dark tones and power colors. Preserve the exact product shape, branding, and details. The image provided should be analyzed and used as a reference image.",
@@ -454,7 +451,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t55",
     label: "Upload product",
-    category: "Luxury",
+    category: "Jewelry",
     coverImage: "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=400&q=80",
     bestFor: "Luxury Gifts, Beauty, Food & Beverage, Jewelry, Any Gifting Product",
     prompt: "Place The Provided Product in a festive gifting season scene. Elegant celebratory styling with warm golden tones, subtle holiday elements, clean composition, realistic lighting. Premium seasonal atmosphere. Preserve the exact product shape, branding, and details. The image provided should be analyzed and used as a reference image.",
@@ -462,7 +459,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t56",
     label: "Upload product",
-    category: "FMCG",
+    category: "CGI & Brand",
     coverImage: "https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=400&q=80",
     bestFor: "Brand Awareness, FMCG, Any Product, Large-Scale Campaigns",
     prompt: "Create a hyper-realistic CGI advertisement where The Provided Product is scaled up to a massive size, placed in the middle of a bustling modern city street. It should appear like a towering monument, blending seamlessly with skyscrapers, traffic, and pedestrians. Add realistic lighting, reflections, and shadows matching the urban environment. Crowds of people nearby should look small in comparison, emphasizing the gigantic scale. Wide camera angle, awe-inspiring composition, ultra-detailed, photorealistic, 9:16 ratio. The image provided should be analyzed and used as a reference image.",
@@ -470,7 +467,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t57",
     label: "Upload product",
-    category: "Luxury",
+    category: "Outdoor & Sports",
     coverImage: "https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?w=400&q=80",
     bestFor: "Brand Awareness, Adventure / Outdoor Brands, Premium Campaigns",
     prompt: "Generate a cinematic CGI ad where The Provided Product is shown at an enormous scale against a dramatic natural or landmark backdrop — towering beside snowy mountains, adjacent to a famous monument, or emerging from a vast desert landscape. Seamlessly integrated with proper textures, shadows, and atmospheric perspective such as mist, sunlight, and clouds. People, vehicles, or animals appear tiny nearby. Wide-angle composition, dramatic natural lighting, ultra-photorealistic, 9:16 ratio. The image provided should be analyzed and used as a reference image.",
@@ -478,7 +475,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t58",
     label: "Upload product",
-    category: "FMCG",
+    category: "Urban & Retail",
     coverImage: "https://images.unsplash.com/photo-1542466500-dccb2789cbbb?w=400&q=80",
     bestFor: "Retail Brands, FMCG, Urban Campaigns, Any Product",
     prompt: "Design a hyper-realistic CGI advertisement where The Provided Product appears at gigantic scale in a casual urban setting — spanning multiple traffic lanes, dominating a shopping district, or covering the rooftop of a moving car. Scale contrast is striking: cars, buses, and bicycles look tiny. Add environmental interaction: cast shadows, window reflections, and pedestrians reacting in awe. Cinematic composition, seamless realism, 9:16 ratio. The image provided should be analyzed and used as a reference image.",
@@ -486,7 +483,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t59",
     label: "Upload product",
-    category: "FMCG",
+    category: "Food & Beverage",
     coverImage: "https://images.unsplash.com/photo-1600607686527-6fb886090705?w=400&q=80",
     bestFor: "Festive Campaigns, FMCG, Food & Beverage, Cultural Brand Activations",
     prompt: "Create a hyper-realistic CGI advertisement where The Provided Product is scaled to gigantic proportions and placed in the middle of a vibrant festival scene — colorful decorations, glowing lights, flower garlands, festive crowds. Fireworks or colored powders in the air enhance the surreal celebratory vibe. People celebrating appear tiny beside it. Ultra-detailed, photorealistic, 9:16 ratio. The image provided should be analyzed and used as a reference image.",
@@ -494,7 +491,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t60",
     label: "Upload product",
-    category: "FMCG",
+    category: "Festive",
     coverImage: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=80",
     bestFor: "Urban Brands, FMCG, Cultural Campaigns, Street Marketing",
     prompt: "Design a cinematic CGI ad where The Provided Product is scaled to massive proportions and placed across multiple rooftops in a dense urban neighborhood. It dominates the skyline, stretching above satellite dishes, water tanks, and clotheslines. Pedestrians and vehicles below look tiny, reacting in awe. Add neon lights, traffic glow, and a hazy evening sky. Ultra-realistic, 9:16 ratio. The image provided should be analyzed and used as a reference image.",
@@ -502,7 +499,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t61",
     label: "Upload product",
-    category: "FMCG",
+    category: "Design & Events",
     coverImage: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=400&q=80",
     bestFor: "Bold Brand Campaigns, Launch Events, FMCG, Any Product",
     prompt: "Generate a hyper-realistic CGI ad where The Provided Product is scaled to massive size and loaded dramatically onto a flatbed truck or trailer, moving through a crowded city street. The product looks impossibly huge compared to surrounding cars and street vendors. Add shadows, reflections, and street-level chaos. People stop and stare in amazement. Side-view camera angle to capture both truck and product in full frame. Ultra-detailed, photorealistic, 9:16 ratio. The image provided should be analyzed and used as a reference image.",
@@ -510,7 +507,7 @@ export const SOCIAL_TEMPLATES = [
   {
     id: "t62",
     label: "Upload product",
-    category: "Luxury",
+    category: "General",
     coverImage: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&q=80",
     bestFor: "Surreal Brand Campaigns, Water/Nature Products, Premium Awareness Ads",
     prompt: "Create a surreal CGI advertisement where The Provided Product is enlarged to colossal size and placed floating in a river, lake, or beside the seashore. Boats, fishermen, or swimmers nearby look miniature in comparison. Add water reflections, ripples, and splashes to blend the product naturally into the environment. Cinematic atmosphere with morning mist or golden sunset lighting. Wide panoramic angle, epic composition, ultra-photorealistic, 9:16 ratio. The image provided should be analyzed and used as a reference image.",
@@ -635,43 +632,7 @@ export function SocialAdsForm({
   const canGenerate = !generating && !!refImage && !!selectedTemplate;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-      {/* ── Top info bar ─────────────────────────────────────────────────── */}
-      <div style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        background: 'var(--ma-elevated)', border: '1px solid var(--ma-border)',
-        borderRadius: 10, padding: '10px 16px'
-      }}>
-        <div>
-          <h2 style={{ fontSize: 14, fontWeight: 700, color: '#FFF', margin: 0 }}>Social Ads Generator</h2>
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', margin: '2px 0 0 0' }}>
-            Upload product → pick template → choose ratio → generate
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 6,
-            background: 'rgba(59,130,246,0.1)', color: '#3B82F6',
-            padding: '5px 10px', borderRadius: 6, fontSize: 10, fontWeight: 600
-          }}>
-            <FileSpreadsheet size={12} />
-            Excel templates pending
-          </div>
-          <button
-            onClick={openOutputFolder}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 5,
-              background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)',
-              color: 'rgba(255,255,255,0.6)', padding: '5px 10px', borderRadius: 6,
-              fontSize: 10, fontWeight: 600, cursor: 'pointer'
-            }}
-          >
-            <FolderOpen size={12} />
-            OutputSocialAds
-          </button>
-        </div>
-      </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
       {/* ── Main layout: upload + template gallery ───────────────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 16 }}>
@@ -785,69 +746,135 @@ export function SocialAdsForm({
         </div>
 
         {/* Right: Template Gallery */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 600 }}>
-            5 · Select Template
-          </label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
+            <div>
+              <h3 style={{ fontSize: 14, fontWeight: 600, color: '#FFF', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Sparkles size={14} color="var(--ma-accent)" />
+                5 · Select Template
+              </h3>
+              <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', margin: '3px 0 0 0' }}>
+                Click a style to use its prompt with your product image.
+              </p>
+            </div>
+          </div>
+
+          {/* Template grid — same layout as AI Fashion */}
           <div style={{
-            display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-            gap: 10, overflowY: 'auto', maxHeight: 360, paddingRight: 4
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))',
+            gap: 10,
+            overflowY: 'auto',
+            maxHeight: 520,
+            paddingRight: 4,
           }}>
             {SOCIAL_TEMPLATES.map(t => {
               const isSelected = selectedTemplate?.id === t.id;
+              const catColors: Record<string, string> = {
+                'Skincare': '#F472B6', 'Beauty': '#EC4899', 'Serums & Oils': '#DB2777',
+                'Haircare': '#A855F7', 'Spa & Wellness': '#8B5CF6', 'Fragrance': '#C084FC',
+                'Fashion': '#A78BFA', 'Luxury Fashion': '#7C3AED', 'Winter Fashion': '#6366F1',
+                'Textiles': '#818CF8', 'Jewelry': '#F59E0B', 'Footwear': '#F97316',
+                'Home & Décor': '#8B5CF6', 'Furniture': '#6D28D9',
+                'Food & Beverage': '#10B981', 'Food & Condiments': '#34D399', 'Fast Food': '#F97316',
+                'Beverage': '#14B8A6', 'Fitness & Supplements': '#22D3EE',
+                'Outdoor & Sports': '#06B6D4', 'Suncare': '#FBBF24',
+                'Tech & Gadgets': '#3B82F6', 'Tech & SaaS': '#2563EB', 'Gaming': '#EF4444',
+                'E-Commerce': '#6B7280', 'Packaging': '#9CA3AF',
+                'CGI & Brand': '#EF4444', 'Festive': '#F97316', 'Urban & Retail': '#64748B',
+                'Launch & Bold': '#DC2626', 'Art & Print': '#D946EF', 'Design & Events': '#C026D3',
+                'Universal': '#6B7280', 'General': '#6B7280', 'Baby Products': '#FDA4AF',
+              };
+              const catColor = catColors[t.category] ?? '#6B7280';
               return (
-                <div
+                <button
                   key={t.id}
                   onClick={() => setSelectedTemplate(t)}
                   style={{
-                    borderRadius: 10, overflow: 'hidden', cursor: 'pointer',
-                    border: `1.5px solid ${isSelected ? '#3B82F6' : 'rgba(255,255,255,0.06)'}`,
-                    background: isSelected ? 'rgba(59,130,246,0.06)' : 'rgba(255,255,255,0.02)',
-                    transition: 'all 0.15s', position: 'relative'
+                    background: 'var(--ma-elevated)',
+                    border: `1px solid ${isSelected ? '#3B82F6' : 'var(--ma-border)'}`,
+                    borderRadius: 12,
+                    padding: 0,
+                    cursor: 'pointer',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    textAlign: 'left',
+                    transition: 'all 0.2s',
+                    position: 'relative',
+                    boxShadow: isSelected ? '0 0 0 2px #3B82F6, 0 0 16px rgba(59,130,246,0.3)' : 'none',
                   }}
                 >
-                  <div style={{ width: '100%', height: 100, background: '#111' }}>
+                  {/* Thumbnail — tall card so users can clearly see the template */}
+                  <div style={{ width: '100%', height: 180, position: 'relative', background: '#000' }}>
                     <img
                       src={t.coverImage}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isSelected ? 1 : 0.65, transition: 'opacity 0.15s' }}
                       alt={t.label}
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
+                    {/* Gradient overlay with label */}
+                    <div style={{
+                      position: 'absolute', inset: 0,
+                      background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 50%)',
+                      display: 'flex', alignItems: 'flex-end', padding: 10
+                    }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: '#FFF', lineHeight: 1.3 }}>
+                        {t.label}
+                      </span>
+                    </div>
+
+                    {/* Selected check badge */}
+                    {isSelected && (
+                      <div style={{
+                        position: 'absolute', top: 6, right: 6,
+                        background: '#3B82F6', borderRadius: '50%',
+                        width: 20, height: 20,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 2px 8px rgba(59,130,246,0.7)',
+                      }}>
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      </div>
+                    )}
                   </div>
-                  <div style={{ padding: '8px 10px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-                      <span style={{ fontSize: 8, fontWeight: 700, color: isSelected ? '#3B82F6' : 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+
+                  {/* Meta row — category + "1-Click" (mirrors AI Fashion duration/1-click row) */}
+                  <div style={{
+                    padding: '7px 10px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    borderTop: '1px solid var(--ma-border)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span style={{
+                        width: 6, height: 6, borderRadius: '50%',
+                        background: catColor, display: 'inline-block', flexShrink: 0,
+                      }} />
+                      <span style={{ fontSize: 9, fontWeight: 600, color: catColor, textTransform: 'uppercase', letterSpacing: '0.4px' }}>
                         {t.category}
                       </span>
                     </div>
-                    <h4 style={{ margin: '3px 0 0', fontSize: 12, fontWeight: 700, color: '#FFF' }}>{t.label}</h4>
-                  </div>
-                  {isSelected && (
-                    <div style={{
-                      position: 'absolute', top: 6, right: 6,
-                      background: '#3B82F6', borderRadius: '50%',
-                      width: 18, height: 18, display: 'flex', alignItems: 'center', justifyContent: 'center'
-                    }}>
-                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 3, color: 'var(--ma-green, #10B981)' }}>
+                      <Sparkles size={9} />
+                      <span style={{ fontSize: 9, fontWeight: 600, textTransform: 'uppercase' }}>1-Click</span>
                     </div>
-                  )}
-                </div>
+                  </div>
+                </button>
               );
             })}
           </div>
 
-          {/* Selected template prompt preview */}
+          {/* Prompt preview — only when template selected */}
           {selectedTemplate && (
             <div style={{
               background: 'rgba(59,130,246,0.05)', border: '1px solid rgba(59,130,246,0.15)',
-              borderRadius: 8, padding: '10px 12px', marginTop: 4
+              borderRadius: 8, padding: '10px 12px',
             }}>
-              <div style={{ fontSize: 9, fontWeight: 700, color: '#3B82F6', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 4 }}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: '#3B82F6', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 5 }}>
                 Prompt Preview
               </div>
-              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.5 }}>
-                {selectedTemplate.prompt.replace('{{ASPECT_RATIO}}', selectedRatio)}
+              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.55 }}>
+                {selectedTemplate.prompt}
               </p>
             </div>
           )}
