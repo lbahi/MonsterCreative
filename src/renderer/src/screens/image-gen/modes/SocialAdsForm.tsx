@@ -25,6 +25,14 @@ export const SOCIAL_RATIOS = [
   { id: '16:9', label: '16 : 9', desc: 'YouTube / Banner',  icon: '▪' },
 ];
 
+/** Output resolution options — same as Nano Banana Generate tab */
+export const SOCIAL_RESOLUTIONS = [
+  { id: '0.5K', label: '0.5K', desc: 'Draft' },
+  { id: '1K',   label: '1K',   desc: 'Standard' },
+  { id: '2K',   label: '2K',   desc: 'High' },
+  { id: '4K',   label: '4K',   desc: 'Ultra' },
+];
+
 /**
  * PLACEHOLDER templates — will be replaced once the Excel file is provided.
  * Each template has a `prompt` that will be injected with the aspect ratio.
@@ -105,6 +113,7 @@ export function SocialAdsForm({
   const [dragging, setDragging] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
   const [selectedRatio, setSelectedRatio] = useState('1:1');
+  const [selectedResolution, setSelectedResolution] = useState('1K');
   const [progressMsg, setProgressMsg] = useState('');
   const [savedPath, setSavedPath] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -154,7 +163,7 @@ export function SocialAdsForm({
         model,
         prompt: finalPrompt,
         image_urls: [uploadedProduct],
-        resolution: '1K',
+        resolution: selectedResolution,
         aspect_ratio: selectedRatio,
         num_images: 1,
         output_format: 'jpeg',
@@ -298,9 +307,33 @@ export function SocialAdsForm({
             ))}
           </div>
 
+          {/* ── Resolution ── */}
+          <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 600 }}>
+            3 · Resolution
+          </label>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+            {SOCIAL_RESOLUTIONS.map(r => (
+              <button
+                key={r.id}
+                onClick={() => setSelectedResolution(r.id)}
+                style={{
+                  padding: '7px 6px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                  background: selectedResolution === r.id ? 'rgba(139,92,246,0.15)' : 'rgba(255,255,255,0.04)',
+                  outline: selectedResolution === r.id ? '1.5px solid #8B5CF6' : '1.5px solid rgba(255,255,255,0.06)',
+                  transition: 'all 0.15s'
+                }}
+              >
+                <div style={{ fontSize: 12, fontWeight: 700, color: selectedResolution === r.id ? '#8B5CF6' : 'rgba(255,255,255,0.7)' }}>
+                  {r.label}
+                </div>
+                <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.35)', marginTop: 2 }}>{r.desc}</div>
+              </button>
+            ))}
+          </div>
+
           {/* ── Model ── */}
           <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 600 }}>
-            3 · Model
+            4 · Model
           </label>
           <select
             value={model}
@@ -320,7 +353,7 @@ export function SocialAdsForm({
         {/* Right: Template Gallery */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 600 }}>
-            4 · Select Template
+            5 · Select Template
           </label>
           <div style={{
             display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
