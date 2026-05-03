@@ -84,7 +84,7 @@ export function TemplateGallery({ onSelectTemplate, disabled }: TemplateGalleryP
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 'auto' }}>
                 <h3 style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', margin: '0', textTransform: 'uppercase' }}>SOURCE INSPIRATION</h3>
                 <div style={{ width: '100%', height: 160, borderRadius: 8, overflow: 'hidden', background: '#f5f5f5', border: '1px solid #E5E7EB' }}>
-                  <img src="/OutputVideos/MonsterCreative-Gen-1776519653462.png_202604192303.jpeg" style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="Source Inspiration" />
+                  <img src="./OutputVideos/MonsterCreative-Gen-1776519653462.png_202604192303.jpeg" style={{ width: '100%', height: '100%', objectFit: 'contain' }} alt="Source Inspiration" />
                 </div>
               </div>
 

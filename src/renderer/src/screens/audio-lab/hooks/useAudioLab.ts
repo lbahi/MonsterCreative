@@ -44,7 +44,7 @@ export const useAudioLab = () => {
   const handlePreview = useCallback(async (voice: VoiceEntry) => {
     try {
       // 100% Free Local Preview (Method 1)
-      const audioUrl = `/OutputVoices/${voice.name}.mp4`;
+      const audioUrl = `./OutputVoices/${voice.name}.mp4`;
       const audio = new Audio(audioUrl);
       audio.volume = 0.8;
 
