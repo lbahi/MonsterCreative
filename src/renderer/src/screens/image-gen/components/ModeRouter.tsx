@@ -119,6 +119,7 @@ export function ModeRouter(props: ModeRouterProps) {
               setRefImage={setNbReferenceImage}
               resolution={nbResolution}
               model={nbModel}
+              setModel={setNbModel}
             />
           ) : activeMode === 'resize' ? (
             <>

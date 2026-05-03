@@ -41,6 +41,10 @@ const api = {
   utils: {
     downloadFile: (params: { url: string, filename: string }) => ipcRenderer.invoke('util:downloadFile', params),
   },
+  social: {
+    saveAdImage: (params: { imageUrl: string; filename: string }) => ipcRenderer.invoke('social:saveAdImage', params),
+    openOutputFolder: () => ipcRenderer.invoke('social:openOutputFolder'),
+  },
   audio: {
     generateSpeech: (params: any) => ipcRenderer.invoke('audio:generateSpeech', params),
     speechToSpeech: (params: any) => ipcRenderer.invoke('audio:speechToSpeech', params),

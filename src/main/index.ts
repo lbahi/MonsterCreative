@@ -135,6 +135,39 @@ app.whenReady().then(() => {
     await shell.openExternal(url)
   })
 
+  // IPC Handlers: Social Ads — save generated image to renderer public folder
+  ipcMain.handle('social:saveAdImage', async (_, { imageUrl, filename }: { imageUrl: string; filename: string }) => {
+    try {
+      // In production, save next to the renderer html; in dev, save to public folder
+      const rendererDir = is.dev
+        ? path.join(__dirname, '../../src/renderer/public/OutputSocialAds')
+        : path.join(__dirname, '../renderer/OutputSocialAds')
+
+      if (!fs.existsSync(rendererDir)) fs.mkdirSync(rendererDir, { recursive: true })
+
+      const safeName = filename.replace(/[^a-zA-Z0-9_\-\.]/g, '_')
+      const destPath = path.join(rendererDir, safeName)
+
+      const resp = await fetch(imageUrl)
+      if (!resp.ok) throw new Error(`Failed to fetch image: ${resp.status}`)
+      const buffer = Buffer.from(await resp.arrayBuffer())
+      fs.writeFileSync(destPath, buffer)
+
+      return { success: true, path: destPath, localUrl: `./OutputSocialAds/${safeName}` }
+    } catch (error: any) {
+      console.error('[social:saveAdImage]', error)
+      return { success: false, error: error.message }
+    }
+  })
+
+  ipcMain.handle('social:openOutputFolder', async () => {
+    const rendererDir = is.dev
+      ? path.join(__dirname, '../../src/renderer/public/OutputSocialAds')
+      : path.join(__dirname, '../renderer/OutputSocialAds')
+    if (!fs.existsSync(rendererDir)) fs.mkdirSync(rendererDir, { recursive: true })
+    await shell.openPath(rendererDir)
+  })
+
   ipcMain.handle('util:downloadFile', async (_, { url, filename }) => {
     const { dialog } = require('electron')
     const { writeFile } = require('fs/promises')
