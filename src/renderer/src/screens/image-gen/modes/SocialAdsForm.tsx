@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { Loader2, Sparkles, Upload, X, FolderOpen, Download, CheckCircle2 } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Loader2, Sparkles, Upload, X, FolderOpen, Download, CheckCircle2, Zap, Tag } from 'lucide-react';
 import { resolveImageInput } from '../utils/resolveImageInput';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -8,26 +8,33 @@ import { resolveImageInput } from '../utils/resolveImageInput';
 
 /** All models available on the Generate tab — reused here */
 export const SOCIAL_MODELS = [
-  { id: 'Nano Banana',     label: 'Nano Banana',     desc: 'Fast & affordable',       endpoint: 'fal-ai/ideogram/v3/edit' },
-  { id: 'Nano Banana 2',   label: 'Nano Banana 2',   desc: 'Smart multi-image edit',  endpoint: 'fal-ai/ideogram/v3/edit' },
+  { id: 'Nano Banana', label: 'Nano Banana', desc: 'Fast & affordable', endpoint: 'fal-ai/ideogram/v3/edit' },
+  { id: 'Nano Banana 2', label: 'Nano Banana 2', desc: 'Smart multi-image edit', endpoint: 'fal-ai/ideogram/v3/edit' },
   { id: 'Nano Banana Pro', label: 'Nano Banana Pro', desc: 'High-fidelity precision', endpoint: 'fal-ai/ideogram/v3/edit' },
-  { id: 'GPT Image 2',     label: 'GPT Image 2',     desc: 'OpenAI quality',          endpoint: 'fal-ai/ideogram/v3/edit' },
+  { id: 'GPT Image 2', label: 'GPT Image 2', desc: 'OpenAI quality', endpoint: 'fal-ai/ideogram/v3/edit' },
 ];
 
 /** Social media aspect ratios — value injected into the prompt */
 export const SOCIAL_RATIOS = [
-  { id: '1:1',  label: '1 : 1',  desc: 'Instagram Post',    icon: '▪' },
-  { id: '4:5',  label: '4 : 5',  desc: 'Meta Feed',         icon: '▪' },
-  { id: '9:16', label: '9 : 16', desc: 'Stories / TikTok',  icon: '▪' },
-  { id: '16:9', label: '16 : 9', desc: 'YouTube / Banner',  icon: '▪' },
+  { id: '1:1', label: '1 : 1', desc: 'Instagram Post', icon: '▪' },
+  { id: '4:5', label: '4 : 5', desc: 'Meta Feed', icon: '▪' },
+  { id: '9:16', label: '9 : 16', desc: 'Stories / TikTok', icon: '▪' },
+  { id: '16:9', label: '16 : 9', desc: 'YouTube / Banner', icon: '▪' },
 ];
 
 /** Output resolution options — same as Nano Banana Generate tab */
 export const SOCIAL_RESOLUTIONS = [
   { id: '0.5K', label: '0.5K', desc: 'Draft' },
-  { id: '1K',   label: '1K',   desc: 'Standard' },
-  { id: '2K',   label: '2K',   desc: 'High' },
-  { id: '4K',   label: '4K',   desc: 'Ultra' },
+  { id: '1K', label: '1K', desc: 'Standard' },
+  { id: '2K', label: '2K', desc: 'High' },
+  { id: '4K', label: '4K', desc: 'Ultra' },
+];
+
+/** Language options for ad text */
+export const SOCIAL_LANGUAGES = [
+  { id: 'english', label: 'English', flag: '🇬🇧', desc: 'English text' },
+  { id: 'arabic', label: 'العربية', flag: '🇸🇦', desc: 'Arabic text' },
+  { id: 'french', label: 'Français', flag: '🇫🇷', desc: 'French text' },
 ];
 
 /** 60 real templates loaded from Social-Ads/templates.xlsx */
@@ -42,19 +49,19 @@ export const SOCIAL_TEMPLATES = [
   },
   {
     id: "t2",
-    label: "Upload pendant light image",
+    label: "Upload interior product image",
     category: "Home & Décor",
     coverImage: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=80",
     bestFor: "Home Décor, Lighting, Interior Design",
-    prompt: "Use the uploaded pendant light as the exact hero product. Preserve its original layered stone-textured dome shape, warm beige mineral finish. The image provided should be analyzed and used as a reference image. 85mm portrait lens look, shallow depth of field (f/2.8), sharp focus on the pendant face, softly blurred background.",
+    prompt: "Use the uploaded product image as the exact hero product. Preserve its original texture and shape, warm beige mineral finish. The image provided should be analyzed and used as a reference image. 85mm portrait lens look, shallow depth of field (f/2.8), sharp focus on the pendant face, softly blurred background.",
   },
   {
     id: "t3",
-    label: "Upload pendant light image",
+    label: "Upload product image as reference",
     category: "Home & Décor",
     coverImage: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=400&q=80",
     bestFor: "Home Décor, Lighting, Luxury Interiors",
-    prompt: "Use the uploaded pendant light as the exact hero product. Create a luxurious classic European kitchen interior with ornate ceiling moldings, cream wall paneling, rich walnut cabinetry. The image provided should be analyzed and used as a reference image. 85mm portrait lens look, shallow depth of field (f/2.8), sharp focus on the pendant face, softly blurred background.",
+    prompt: "Use the uploaded product image as the exact hero product. Create a luxurious classic European interior with ornate ceiling moldings, cream wall paneling, rich walnut cabinetry. The image provided should be analyzed and used as a reference image. 85mm portrait lens look, shallow depth of field (f/2.8), sharp focus on the pendant face, softly blurred background.",
   },
   {
     id: "t4",
@@ -239,14 +246,6 @@ export const SOCIAL_TEMPLATES = [
     coverImage: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=80",
     bestFor: "Any Product, Brand Awareness Campaigns, FMCG",
     prompt: "Create a hyper-realistic CGI advertisement where the uploaded product is scaled up to a massive size, placed right in the middle of a bustling modern city street. The product should appear like a towering monument, blending seamlessly with skyscrapers, traffic, and pedestrians. Add realistic lighting, reflections, and shadows matching the urban environment. Crowds of people should be walking nearby, looking small in comparison, emphasizing the gigantic scale of the product. Camera angle wide, making the product look awe-inspiring. Ultra-detailed, photorealistic, 9:16 ratio. The image provided should be analyzed and used as a reference image.",
-  },
-  {
-    id: "t29",
-    label: "Upload product or brand asset",
-    category: "Home & Décor",
-    coverImage: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=400&q=80",
-    bestFor: "Art Prints, Décor Brands, Wallpaper, Luxury Packaging Backgrounds",
-    prompt: "Abstract fluid art — swirling acrylic pour painting in deep ocean colors: navy blue, teal, and gold metallic accents. Organic cell patterns, high contrast against a black base, gallery-quality art print, 4K detail. The image provided should be analyzed and used as a reference image to guide the color palette, mood, and environmental feel of the composition.",
   },
   {
     id: "t30",
@@ -543,8 +542,10 @@ export function SocialAdsForm({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null);
+  const [previewTemplate, setPreviewTemplate] = useState<Template | null>(null);
   const [selectedRatio, setSelectedRatio] = useState('1:1');
   const [selectedResolution, setSelectedResolution] = useState('1K');
+  const [selectedLanguage, setSelectedLanguage] = useState('english');
   const [progressMsg, setProgressMsg] = useState('');
   const [savedPath, setSavedPath] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -567,9 +568,10 @@ export function SocialAdsForm({
   const clearImage = (e: React.MouseEvent) => { e.stopPropagation(); setRefImage(null); setSavedPath(null); };
 
   // ── Generation ─────────────────────────────────────────────────────────────
-  const generateSocialAd = async () => {
+  const generateSocialAd = async (templateOverride?: Template) => {
     if (!refImage) { alert('Please upload a product image first.'); return; }
-    if (!selectedTemplate) { alert('Please select a template design first.'); return; }
+    const activeTemplate = templateOverride ?? selectedTemplate;
+    if (!activeTemplate) { alert('Please select a template design first.'); return; }
 
     setSavedPath(null);
     setSaveError(null);
@@ -584,8 +586,17 @@ export function SocialAdsForm({
       const uploadedProduct = await resolveImageInput(refImage, 'Product');
       if (!uploadedProduct) throw new Error('Product upload failed');
 
-      // 2. Inject aspect ratio into the prompt
-      const finalPrompt = selectedTemplate.prompt.replace('{{ASPECT_RATIO}}', selectedRatio);
+      // 2. Build the final prompt with poster directive + language instruction
+      const langLabel = SOCIAL_LANGUAGES.find(l => l.id === selectedLanguage);
+      const langDirective = selectedLanguage === 'english'
+        ? 'All text in the poster must be written in English.'
+        : selectedLanguage === 'arabic'
+          ? 'All text in the poster must be written in Arabic (عربي). Use Arabic script for every headline, tagline, and call-to-action.'
+          : 'All text in the poster must be written in French (Français). Use French for every headline, tagline, and call-to-action.';
+      const posterDirective = 'This is a poster design that should be engaging for social media, showing some of the best features of the product with high energy, bold visual impact, and eye-catching composition.';
+      const ratioDirective = `Aspect ratio: ${selectedRatio}. Resolution: ${selectedResolution}.`;
+      const basePrompt = activeTemplate.prompt.replace('{{ASPECT_RATIO}}', selectedRatio);
+      const finalPrompt = `${basePrompt} ${posterDirective} ${ratioDirective} ${langDirective}`;
 
       setProgressMsg(`Generating with ${model}...`);
 
@@ -608,7 +619,7 @@ export function SocialAdsForm({
 
       // 4. Save to OutputSocialAds folder
       setProgressMsg('Saving to OutputSocialAds...');
-      const filename = `SocialAd_${selectedTemplate.id}_${selectedRatio.replace(':', 'x')}_${Date.now()}.jpg`;
+      const filename = `SocialAd_${activeTemplate.id}_${selectedRatio.replace(':', 'x')}_${Date.now()}.jpg`;
       const saveResult = await (window as any).api.social.saveAdImage({ imageUrl, filename });
 
       if (saveResult.success) {
@@ -628,14 +639,196 @@ export function SocialAdsForm({
 
   const openOutputFolder = () => (window as any).api.social.openOutputFolder();
 
+  // ── Lightbox confirm → select + generate ────────────────────────────────
+  const handleLightboxGenerate = () => {
+    if (previewTemplate) {
+      setSelectedTemplate(previewTemplate);
+      const tpl = previewTemplate;
+      setPreviewTemplate(null);
+      generateSocialAd(tpl);
+    }
+  };
+
+  // Close lightbox on Escape key
+  useEffect(() => {
+    if (!previewTemplate) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setPreviewTemplate(null); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [previewTemplate]);
+
   // ── Render ─────────────────────────────────────────────────────────────────
   const canGenerate = !generating && !!refImage && !!selectedTemplate;
+
+  // Build live prompt preview helper
+  const buildPromptPreview = (t: Template) => {
+    const langText = selectedLanguage === 'english'
+      ? 'All text in the poster must be written in English.'
+      : selectedLanguage === 'arabic'
+        ? 'All text in the poster must be written in Arabic (عربي).'
+        : 'All text in the poster must be written in French (Français).';
+    return `${t.prompt} This is a poster design that should be engaging for social media, showing some of the best features of the product with high energy. Aspect ratio: ${selectedRatio}. Resolution: ${selectedResolution}. ${langText}`;
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
 
+      {/* ── Lightbox Modal ──────────────────────────────────────────────── */}
+      {previewTemplate && (
+        <div
+          onClick={() => setPreviewTemplate(null)}
+          style={{
+            position: 'fixed', inset: 0, zIndex: 9999,
+            background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: 40, animation: 'fadeIn 0.2s ease-out'
+          }}
+        >
+          {/* Close button */}
+          <button
+            onClick={() => setPreviewTemplate(null)}
+            style={{
+              position: 'absolute', top: 28, right: 28, zIndex: 10,
+              background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.25)',
+              color: '#FFF', width: 38, height: 38, borderRadius: '50%',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', transition: 'all 0.2s'
+            }}
+          >
+            <X size={18} />
+          </button>
+
+          {/* Card */}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#111318', borderRadius: 16,
+              width: '100%', maxWidth: 920, display: 'flex', overflow: 'hidden',
+              boxShadow: '0 24px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.08)',
+              animation: 'scaleIn 0.2s ease-out'
+            }}
+          >
+            {/* Left: Large Template Image */}
+            <div style={{
+              flex: '1.2', background: '#0A0A0A', minHeight: 500,
+              display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 12
+            }}>
+              <div style={{ width: '100%', height: '100%', borderRadius: 10, overflow: 'hidden', position: 'relative', background: '#000' }}>
+                <img
+                  src={`/OutputSocialAds/${previewTemplate.id}.png`}
+                  onError={(e) => { (e.target as HTMLImageElement).src = previewTemplate.coverImage; }}
+                  alt={previewTemplate.label}
+                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                />
+              </div>
+            </div>
+
+            {/* Right: Details Panel */}
+            <div style={{ flex: '1', padding: '28px 28px', display: 'flex', flexDirection: 'column', color: '#FFF' }}>
+              {/* Header */}
+              <div style={{ marginBottom: 16 }}>
+                <h2 style={{
+                  fontSize: 11, fontWeight: 800, color: '#3B82F6',
+                  margin: '0 0 6px 0', textTransform: 'uppercase', letterSpacing: '1px'
+                }}>
+                  Social Ad Template
+                </h2>
+                <h3 style={{ fontSize: 20, fontWeight: 700, color: '#FFF', margin: 0 }}>
+                  {previewTemplate.label}
+                </h3>
+              </div>
+
+              {/* Category + Best For */}
+              <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+                <span style={{
+                  fontSize: 10, fontWeight: 700, padding: '4px 10px', borderRadius: 6,
+                  background: 'rgba(59,130,246,0.15)', color: '#60A5FA',
+                  textTransform: 'uppercase', letterSpacing: '0.5px'
+                }}>
+                  {previewTemplate.category}
+                </span>
+              </div>
+
+              <div style={{
+                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                borderRadius: 10, padding: '12px 14px', marginBottom: 14
+              }}>
+                <div style={{ fontSize: 9, fontWeight: 700, color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 6 }}>
+                  <Tag size={9} style={{ display: 'inline', marginRight: 4, verticalAlign: 'middle' }} />
+                  Best For
+                </div>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.6)', margin: 0, lineHeight: 1.5 }}>
+                  {previewTemplate.bestFor}
+                </p>
+              </div>
+
+              {/* Prompt Preview */}
+              <div style={{
+                background: 'rgba(59,130,246,0.06)', border: '1px solid rgba(59,130,246,0.12)',
+                borderRadius: 10, padding: '12px 14px', marginBottom: 'auto',
+                maxHeight: 180, overflowY: 'auto'
+              }}>
+                <div style={{ fontSize: 9, fontWeight: 700, color: '#3B82F6', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 6 }}>
+                  Prompt Preview
+                </div>
+                <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.6 }}>
+                  {previewTemplate.prompt}
+                  {' '}
+                  <span style={{ color: '#F59E0B' }}>
+                    This is a poster design that should be engaging for social media, showing some of the best features of the product with high energy.
+                    {' '}Aspect ratio: {selectedRatio}. Resolution: {selectedResolution}.
+                    {' '}
+                    {selectedLanguage === 'english'
+                      ? 'All text in English.'
+                      : selectedLanguage === 'arabic'
+                        ? 'All text in Arabic (عربي).'
+                        : 'All text in French (Français).'}
+                  </span>
+                </p>
+              </div>
+
+              {/* Bottom: Meta + Generate */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 20 }}>
+                <div style={{ display: 'flex', gap: 16, alignItems: 'center', color: 'rgba(255,255,255,0.45)', fontSize: 11 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span>📐</span>
+                    <span>{selectedRatio}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span>🔤</span>
+                    <span style={{ textTransform: 'capitalize' }}>{selectedLanguage}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#10B981' }}>
+                    <Zap size={12} />
+                    <span>Instant Execute</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleLightboxGenerate}
+                  disabled={!refImage || generating}
+                  style={{
+                    width: '100%', padding: '14px', borderRadius: 10, border: 'none',
+                    background: refImage ? 'linear-gradient(135deg, #3B82F6, #2563EB)' : 'rgba(255,255,255,0.08)',
+                    color: refImage ? '#FFF' : 'rgba(255,255,255,0.3)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+                    fontSize: 14, fontWeight: 700,
+                    cursor: refImage ? 'pointer' : 'not-allowed',
+                    boxShadow: refImage ? '0 4px 20px rgba(59,130,246,0.35)' : 'none',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <Sparkles size={16} />
+                  {refImage ? 'Generate Image' : 'Upload product image first'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Main layout: upload + template gallery ───────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 16 }}>
 
         {/* Left: Product Upload */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -726,9 +919,33 @@ export function SocialAdsForm({
             ))}
           </div>
 
+          {/* ── Language ── */}
+          <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 600 }}>
+            4 · Ad Language
+          </label>
+          <div style={{ display: 'flex', gap: 6 }}>
+            {SOCIAL_LANGUAGES.map(l => (
+              <button
+                key={l.id}
+                onClick={() => setSelectedLanguage(l.id)}
+                style={{
+                  flex: 1, padding: '8px 6px', borderRadius: 8, border: 'none', cursor: 'pointer',
+                  background: selectedLanguage === l.id ? 'rgba(245,158,11,0.15)' : 'rgba(255,255,255,0.04)',
+                  outline: selectedLanguage === l.id ? '1.5px solid #F59E0B' : '1.5px solid rgba(255,255,255,0.06)',
+                  transition: 'all 0.15s', textAlign: 'center'
+                }}
+              >
+                <div style={{ fontSize: 16, lineHeight: 1 }}>{l.flag}</div>
+                <div style={{ fontSize: 10, fontWeight: 700, color: selectedLanguage === l.id ? '#F59E0B' : 'rgba(255,255,255,0.7)', marginTop: 3 }}>
+                  {l.label}
+                </div>
+              </button>
+            ))}
+          </div>
+
           {/* ── Model ── */}
           <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.8px', fontWeight: 600 }}>
-            4 · Model
+            5 · Model
           </label>
           <select
             value={model}
@@ -751,7 +968,7 @@ export function SocialAdsForm({
             <div>
               <h3 style={{ fontSize: 14, fontWeight: 600, color: '#FFF', margin: 0, display: 'flex', alignItems: 'center', gap: 8 }}>
                 <Sparkles size={14} color="var(--ma-accent)" />
-                5 · Select Template
+                6 · Select Template
               </h3>
               <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', margin: '3px 0 0 0' }}>
                 Click a style to use its prompt with your product image.
@@ -759,13 +976,13 @@ export function SocialAdsForm({
             </div>
           </div>
 
-          {/* Template grid — same layout as AI Fashion */}
+          {/* Template grid */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(155px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
             gap: 10,
             overflowY: 'auto',
-            maxHeight: 520,
+            maxHeight: 700,
             paddingRight: 4,
           }}>
             {SOCIAL_TEMPLATES.map(t => {
@@ -789,7 +1006,7 @@ export function SocialAdsForm({
               return (
                 <button
                   key={t.id}
-                  onClick={() => setSelectedTemplate(t)}
+                  onClick={() => setPreviewTemplate(t)}
                   style={{
                     background: 'var(--ma-elevated)',
                     border: `1px solid ${isSelected ? '#3B82F6' : 'var(--ma-border)'}`,
@@ -805,11 +1022,12 @@ export function SocialAdsForm({
                     boxShadow: isSelected ? '0 0 0 2px #3B82F6, 0 0 16px rgba(59,130,246,0.3)' : 'none',
                   }}
                 >
-                  {/* Thumbnail — tall card so users can clearly see the template */}
-                  <div style={{ width: '100%', height: 180, position: 'relative', background: '#000' }}>
+                  {/* Thumbnail — poster-proportioned card */}
+                  <div style={{ width: '100%', aspectRatio: '4 / 5', position: 'relative', background: '#000' }}>
                     <img
-                      src={t.coverImage}
+                      src={`/OutputSocialAds/${t.id}.png`}
                       alt={t.label}
+                      onError={(e) => { (e.target as HTMLImageElement).src = t.coverImage; }}
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
                     {/* Gradient overlay with label */}
@@ -875,6 +1093,17 @@ export function SocialAdsForm({
               </div>
               <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.5)', margin: 0, lineHeight: 1.55 }}>
                 {selectedTemplate.prompt}
+                {' '}
+                <span style={{ color: '#F59E0B' }}>
+                  This is a poster design that should be engaging for social media, showing some of the best features of the product with high energy.
+                  {' '}Aspect ratio: {selectedRatio}. Resolution: {selectedResolution}.
+                  {' '}
+                  {selectedLanguage === 'english'
+                    ? 'All text in the poster must be written in English.'
+                    : selectedLanguage === 'arabic'
+                      ? 'All text in the poster must be written in Arabic (عربي).'
+                      : 'All text in the poster must be written in French (Français).'}
+                </span>
               </p>
             </div>
           )}
@@ -948,7 +1177,11 @@ export function SocialAdsForm({
         )}
       </div>
 
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+      <style>{`
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+      `}</style>
     </div>
   );
 }
