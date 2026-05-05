@@ -59,7 +59,7 @@ export function ModeRouter(props: ModeRouterProps) {
       <ImageGenHeader />
       <ModeSelector modes={MODES} activeMode={activeMode} onSelect={handleModeChange} />
 
-      <div style={{ display: (activeMode === 'resize' || activeMode === 'social') ? 'block' : 'grid', gridTemplateColumns: activeMode === 'vton' ? '1fr 380px' : '1fr 320px', gap: 20, alignItems: 'start' }}>
+      <div style={{ display: (activeMode === 'resize' || activeMode === 'social' || activeMode === 'vton') ? 'block' : 'grid', gridTemplateColumns: '1fr 320px', gap: 20, alignItems: 'start' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {activeMode === 'generate' ? (
             <NanoBananaLayout
