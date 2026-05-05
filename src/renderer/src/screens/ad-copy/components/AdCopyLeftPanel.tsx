@@ -113,6 +113,31 @@ export function AdCopyLeftPanel(props: AdCopyLeftPanelProps) {
           </div>
         </div>
 
+        <div style={{ marginBottom: 32, textAlign: 'left' }}>
+          <label style={{ fontSize: 11, fontWeight: 600, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', marginBottom: 8, display: 'block' }}>Ad Copy Language</label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            {[
+              { id: 'arabic', label: 'العربية', flag: '🇦🇪' },
+              { id: 'english', label: 'English', flag: '🇺🇸' },
+              { id: 'french', label: 'Français', flag: '🇫🇷' }
+            ].map(l => (
+              <button 
+                key={l.id} 
+                onClick={() => props.setAdLanguage(l.id)} 
+                style={{ 
+                  flex: 1, padding: '12px 8px', borderRadius: 12, border: 'none', cursor: 'pointer', 
+                  background: props.adLanguage === l.id ? 'rgba(108, 99, 255, 0.15)' : 'rgba(255,255,255,0.04)', 
+                  outline: props.adLanguage === l.id ? '1.5px solid var(--ma-accent)' : '1.5px solid rgba(255,255,255,0.06)', 
+                  transition: 'all 0.15s', textAlign: 'center' 
+                }}
+              >
+                <div style={{ fontSize: 20, lineHeight: 1 }}>{l.flag}</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: props.adLanguage === l.id ? '#FFF' : 'rgba(255,255,255,0.7)', marginTop: 6 }}>{l.label}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <input type="file" accept="image/*" onChange={handleImageUpload} style={{ display: 'none' }} id="initial-upload" />
         <label 
           htmlFor="initial-upload" 

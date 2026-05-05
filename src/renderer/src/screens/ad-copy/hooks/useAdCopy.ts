@@ -13,6 +13,8 @@ export const useAdCopy = () => {
   const [modelDropdownOpen, setModelDropdownOpen] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
+  const [adLanguage, setAdLanguage] = useState('arabic');
+
   const compressImage = useCallback((file: File): Promise<string> => {
     return new Promise((resolve) => {
       const reader = new FileReader();
@@ -48,7 +50,7 @@ export const useAdCopy = () => {
       const dataUrl = await compressImage(file);
       setProductImageUrl(dataUrl);
 
-      const result: OneShotResult = await anthropicService.generatePlanFromImage(dataUrl, analysisModel);
+      const result: OneShotResult = await anthropicService.generatePlanFromImage(dataUrl, analysisModel, adLanguage);
       setAiAnalysis(result.analysis);
       setGeneratedVariants(result.variants);
       setShowResults(true);
@@ -57,7 +59,7 @@ export const useAdCopy = () => {
     } finally {
       setIsGenerating(false);
     }
-  }, [analysisModel, compressImage]);
+  }, [analysisModel, compressImage, adLanguage]);
 
   const handleStartOver = useCallback(() => {
     setShowResults(false);
@@ -76,6 +78,7 @@ export const useAdCopy = () => {
   return {
     isGenerating, setIsGenerating,
     analysisModel, setAnalysisModel,
+    adLanguage, setAdLanguage,
     productImageUrl, setProductImageUrl,
     aiAnalysis, setAiAnalysis,
     generatedVariants, setGeneratedVariants,

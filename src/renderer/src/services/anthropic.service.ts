@@ -86,8 +86,12 @@ export class AnthropicService {
    * ONE-SHOT: Analyzes the product image AND generates the full content plan
    * in a single API call. The AI self-determines: audience, price tier, platforms.
    */
-  async generatePlanFromImage(dataUrl: string, selectedModel: string = 'google/gemini-2.5-flash'): Promise<OneShotResult> {
-    const systemPrompt = `أنت MonsterCreative AI — خبير تسويق رقمي متخصص في السوق العربي والخليجي.
+  async generatePlanFromImage(dataUrl: string, selectedModel: string = 'google/gemini-2.5-flash', targetLanguage: string = 'arabic'): Promise<OneShotResult> {
+    const langInstruction = targetLanguage === 'arabic' ? 'باللغة العربية' : targetLanguage === 'french' ? 'en Français' : 'in English';
+
+    const systemPrompt = `أنت MonsterCreative AI — خبير تسويق رقمي.
+    
+CRITICAL INSTRUCTION: ALL generated text content MUST be strictly ${langInstruction}.
 
 مهمتك في هذا الطلب الواحد:
 1. حلّل صورة المنتج (المنتج، المادة، الفئة، المزايا البيعية).
@@ -108,26 +112,26 @@ export class AnthropicService {
 أخرج JSON واحد فقط بهذا الهيكل الدقيق (بدون أي نص قبله أو بعده، بدون markdown):
 {
   "analysis": {
-    "product": "اسم المنتج",
-    "material": "المادة",
-    "category": "الفئة",
-    "features": ["ميزة 1", "ميزة 2", "ميزة 3"],
-    "targetAudience": "الجمهور المستهدف المقترح مع مبرر",
-    "priceTier": "متوسط",
-    "recommendedPlatforms": ["فيسبوك", "إنستغرام"]
+    "product": "Product Name",
+    "material": "Material",
+    "category": "Category",
+    "features": ["Feature 1", "Feature 2", "Feature 3"],
+    "targetAudience": "Target Audience",
+    "priceTier": "Price Tier",
+    "recommendedPlatforms": ["Facebook", "Instagram"]
   },
   "variants": [
     {
       "variantType": "Pain-Killer",
-      "headline1": "العنوان الأول (40 حرف كحد أقصى)",
-      "headline2": "العنوان الثاني",
-      "headline3": "العنوان الثالث",
-      "hook": "الخطاف (سؤال، صدمة، فضول)",
-      "bodyCopy": "النص الإعلاني الكامل بأسلوب الاستجابة المباشرة",
-      "cta": "نداء الإجراء المحدد",
-      "triggersUsed": "المحفزات النفسية المستخدمة",
-      "landingPagePart": "موجز الصفحة التسويقية",
-      "videoScripts": "فكرة الفيديو والخطاف المرئي"
+      "headline1": "Headline 1",
+      "headline2": "Headline 2",
+      "headline3": "Headline 3",
+      "hook": "Hook",
+      "bodyCopy": "Full Ad Copy",
+      "cta": "Call to Action",
+      "triggersUsed": "Psychological Triggers",
+      "landingPagePart": "Landing Page Concept",
+      "videoScripts": "Video Script"
     },
     {
       "variantType": "Dream-State",
@@ -149,7 +153,7 @@ export class AnthropicService {
       {
         role: 'user',
         content: [
-          { type: 'text', text: 'حلّل هذا المنتج وأنشئ خطة التسويق الكاملة.' },
+          { type: 'text', text: `حلّل هذا المنتج وأنشئ خطة التسويق الكاملة. MUST BE WRITTEN IN ${targetLanguage.toUpperCase()}` },
           { type: 'image_url', image_url: { url: dataUrl } }
         ]
       }
