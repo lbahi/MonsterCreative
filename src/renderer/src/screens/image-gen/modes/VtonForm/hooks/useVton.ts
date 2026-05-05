@@ -1,8 +1,8 @@
 import { useState, useRef, useCallback } from 'react';
-import { falService } from '../../../../services/fal.service';
-import { anthropicService } from '../../../../services/anthropic.service';
-import { VIBES } from '../../constants';
-import { resolveImageInput } from '../../utils/resolveImageInput';
+import { falService } from '../../../../../services/fal.service';
+import { anthropicService } from '../../../../../services/anthropic.service';
+import { VIBES } from '../../../constants';
+import { resolveImageInput } from '../../../utils/resolveImageInput';
 import type { VtonFormProps, GarmentSlot, ModelTemplate } from '../types';
 import { MODEL_TEMPLATES } from '../data/model-templates';
 
