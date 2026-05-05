@@ -2,7 +2,7 @@ import { MODES } from '../constants';
 import { LandingForm } from '../modes/LandingForm';
 import { NanoBananaLayout } from '../modes/NanoBananaLayout';
 import { ResizeForm } from '../modes/ResizeForm';
-import { VtonForm } from '../modes/VtonForm';
+import { VtonForm } from '../modes/VtonForm/index';
 import { SocialAdsForm } from '../modes/SocialAdsForm/index';
 import { CommonSettings } from './CommonSettings';
 import { ImageGenHeader } from '../shared/ImageGenHeader';

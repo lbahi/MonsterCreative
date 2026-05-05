@@ -374,25 +374,43 @@ ${transcript}
 
   /**
    * Virtual Try-On (VTON) "AI Casting Director"
-   * Analyzes an uploaded garment image and a selected Vibe to generate
-   * the ideal model description and perfectly stylized scene variations.
+   * Analyzes uploaded garment images (ensemble) and generates scene variations.
+   * Accepts an explicit model type from the user to guarantee correct gender/age casting.
    */
   async generateVirtualTryOnIdeas(
-    garmentImageUrl: string,
+    garmentImageUrls: string | string[],
     vibeDescription: string,
     variationCount: number = 2,
-    modelId: string = 'google/gemini-3-flash-preview'
+    modelId: string = 'google/gemini-3.1-pro-preview',
+    modelType?: { label: string; gender: string; ageMin: number; ageMax: number; promptFragment: string }
   ): Promise<VtonIdeationResponse> {
-    const systemPrompt = `You are a fashion campaign director. Analyze the garment image and output JSON only.
+    const urls = Array.isArray(garmentImageUrls) ? garmentImageUrls : [garmentImageUrls];
+    const imageCount = urls.length;
+    const isEnsemble = imageCount > 1;
 
-GARMENT: ${garmentImageUrl}
+    const modelConstraint = modelType
+      ? `\n\nNON-NEGOTIABLE MODEL CASTING CONSTRAINT (from user selection):
+Gender: ${modelType.gender.toUpperCase()}
+Age Range: ${modelType.ageMin}–${modelType.ageMax} years old
+Base Description: ${modelType.promptFragment}
+You MUST use this exact gender and age range. Do NOT override. Enrich with hair, skin tone, and expression details only.`
+      : '';
+
+    const systemPrompt = `You are a fashion campaign director. Analyze the garment image(s) and output JSON only.
+
+${isEnsemble ? `ENSEMBLE MODE: You are receiving ${imageCount} garment images. These form a COMPLETE OUTFIT. Analyze ALL pieces together as one coordinated look.` : `SINGLE GARMENT MODE: Analyze the provided garment.`}
+
 VIBE: ${vibeDescription}
 SHOTS NEEDED: ${variationCount}
+${modelConstraint}
 
 STEP 1 — INTERNAL ANALYSIS (do not output):
-Size: Mini/small plastic hanger = CHILDREN's garment (age 2-10). NEVER cast an adult for children's clothing.
+${modelType
+  ? `The user has explicitly selected: ${modelType.label} (${modelType.gender}, age ${modelType.ageMin}-${modelType.ageMax}). Use this. Do NOT guess differently.`
+  : `Size: Mini/small plastic hanger = CHILDREN's garment (age 2-10). NEVER cast an adult for children's clothing.
 Gender: Ruffles/lace/bows/floral/pastels/dress = GIRL. Cargo/structured/dark/athletic = BOY.
-Small hanger + feminine cues = young GIRL (age 3-6). Non-negotiable.
+Small hanger + feminine cues = young GIRL (age 3-6). Non-negotiable.`}
+${isEnsemble ? `Understand how all ${imageCount} garment pieces work together as one outfit. The model wears ALL pieces simultaneously.` : ''}
 Cast model with exact age, gender, skin tone, specific hair style, expression.
 
 STEP 2 — GENERATE ${variationCount} SCENES:
@@ -401,31 +419,32 @@ All scenes set within the VIBE above. Each scene MUST use a DIFFERENT camera ang
 For ${variationCount} shots, pick ${variationCount} maximally different angles from the list above.
 
 Each scene: 1-2 sentences. Specify angle, pose/action, lighting, background, mood. NO garment description.
-CRITICAL INSTRUCTION: The generative model MUST be explicitly directed to REMOVE any paper price tags, hanger clips, cardboard packaging, or external brand labels visible in the source garment. Add "No paper tags or hangers" to the scene context.
+CRITICAL: The model must WEAR the complete outfit. Remove any paper price tags, hanger clips, or packaging from the source images. Add "No paper tags or hangers" to every scene.
 
 OUTPUT — strict JSON, compact, no markdown:
 {
-  "garment_category": "upper_body|lower_body|dresses",
+  "garment_category": "${isEnsemble ? 'full_outfit' : 'upper_body|lower_body|dresses'}",
   "modelPrompt": "A [age] year old [girl/boy/woman/man] with [hair]. [Skin tone]. [Expression/energy].",
   "sceneVariations": ["Scene 1: [angle] — [1-2 sentence direction]", "Scene 2: [different angle] — ..."]
 }
 
 Rules: modelPrompt FIRST. Exactly ${variationCount} scenes. JSON only. Be concise to fit within token budget.`;
 
-    const userMsg = `Garment image is provided.
+    const userMsg = `${isEnsemble ? `${imageCount} garment images are provided forming a complete outfit ensemble.` : 'Garment image is provided.'}
+${modelType ? `User-selected model type: ${modelType.label} (${modelType.gender}, age ${modelType.ageMin}-${modelType.ageMax}). DO NOT change gender or age.` : ''}
 Selected vibe: ${vibeDescription}
 Number of scene prompts required: ${variationCount}
 Output valid JSON only.`;
 
+    // Build multimodal content array with all images
+    const userContent: any[] = [{ type: 'text', text: userMsg }];
+    for (const url of urls) {
+      userContent.push({ type: 'image_url', image_url: { url } });
+    }
+
     const messages = [
       { role: 'system', content: systemPrompt },
-      { 
-        role: 'user', 
-        content: [
-          { type: 'text', text: userMsg },
-          { type: 'image_url', image_url: { url: garmentImageUrl } }
-        ] 
-      }
+      { role: 'user', content: userContent }
     ];
 
     const response = await window.api.fal.chatCompletion(messages, modelId);
