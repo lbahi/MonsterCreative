@@ -1,4 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
+import { useRef } from 'react';
+import { useSocialAds } from './SocialAdsForm/hooks/useSocialAds';
 import { Loader2, Sparkles, Upload, X, FolderOpen, Download, CheckCircle2, Zap, Tag } from 'lucide-react';
 import { resolveImageInput } from '../utils/resolveImageInput';
 
