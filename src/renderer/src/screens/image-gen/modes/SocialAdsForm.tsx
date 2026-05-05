@@ -3,23 +3,7 @@ import { Loader2, Sparkles, Upload, X, FolderOpen, Download, CheckCircle2, Zap, 
 import { resolveImageInput } from '../utils/resolveImageInput';
 
 import { SOCIAL_MODELS, SOCIAL_RATIOS, SOCIAL_RESOLUTIONS, SOCIAL_LANGUAGES, SOCIAL_TEMPLATES } from './SocialAdsForm/data/social-templates';
-// ──────────────────────────────────────────────────────────────────────────────
-// TYPES
-// ─────────────────────────────────────────────────────────────────────────────
-
-type Template = typeof SOCIAL_TEMPLATES[0];
-
-type SocialAdsFormProps = {
-  generating: boolean;
-  setGenerating: (val: boolean) => void;
-  setGeneratedImages: (images: string[]) => void;
-  setGenerated: (val: boolean) => void;
-  refImage: string | null;
-  setRefImage: (val: string | null) => void;
-  resolution: string;
-  model: string;
-  setModel: (val: string) => void;
-};
+import type { Template, SocialAdsFormProps } from './SocialAdsForm/types';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // COMPONENT
