@@ -14,8 +14,8 @@ export function VtonForm(props: VtonFormProps) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div style={{ background: 'var(--ma-elevated)', border: '1px solid var(--ma-border)', borderRadius: 12, padding: 20 }}>
 
-        {/* Row 1: Garment Upload + Model Type */}
-        <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 24, marginBottom: 24 }}>
+        {/* Row 1: Garment Upload + Model Type side by side */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 20 }}>
           <GarmentUploadGrid
             garmentSlots={vton.garmentSlots}
             draggingSlot={vton.draggingSlot}
@@ -28,18 +28,19 @@ export function VtonForm(props: VtonFormProps) {
             filledCount={vton.filledSlots.length}
           />
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-            <ModelTypeSelector
-              modelTemplates={vton.modelTemplates}
-              selectedModelType={vton.selectedModelType}
-              onSelect={vton.setSelectedModelType}
-            />
-
-            <VibeSelector vibe={vton.vibe} onSelect={vton.setVibe} />
-          </div>
+          <ModelTypeSelector
+            modelTemplates={vton.modelTemplates}
+            selectedModelType={vton.selectedModelType}
+            onSelect={vton.setSelectedModelType}
+          />
         </div>
 
-        {/* Row 2: Settings */}
+        {/* Row 2: Vibe Selector (full width) */}
+        <div style={{ marginBottom: 20 }}>
+          <VibeSelector vibe={vton.vibe} onSelect={vton.setVibe} />
+        </div>
+
+        {/* Row 3: Settings */}
         <VtonSettings
           model={props.model} setModel={props.setModel}
           numImages={props.numImages} setNumImages={props.setNumImages}
