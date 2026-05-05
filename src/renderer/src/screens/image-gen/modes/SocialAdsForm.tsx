@@ -248,14 +248,6 @@ export const SOCIAL_TEMPLATES = [
     prompt: "Create a hyper-realistic CGI advertisement where the uploaded product is scaled up to a massive size, placed right in the middle of a bustling modern city street. The product should appear like a towering monument, blending seamlessly with skyscrapers, traffic, and pedestrians. Add realistic lighting, reflections, and shadows matching the urban environment. Crowds of people should be walking nearby, looking small in comparison, emphasizing the gigantic scale of the product. Camera angle wide, making the product look awe-inspiring. Ultra-detailed, photorealistic, 9:16 ratio. The image provided should be analyzed and used as a reference image.",
   },
   {
-    id: "t30",
-    label: "Bauhaus style",
-    category: "Tech & Gadgets",
-    coverImage: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&q=80",
-    bestFor: "Design Brands, Tech Products, Posters, Event Marketing",
-    prompt: "Abstract geometric composition — overlapping translucent shapes: circles, triangles, and lines — in a palette of coral, mint, gold, and white. Clean modern aesthetic, Bauhaus-inspired, poster quality. The image provided should be analyzed and used as a reference image to inform the visual style and environment of the composition.",
-  },
-  {
     id: "t31",
     label: "Upload brand mark or product",
     category: "Tech & SaaS",
@@ -295,14 +287,7 @@ export const SOCIAL_TEMPLATES = [
     bestFor: "Gaming, Tech, Fragrance, Luxury Brands, Creative Agencies",
     prompt: "Abstract cosmic nebula — vivid clouds of purple and blue gas illuminated from within by newborn stars, with tiny scattered star points. Space photography aesthetic but painterly, desktop wallpaper format 16:9. The image provided should be analyzed and used as a reference image to connect the nebula's color atmosphere with the product's visual identity.",
   },
-  {
-    id: "t36",
-    label: "Upload product",
-    category: "Urban & Retail",
-    coverImage: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=80",
-    bestFor: "E-commerce, Amazon Listings, Retail, Any Product Category",
-    prompt: "Place The Provided Product centered on a pure white background. Preserve the exact shape, proportions, branding, label text, and material finish. Apply soft studio lighting with a realistic shadow directly under the product. E-commerce packshot style, no props, no extra objects. The image provided should be analyzed and used as a reference image to faithfully reproduce the product's design.",
-  },
+
   {
     id: "t37",
     label: "Upload product",
@@ -310,14 +295,6 @@ export const SOCIAL_TEMPLATES = [
     coverImage: "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?w=400&q=80",
     bestFor: "E-commerce, Tech Accessories, Cosmetics, Consumer Electronics",
     prompt: "Place The Provided Product in a clean studio setup with a light gray seamless background. Soft diffused lighting, subtle natural shadow, product fully visible, sharp edges, realistic reflections if the material is glossy. Premium e-commerce photography. The image provided should be analyzed and used as a reference image to accurately reproduce the product.",
-  },
-  {
-    id: "t38",
-    label: "Upload product",
-    category: "E-Commerce",
-    coverImage: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&q=80",
-    bestFor: "E-commerce, App Store Screenshots, Social Media Ads, Any Product",
-    prompt: "Turn The Provided Product into a floating studio product image on a clean neutral background. Preserve exact product geometry, add a soft shadow below to ground it, keep all visible details realistic and accurate. The image provided should be analyzed and used as a reference image to replicate the product precisely.",
   },
   {
     id: "t39",
@@ -382,14 +359,6 @@ export const SOCIAL_TEMPLATES = [
     coverImage: "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&q=80",
     bestFor: "Packaging, Cosmetics, Food, Luxury Boxes, Candles",
     prompt: "Show The Provided Product in both closed and open state in one clean composition. Preserve exact design, color, and proportions. Soft studio lighting, neutral background, e-commerce detail photography. The image provided should be analyzed and used as a reference image.",
-  },
-  {
-    id: "t47",
-    label: "Upload product",
-    category: "Jewelry",
-    coverImage: "https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=400&q=80",
-    bestFor: "Luxury Fashion, Leather Goods, Jewelry, Premium Skincare, Watches",
-    prompt: "Create a close-up detail image of The Provided Product focused on its material texture, stitching, surface finish, or key feature. Soft directional lighting, shallow depth of field, premium quality feel. The image provided should be analyzed and used as a reference image to identify the key detail area.",
   },
   {
     id: "t48",
@@ -461,7 +430,7 @@ export const SOCIAL_TEMPLATES = [
     category: "CGI & Brand",
     coverImage: "https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?w=400&q=80",
     bestFor: "Brand Awareness, FMCG, Any Product, Large-Scale Campaigns",
-    prompt: "Create a hyper-realistic CGI advertisement where The Provided Product is scaled up to a massive size, placed in the middle of a bustling modern city street. It should appear like a towering monument, blending seamlessly with skyscrapers, traffic, and pedestrians. Add realistic lighting, reflections, and shadows matching the urban environment. Crowds of people nearby should look small in comparison, emphasizing the gigantic scale. Wide camera angle, awe-inspiring composition, ultra-detailed, photorealistic, 9:16 ratio. The image provided should be analyzed and used as a reference image.",
+    prompt: "Create a hyper-realistic CGI advertisement where The Provided Product is scaled up to a massive size, placed in the middle of a bustling modern city street. It should appear like a towering monument, blending seamlessly with skyscrapers, traffic, and pedestrians. Add realistic lighting, reflections, and shadows matching the urban environment. Crowds of people nearby should look small in comparison, emphasizing the gigantic scale. Wide camera angle, awe-inspiring composition, ultra-detailed, photorealistic. The image provided should be analyzed and used as a reference image.",
   },
   {
     id: "t57",
@@ -485,16 +454,9 @@ export const SOCIAL_TEMPLATES = [
     category: "Food & Beverage",
     coverImage: "https://images.unsplash.com/photo-1600607686527-6fb886090705?w=400&q=80",
     bestFor: "Festive Campaigns, FMCG, Food & Beverage, Cultural Brand Activations",
-    prompt: "Create a hyper-realistic CGI advertisement where The Provided Product is scaled to gigantic proportions and placed in the middle of a vibrant festival scene — colorful decorations, glowing lights, flower garlands, festive crowds. Fireworks or colored powders in the air enhance the surreal celebratory vibe. People celebrating appear tiny beside it. Ultra-detailed, photorealistic, 9:16 ratio. The image provided should be analyzed and used as a reference image.",
+    prompt: "Create a hyper-realistic CGI advertisement where The Provided Product is scaled to gigantic proportions and placed in the middle of a vibrant festival scene — colorful decorations, glowing lights, flower garlands, festive crowds. Fireworks or colored powders in the air enhance the surreal celebratory vibe. People celebrating appear tiny beside it. Ultra-detailed, photorealistic. The image provided should be analyzed and used as a reference image.",
   },
-  {
-    id: "t60",
-    label: "Upload product",
-    category: "Festive",
-    coverImage: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=80",
-    bestFor: "Urban Brands, FMCG, Cultural Campaigns, Street Marketing",
-    prompt: "Design a cinematic CGI ad where The Provided Product is scaled to massive proportions and placed across multiple rooftops in a dense urban neighborhood. It dominates the skyline, stretching above satellite dishes, water tanks, and clotheslines. Pedestrians and vehicles below look tiny, reacting in awe. Add neon lights, traffic glow, and a hazy evening sky. Ultra-realistic, 9:16 ratio. The image provided should be analyzed and used as a reference image.",
-  },
+
   {
     id: "t61",
     label: "Upload product",
