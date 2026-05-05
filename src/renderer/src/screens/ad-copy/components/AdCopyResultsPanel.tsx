@@ -11,6 +11,7 @@ interface AdCopyResultsPanelProps {
   copyToClipboard: (text: string, idx: number) => void;
   handleStartOver: () => void;
   selectedModelLabel: string;
+  adLanguage: string;
 }
 
 export function AdCopyResultsPanel(props: AdCopyResultsPanelProps) {
@@ -22,10 +23,21 @@ export function AdCopyResultsPanel(props: AdCopyResultsPanelProps) {
     copiedIndex,
     copyToClipboard,
     handleStartOver,
-    selectedModelLabel
+    selectedModelLabel,
+    adLanguage
   } = props;
 
   if (!showResults || !aiAnalysis) return null;
+
+  const isRtl = adLanguage === 'arabic';
+
+  const renderString = (val: any): string => {
+    if (typeof val === 'string') return val;
+    if (typeof val === 'number' || typeof val === 'boolean') return String(val);
+    if (Array.isArray(val)) return val.join(', ');
+    if (val && typeof val === 'object') return Object.keys(val).join(', ');
+    return '';
+  };
 
   return (
     <div style={{ padding: '32px 36px', height: '100%', overflowY: 'auto' }}>
@@ -52,23 +64,33 @@ export function AdCopyResultsPanel(props: AdCopyResultsPanelProps) {
         <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 24 }}>
           <div>
             <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 1, display: 'block', marginBottom: 6 }}>Identified Product</span>
-            <div style={{ fontSize: 18, fontWeight: 600, color: '#FFF' }}>{aiAnalysis.product}</div>
-            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>{aiAnalysis.category} • {aiAnalysis.material}</div>
+            <div style={{ fontSize: 18, fontWeight: 600, color: '#FFF' }}>{renderString(aiAnalysis.product)}</div>
+            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginTop: 4 }}>{renderString(aiAnalysis.category)} • {renderString(aiAnalysis.material)}</div>
           </div>
           <div>
             <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 1, display: 'block', marginBottom: 6 }}><Users size={12} style={{ display: 'inline', marginRight: 4, verticalAlign: '-2px' }} /> Target Audience</span>
-            <div style={{ fontSize: 14, color: '#FFF', lineHeight: 1.5 }}>{aiAnalysis.targetAudience}</div>
+            <div style={{ fontSize: 14, color: '#FFF', lineHeight: 1.5 }}>{renderString(aiAnalysis.targetAudience)}</div>
           </div>
           <div>
             <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 1, display: 'block', marginBottom: 6 }}><DollarSign size={12} style={{ display: 'inline', marginRight: 4, verticalAlign: '-2px' }} /> Suggested Pricing Tier</span>
-            <div style={{ fontSize: 14, color: 'var(--ma-green)', fontWeight: 600 }}>{aiAnalysis.priceTier?.toUpperCase()}</div>
+            <div style={{ fontSize: 14, color: 'var(--ma-green)', fontWeight: 600 }}>{renderString(aiAnalysis.priceTier).toUpperCase()}</div>
           </div>
           <div>
             <span style={{ fontSize: 10, fontWeight: 700, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: 1, display: 'block', marginBottom: 6 }}><Share2 size={12} style={{ display: 'inline', marginRight: 4, verticalAlign: '-2px' }} /> Best Platforms</span>
             <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {aiAnalysis.recommendedPlatforms?.map((p, i) => (
-                 <span key={i} style={{ padding: '4px 10px', background: 'rgba(108,99,255,0.15)', color: 'var(--ma-accent)', borderRadius: 100, fontSize: 12, fontWeight: 500 }}>{p}</span>
-              ))}
+              {Array.isArray(aiAnalysis.recommendedPlatforms) 
+                ? aiAnalysis.recommendedPlatforms.map((p: any, i: number) => {
+                    const label = typeof p === 'object' ? Object.keys(p).join(', ') : String(p);
+                    return <span key={i} style={{ padding: '4px 10px', background: 'rgba(108,99,255,0.15)', color: 'var(--ma-accent)', borderRadius: 100, fontSize: 12, fontWeight: 500 }}>{label}</span>;
+                  })
+                : typeof aiAnalysis.recommendedPlatforms === 'string'
+                  ? <span style={{ padding: '4px 10px', background: 'rgba(108,99,255,0.15)', color: 'var(--ma-accent)', borderRadius: 100, fontSize: 12, fontWeight: 500 }}>{aiAnalysis.recommendedPlatforms}</span>
+                  : typeof aiAnalysis.recommendedPlatforms === 'object' && aiAnalysis.recommendedPlatforms !== null
+                    ? Object.keys(aiAnalysis.recommendedPlatforms).map((k, i) => (
+                        <span key={i} style={{ padding: '4px 10px', background: 'rgba(108,99,255,0.15)', color: 'var(--ma-accent)', borderRadius: 100, fontSize: 12, fontWeight: 500 }}>{k}</span>
+                      ))
+                    : null
+              }
             </div>
           </div>
         </div>
@@ -86,32 +108,32 @@ export function AdCopyResultsPanel(props: AdCopyResultsPanelProps) {
         {generatedVariants.map((variant, idx) => (
           <div key={idx} style={{ background: 'var(--ma-card)', border: '1px solid var(--ma-border)', borderRadius: 16, padding: 24, position: 'relative' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ma-accent)', textTransform: 'uppercase', letterSpacing: 1 }}>{variant.variantType} Angle</span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--ma-accent)', textTransform: 'uppercase', letterSpacing: 1 }}>{renderString(variant.variantType)} Angle</span>
               <button 
-                onClick={() => copyToClipboard(variant.bodyCopy, idx)} 
+                onClick={() => copyToClipboard(typeof variant.bodyCopy === 'string' ? variant.bodyCopy : JSON.stringify(variant.bodyCopy), idx)} 
                 style={{ background: 'transparent', border: 'none', color: copiedIndex === idx ? 'var(--ma-green)' : 'rgba(255,255,255,0.4)', cursor: 'pointer', transition: 'color 0.2s', display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600 }} 
                 title="Copy full text"
               >
                 {copiedIndex === idx ? <><CheckCircle2 size={16} /> Copied!</> : <><Copy size={16} /> Copy Copy</>}
               </button>
             </div>
-            <div style={{ direction: 'rtl', textAlign: 'right' }}>
-              <h3 style={{ fontSize: 18, fontWeight: 600, color: '#FFF', marginBottom: 12, lineHeight: 1.4 }}>{variant.headline1}</h3>
+            <div style={{ direction: isRtl ? 'rtl' : 'ltr', textAlign: isRtl ? 'right' : 'left' }}>
+              <h3 style={{ fontSize: 18, fontWeight: 600, color: '#FFF', marginBottom: 12, lineHeight: 1.4 }}>{renderString(variant.headline1)}</h3>
               <div style={{ fontSize: 13, color: 'var(--ma-yellow)', fontWeight: 600, marginBottom: 16, display: 'inline-block', background: 'rgba(250, 204, 21, 0.1)', padding: '4px 8px', borderRadius: 6 }}>
-                Hook: {variant.hook}
+                Hook: {renderString(variant.hook)}
               </div>
-              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', lineHeight: 1.6, marginBottom: 20, whiteSpace: 'pre-wrap' }}>{variant.bodyCopy}</p>
-              <div style={{ color: 'var(--ma-accent)', fontWeight: 700, fontSize: 14 }}>{variant.cta}</div>
+              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.8)', lineHeight: 1.6, marginBottom: 20, whiteSpace: 'pre-wrap' }}>{renderString(variant.bodyCopy)}</p>
+              <div style={{ color: 'var(--ma-accent)', fontWeight: 700, fontSize: 14 }}>{renderString(variant.cta)}</div>
             </div>
             
-            <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.05)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, direction: 'rtl', textAlign: 'right' }}>
+            <div style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid rgba(255,255,255,0.05)', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, direction: isRtl ? 'rtl' : 'ltr', textAlign: isRtl ? 'right' : 'left' }}>
               <div>
-                <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 600 }}>المحفز النفسي</span>
-                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 6, lineHeight: 1.4 }}>{variant.triggersUsed}</p>
+                <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 600 }}>{isRtl ? 'المحفز النفسي' : 'Psychological Trigger'}</span>
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 6, lineHeight: 1.4 }}>{renderString(variant.triggersUsed)}</p>
               </div>
               <div>
-                <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 600 }}>فكرة خطاف الفيديو</span>
-                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 6, lineHeight: 1.4 }}>{variant.videoScripts}</p>
+                <span style={{ fontSize: 10, color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 600 }}>{isRtl ? 'فكرة خطاف الفيديو' : 'Video Hook Script'}</span>
+                <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginTop: 6, lineHeight: 1.4 }}>{renderString(variant.videoScripts)}</p>
               </div>
             </div>
           </div>
