@@ -108,6 +108,8 @@ export function ModeRouter(props: ModeRouterProps) {
               setResolution={setNbResolution}
               refImage={nbReferenceImage}
               setRefImage={setNbReferenceImage}
+              aspectRatio={nbRatio}
+              setAspectRatio={setNbRatio}
             />
           ) : activeMode === 'social' ? (
             <SocialAdsForm

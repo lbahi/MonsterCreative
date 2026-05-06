@@ -42,6 +42,7 @@ export function VtonForm(props: VtonFormProps) {
           model={props.model} setModel={props.setModel}
           numImages={props.numImages} setNumImages={props.setNumImages}
           resolution={props.resolution} setResolution={props.setResolution}
+          aspectRatio={props.aspectRatio} setAspectRatio={props.setAspectRatio}
         />
       </div>
 

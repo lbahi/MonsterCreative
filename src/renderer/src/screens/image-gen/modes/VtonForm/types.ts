@@ -9,6 +9,8 @@ export type VtonFormProps = {
   setNumImages: (val: number) => void;
   resolution: string;
   setResolution: (val: string) => void;
+  aspectRatio: string;
+  setAspectRatio: (val: string) => void;
   refImage: string | null;
   setRefImage: (val: string | null) => void;
 };

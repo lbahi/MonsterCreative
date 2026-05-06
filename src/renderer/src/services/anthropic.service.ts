@@ -382,7 +382,8 @@ ${transcript}
     vibeDescription: string,
     variationCount: number = 2,
     modelId: string = 'google/gemini-3.1-pro-preview',
-    modelType?: { label: string; gender: string; ageMin: number; ageMax: number; promptFragment: string }
+    modelType?: { label: string; gender: string; ageMin: number; ageMax: number; promptFragment: string },
+    targetAspectRatio: string = '1:1'
   ): Promise<VtonIdeationResponse> {
     const urls = Array.isArray(garmentImageUrls) ? garmentImageUrls : [garmentImageUrls];
     const imageCount = urls.length;
@@ -402,6 +403,7 @@ ${isEnsemble ? `ENSEMBLE MODE: You are receiving ${imageCount} garment images. T
 
 VIBE: ${vibeDescription}
 SHOTS NEEDED: ${variationCount}
+TARGET RATIO: ${targetAspectRatio}
 ${modelConstraint}
 
 STEP 1 — INTERNAL ANALYSIS (do not output):
@@ -419,6 +421,7 @@ All scenes set within the VIBE above. Each scene MUST use a DIFFERENT camera ang
 For ${variationCount} shots, pick ${variationCount} maximally different angles from the list above.
 
 Each scene: 1-2 sentences. Specify angle, pose/action, lighting, background, mood. NO garment description.
+CRITICAL: Optimize the scene description for the ${targetAspectRatio} ratio (e.g. if 9:16, suggest vertical space; if 16:9, suggest wide horizontal space).
 CRITICAL: The model must WEAR the complete outfit. Remove any paper price tags, hanger clips, or packaging from the source images. Add "No paper tags or hangers" to every scene.
 
 OUTPUT — strict JSON, compact, no markdown:

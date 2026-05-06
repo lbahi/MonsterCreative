@@ -16,7 +16,7 @@ const INITIAL_SLOTS: GarmentSlot[] = [
 ];
 
 export const useVton = (props: VtonFormProps) => {
-  const { generating, setGenerating, setGeneratedImages, setGenerated, model, numImages, resolution } = props;
+  const { generating, setGenerating, setGeneratedImages, setGenerated, model, numImages, resolution, aspectRatio } = props;
 
   const [garmentSlots, setGarmentSlots] = useState<GarmentSlot[]>(INITIAL_SLOTS);
   const [selectedModelType, setSelectedModelType] = useState<ModelTemplate | null>(null);
@@ -101,7 +101,8 @@ export const useVton = (props: VtonFormProps) => {
         vibeDesc,
         numImages,
         'google/gemini-3.1-pro-preview',
-        selectedModelType
+        selectedModelType,
+        aspectRatio // Pass aspect ratio to AI
       );
 
       // 3. Generate Scenes via Nano Banana
@@ -116,7 +117,7 @@ export const useVton = (props: VtonFormProps) => {
           prompt,
           image_urls: uploadedUrls,
           resolution,
-          aspect_ratio: '4:5',
+          aspect_ratio: aspectRatio as any, // Use selected aspect ratio
           num_images: 1,
           output_format: 'jpeg',
         });
@@ -135,7 +136,7 @@ export const useVton = (props: VtonFormProps) => {
       setGenerating(false);
       setProgressMsg('');
     }
-  }, [hasMainGarment, selectedModelType, filledSlots, vibe, numImages, model, resolution, setGenerating, setGenerated, setGeneratedImages]);
+  }, [hasMainGarment, selectedModelType, filledSlots, vibe, numImages, model, resolution, aspectRatio, setGenerating, setGenerated, setGeneratedImages]);
 
   return {
     garmentSlots, setGarmentSlots,
