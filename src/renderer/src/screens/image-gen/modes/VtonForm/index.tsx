@@ -15,7 +15,7 @@ export function VtonForm(props: VtonFormProps) {
       <div style={{ background: 'var(--ma-elevated)', border: '1px solid var(--ma-border)', borderRadius: 12, padding: 20 }}>
 
         {/* All 3 Steps in one row */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr 1fr', gap: 24, marginBottom: 20 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '3fr 4fr 3fr', gap: 24, marginBottom: 20 }}>
           <GarmentUploadGrid
             garmentSlots={vton.garmentSlots}
             draggingSlot={vton.draggingSlot}

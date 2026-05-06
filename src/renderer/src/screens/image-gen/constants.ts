@@ -55,12 +55,12 @@ export const KONTEXT_RESIZE_PROMPT =
   'Extend the background to fill the new canvas naturally and seamlessly. Preserve colors, lighting, and overall style.';
 
 export const VIBES = [
-  { id: 'Studio', label: 'Studio Minimal', desc: 'Professional minimalist studio, white backdrop, high-key lighting', image: 'https://images.unsplash.com/photo-1600607686527-6fb886090705?w=400&q=80' },
-  { id: 'Urban', label: 'Urban Street', desc: 'City street scene, concrete textures, natural daylight', image: 'https://images.unsplash.com/photo-1542466500-dccb2789cbbb?w=400&q=80' },
-  { id: 'Nature', label: 'Lush Nature', desc: 'Golden hour in a lush park or beach setting, warm lighting', image: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=400&q=80' },
-  { id: 'Luxury', label: 'Luxury', desc: 'High-end penthouse, dramatic lighting, marble surfaces', image: 'https://images.unsplash.com/photo-1560185007-cde436f6a4d0?w=400&q=80' },
-  { id: 'Vintage', label: 'Vintage Retro', desc: '35mm film grain aesthetic, warm amber tones, soft focus', image: 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?w=400&q=80' },
-  { id: 'Candid', label: 'Candid Life', desc: 'Handheld smartphone style, realistic home setting', image: 'https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?w=400&q=80' },
+  { id: 'Studio', label: 'Studio Minimal', desc: 'Professional minimalist studio, white backdrop, high-key lighting', image: '/VtonVibes/studio.png' },
+  { id: 'Urban', label: 'Urban Street', desc: 'City street scene, concrete textures, natural daylight', image: '/VtonVibes/urban.png' },
+  { id: 'Nature', label: 'Lush Nature', desc: 'Golden hour in a lush park or beach setting, warm lighting', image: '/VtonVibes/nature.png' },
+  { id: 'Luxury', label: 'Luxury', desc: 'High-end penthouse, dramatic lighting, marble surfaces', image: '/VtonVibes/luxury.png' },
+  { id: 'Vintage', label: 'Vintage Retro', desc: '35mm film grain aesthetic, warm amber tones, soft focus', image: '/VtonVibes/vintage.png' },
+  { id: 'Candid', label: 'Candid Life', desc: 'Handheld smartphone style, realistic home setting', image: '/VtonVibes/candid.png' },
 ];
 export const MODEL_ENDPOINT_MAP: Record<string, string> = {
   'FLUX.1 Pro': 'fal-ai/flux-pro',
