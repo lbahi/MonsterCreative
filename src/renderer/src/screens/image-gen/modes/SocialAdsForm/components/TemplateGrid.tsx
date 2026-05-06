@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import { SOCIAL_TEMPLATES } from '../data/social-templates';
 import type { Template } from '../types';
@@ -17,6 +18,15 @@ export const TemplateGrid = ({
   selectedLanguage,
   onPreviewTemplate
 }: Props) => {
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('All');
+
+  const uniqueCategories = Array.from(new Set(SOCIAL_TEMPLATES.map(t => t.category))).sort();
+  const categories = ['All', ...uniqueCategories];
+
+  const filteredTemplates = selectedCategoryFilter === 'All' 
+    ? SOCIAL_TEMPLATES 
+    : SOCIAL_TEMPLATES.filter(t => t.category === selectedCategoryFilter);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -31,6 +41,29 @@ export const TemplateGrid = ({
         </div>
       </div>
 
+      <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, scrollbarWidth: 'none', WebkitOverflowScrolling: 'touch' }}>
+        {categories.map(cat => (
+          <button
+            key={cat}
+            onClick={() => setSelectedCategoryFilter(cat)}
+            style={{
+              padding: '6px 12px',
+              borderRadius: 20,
+              border: `1px solid ${selectedCategoryFilter === cat ? 'var(--ma-accent)' : 'var(--ma-border)'}`,
+              background: selectedCategoryFilter === cat ? 'rgba(108,99,255,0.1)' : 'rgba(255,255,255,0.02)',
+              color: selectedCategoryFilter === cat ? '#FFF' : 'rgba(255,255,255,0.6)',
+              fontSize: 11,
+              fontWeight: 600,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+              transition: 'all 0.2s'
+            }}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
@@ -39,7 +72,7 @@ export const TemplateGrid = ({
         maxHeight: 7000,
         paddingRight: 4,
       }}>
-        {SOCIAL_TEMPLATES.map(t => {
+        {filteredTemplates.map(t => {
           const isSelected = selectedTemplate?.id === t.id;
           const catColors: Record<string, string> = {
             'Skincare': '#F472B6', 'Beauty': '#EC4899', 'Serums & Oils': '#DB2777',

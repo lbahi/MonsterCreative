@@ -1,6 +1,5 @@
 /** All models available on the Generate tab — reused here */
 export const SOCIAL_MODELS = [
-  { id: 'Nano Banana 2', label: 'Nano Banana 2', desc: 'Smart multi-image edit', endpoint: 'fal-ai/ideogram/v3/edit' },
   { id: 'Nano Banana Pro', label: 'Nano Banana Pro', desc: 'High-fidelity precision', endpoint: 'fal-ai/ideogram/v3/edit' },
   { id: 'GPT Image 2', label: 'GPT Image 2', desc: 'OpenAI quality', endpoint: 'fal-ai/ideogram/v3/edit' },
 ];
@@ -60,14 +59,14 @@ export const SOCIAL_TEMPLATES = [
   },
   {
     id: "t5",
-    category: "Textiles",
+    category: "Fashion",
     coverImage: "/SocialAdsTemplates/t5.jpg",
     bestFor: "Textiles, Scarves, Luxury Fashion, Heritage Brands",
     prompt: "Luxury heritage textile campaign scene featuring the uploaded image as the hero product, elegantly draped from an open vintage wooden treasure chest placed at the center of the composition. The image provided should be analyzed and used as a reference image. 85mm portrait lens look, shallow depth of field (f/2.8), sharp focus on The Provided Product, softly blurred background.",
   },
   {
     id: "t6",
-    category: "Skincare",
+    category: "Food",
     coverImage: "/SocialAdsTemplates/t6.jpg",
     bestFor: "Organic Skincare, Agricultural Products, Outdoor Brands, Food",
     prompt: "Ultra-realistic commercial product photography of the uploaded product placed on slightly elevated loose soil in an open natural environment, with a wide clean sky occupying most of the background. The image provided should be analyzed and used as a reference image. 85mm portrait lens look, shallow depth of field (f/2.8), sharp focus on The Provided Product, softly blurred background.",
@@ -81,7 +80,7 @@ export const SOCIAL_TEMPLATES = [
   },
   {
     id: "t8",
-    category: "Serums",
+    category: "Beauty",
     coverImage: "/SocialAdsTemplates/t8.jpg",
     bestFor: "Skincare Serums, Dropper Bottles, Beauty Oils",
     prompt: "Ultra-premium skincare campaign photography, a replaceable amber glass dropper bottle held delicately between elegant feminine fingers, close-up beauty composition against a soft warm neutral studio background. The image provided should be analyzed and used as a reference image. 85mm portrait lens look, shallow depth of field (f/2.8), sharp focus on The Provided Product, softly blurred background.",
@@ -116,7 +115,7 @@ export const SOCIAL_TEMPLATES = [
   },
   {
     id: "t15",
-    category: "Skincare",
+    category: "Beauty",
     coverImage: "/SocialAdsTemplates/t15.jpg",
     bestFor: "Perfume, Luxury Skincare, Jewelry, Premium Bottles",
     prompt: "Place the uploaded product floating slightly above flowing deep red satin fabric. The product should be angled slightly, as if gracefully suspended in motion, with premium glass reflections and dramatic highlights. The image provided should be analyzed and used as a reference image. 85mm portrait lens look, shallow depth of field (f/2.8), sharp focus on The Provided Product, softly blurred background.",
@@ -151,7 +150,7 @@ export const SOCIAL_TEMPLATES = [
   },
   {
     id: "t20",
-    category: "Spa",
+    category: "Beauty",
     coverImage: "/SocialAdsTemplates/t20.jpg",
     bestFor: "Skincare, Spa Products, Natural Beauty, Essential Oils",
     prompt: "The water forms a natural stream running diagonally through the frame, with subtle wave patterns and light reflections. Small floating white chamomile/daisy flowers are scattered naturally across the water to create a calm botanical spa aesthetic. Top-down product photography, luxury cosmetic campaign look. The image provided should be analyzed and used as a reference image.",
@@ -165,14 +164,14 @@ export const SOCIAL_TEMPLATES = [
   },
   {
     id: "t22",
-    category: "Skincare",
+    category: "Beauty",
     coverImage: "/SocialAdsTemplates/t22.jpg",
     bestFor: "Facewash, Skincare, Cleansers",
     prompt: "A high-end skincare lifestyle shot featuring a single facewash tube (matching the product exactly in shape, design, and color) being held naturally in one hand. The hand is slightly wet, with visible water droplets and a soft, healthy glow on the skin, creating a fresh, just-washed feel. Rich, airy cleansing foam is spread across the hand and partially covering the tube. A few water droplets are seen dripping from the hand, adding movement and realism. The background is a soft light pink solid tone. Aspect ratio 4:5 (1080x1350), ultra-realistic, macro detail, commercial skincare photography with shallow depth of field and high texture clarity. The image provided should be analyzed and used as a reference image.",
   },
   {
     id: "t23",
-    category: "Skincare",
+    category: "Beauty",
     coverImage: "/SocialAdsTemplates/t23.jpg",
     bestFor: "Facewash, Skincare, K-Beauty Brands",
     prompt: "A high-end skincare beauty shot featuring a female model holding a facewash tube (matching the product exactly in shape, design, and color) close to her face in a confident, editorial pose. The model has smooth, radiant skin with a luminous dewy glow, minimal makeup. The background is a soft light pink solid tone. Soft, diffused, slightly directional lighting. Close-up portrait shot, shallow depth of field. Overall mood is fresh, radiant, and minimal luxury with a Korean skincare aesthetic. 4:5 aspect ratio (1080x1350), ultra-realistic. The image provided should be analyzed and used as a reference image.",
@@ -193,14 +192,14 @@ export const SOCIAL_TEMPLATES = [
   },
   {
     id: "t26",
-    category: "Haircare",
+    category: "Beauty",
     coverImage: "/SocialAdsTemplates/t26.jpg",
     bestFor: "Organic Skincare, Natural Beauty, Botanical Haircare",
     prompt: "Hyper-realistic luxury botanical skincare product advertisement featuring a premium matte cream cosmetic pump bottle with a wooden textured collar and minimalist elegant branding. The bottle is placed on stacked natural stone slabs, surrounded by lush green moss, delicate white wildflowers, small twigs, and organic forest elements. Background features a deep emerald green forest-inspired backdrop with hanging moss. Dramatic studio lighting from top and sides. Shallow depth of field, ultra-detailed textures, photorealistic rendering, cinematic composition. The image provided should be analyzed and used as a reference image.",
   },
   {
     id: "t27",
-    category: "Haircare",
+    category: "Beauty",
     coverImage: "/SocialAdsTemplates/t27.jpg",
     bestFor: "Hair Oil, Organic Haircare, Beauty Oils",
     prompt: "Hyper-realistic luxury organic hair oil product advertisement featuring a premium golden glass dropper bottle placed in the center foreground on a glossy reflective surface. Behind the bottle, flowing silky smooth brown hair strands create a dynamic wave background. Surrounding the product are natural organic ingredients including fresh coconut halves, black seeds, wheat grains, aloe vera slices, and herbal botanical elements. Floating golden oil droplets suspended in air around the bottle. Warm golden studio lighting. Professional commercial product photography, ultra-detailed, photorealistic rendering. The image provided should be analyzed and used as a reference image.",
@@ -228,21 +227,21 @@ export const SOCIAL_TEMPLATES = [
   },
   {
     id: "t33",
-    category: "General",
+    category: "Universal",
     coverImage: "/SocialAdsTemplates/t33.jpg",
     bestFor: "Beauty Brands, SaaS, App Landing Pages, Digital Products",
     prompt: "Smooth gradient background — flowing transition from deep purple to soft pink to warm peach. Subtle aurora-like luminous waves, minimal and clean, suitable for a modern website hero background, ultra-smooth rendering. The image provided should be analyzed and used as a reference image to align the gradient direction and mood with the product or brand.",
   },
   {
     id: "t34",
-    category: "Skincare",
+    category: "Universal",
     coverImage: "/SocialAdsTemplates/t34.jpg",
     bestFor: "Natural Skincare, Wellness, Artisan Food, Premium Apps",
     prompt: "Abstract noise texture background — soft organic grain pattern in warm earth tones: terracotta, sand, and rust. Subtle gradients, muted and calming, suitable as a premium app or packaging background, high resolution. The image provided should be analyzed and used as a reference image to align tone and texture with the product aesthetic.",
   },
   {
     id: "t35",
-    category: "Fragrance",
+    category: "Tech",
     coverImage: "/SocialAdsTemplates/t35.jpg",
     bestFor: "Gaming, Tech, Fragrance, Luxury Brands, Creative Agencies",
     prompt: "Abstract cosmic nebula — vivid clouds of purple and blue gas illuminated from within by newborn stars, with tiny scattered star points. Space photography aesthetic but painterly, desktop wallpaper format 16:9. The image provided should be analyzed and used as a reference image to connect the nebula's color atmosphere with the product's visual identity.",
@@ -271,7 +270,7 @@ export const SOCIAL_TEMPLATES = [
   },
   {
     id: "t41",
-    category: "Skincare",
+    category: "Home",
     coverImage: "/SocialAdsTemplates/t41.jpg",
     bestFor: "Home Décor, Furniture, Skincare, Tech Accessories",
     prompt: "Place The Provided Product in a modern minimal interior. Clean composition, neutral styling, realistic daylight, product remains the hero, no clutter, editorial e-commerce photography. The image provided should be analyzed and used as a reference image to preserve product design and inform the interior aesthetic.",
@@ -285,14 +284,14 @@ export const SOCIAL_TEMPLATES = [
   },
   {
     id: "t43",
-    category: "Skincare",
+    category: "Tech",
     coverImage: "/SocialAdsTemplates/t43.jpg",
     bestFor: "Tech, Skincare, Food, Beverage, Mobile Apps, Small Consumer Products",
     prompt: "Show The Provided Product being interacted with by hands only — no full person visible. Realistic hand-product interaction, clean or contextual background, sharp focus on the product. Modern commercial photography. The image provided should be analyzed and used as a reference image to preserve exact product design.",
   },
   {
     id: "t44",
-    category: "Skincare",
+    category: "Tech",
     coverImage: "/SocialAdsTemplates/t44.jpg",
     bestFor: "Tech Accessories, Stationery, Coffee, Skincare, Books",
     prompt: "Place The Provided Product in a realistic desk setup with complementary objects. Clean arrangement, soft window light, product as the clear focal point. Modern commercial photography. The image provided should be analyzed and used as a reference image to accurately reproduce the product.",
@@ -313,7 +312,7 @@ export const SOCIAL_TEMPLATES = [
   },
   {
     id: "t48",
-    category: "Skincare",
+    category: "Tech",
     coverImage: "/SocialAdsTemplates/t48.jpg",
     bestFor: "Skincare, Supplements, Mobile Accessories, Food & Beverage, Small Gadgets",
     prompt: "Show The Provided Product being held naturally in one hand to communicate scale. Realistic proportions, clean background, clear focus on the product, no distortion. E-commerce lifestyle photography. The image provided should be analyzed and used as a reference image to preserve exact product dimensions and design.",
@@ -348,21 +347,21 @@ export const SOCIAL_TEMPLATES = [
   },
   {
     id: "t53",
-    category: "Luxury",
+    category: "Fashion",
     coverImage: "/SocialAdsTemplates/t53.jpg",
     bestFor: "Skincare, Hot Beverages, Luxury Gifts, Winter Fashion",
     prompt: "Place The Provided Product in a crisp snowy winter setting. Bright, cold winter light, clean composition, subtle frost or snow atmosphere, preserve the exact product shape, branding, and details. The image provided should be analyzed and used as a reference image.",
   },
   {
     id: "t54",
-    category: "Urban",
+    category: "Universal",
     coverImage: "/SocialAdsTemplates/t54.jpg",
     bestFor: "Any Product Category, Retail Promotions, E-commerce Sales",
     prompt: "Place The Provided Product in a bold Black Friday themed campaign scene. Strong commercial composition, high-contrast dramatic lighting, modern promotional feel with dark tones and power colors. Preserve the exact product shape, branding, and details. The image provided should be analyzed and used as a reference image.",
   },
   {
     id: "t55",
-    category: "Jewelry",
+    category: "Universal",
     coverImage: "/SocialAdsTemplates/t55.jpg",
     bestFor: "Luxury Gifts, Beauty, Food & Beverage, Jewelry, Any Gifting Product",
     prompt: "Place The Provided Product in a festive gifting season scene. Elegant celebratory styling with warm golden tones, subtle holiday elements, clean composition, realistic lighting. Premium seasonal atmosphere. Preserve the exact product shape, branding, and details. The image provided should be analyzed and used as a reference image.",
@@ -376,14 +375,14 @@ export const SOCIAL_TEMPLATES = [
   },
   {
     id: "t57",
-    category: "Outdoor",
+    category: "CGI",
     coverImage: "/SocialAdsTemplates/t57.jpg",
     bestFor: "Brand Awareness, Adventure / Outdoor Brands, Premium Campaigns",
     prompt: "Generate a cinematic CGI ad where The Provided Product is shown at an enormous scale against a dramatic natural or landmark backdrop — towering beside snowy mountains, adjacent to a famous monument, or emerging from a vast desert landscape. Seamlessly integrated with proper textures, shadows, and atmospheric perspective such as mist, sunlight, and clouds. People, vehicles, or animals appear tiny nearby. Wide-angle composition, dramatic natural lighting, ultra-photorealistic, 9:16 ratio. The image provided should be analyzed and used as a reference image.",
   },
   {
     id: "t58",
-    category: "Urban",
+    category: "CGI",
     coverImage: "/SocialAdsTemplates/t58.jpg",
     bestFor: "Retail Brands, FMCG, Urban Campaigns, Any Product",
     prompt: "Design a hyper-realistic CGI advertisement where The Provided Product appears at gigantic scale in a casual urban setting — spanning multiple traffic lanes, dominating a shopping district, or covering the rooftop of a moving car. Scale contrast is striking: cars, buses, and bicycles look tiny. Add environmental interaction: cast shadows, window reflections, and pedestrians reacting in awe. Cinematic composition, seamless realism, 9:16 ratio. The image provided should be analyzed and used as a reference image.",
@@ -398,14 +397,14 @@ export const SOCIAL_TEMPLATES = [
 
   {
     id: "t61",
-    category: "Design",
+    category: "CGI",
     coverImage: "/SocialAdsTemplates/t61.jpg",
     bestFor: "Bold Brand Campaigns, Launch Events, FMCG, Any Product",
     prompt: "Generate a hyper-realistic CGI ad where The Provided Product is scaled to massive size and loaded dramatically onto a flatbed truck or trailer, moving through a crowded city street. The product looks impossibly huge compared to surrounding cars and street vendors. Add shadows, reflections, and street-level chaos. People stop and stare in amazement. Side-view camera angle to capture both truck and product in full frame. Ultra-detailed, photorealistic, 9:16 ratio. The image provided should be analyzed and used as a reference image.",
   },
   {
     id: "t62",
-    category: "General",
+    category: "CGI",
     coverImage: "/SocialAdsTemplates/t62.jpg",
     bestFor: "Surreal Brand Campaigns, Water/Nature Products, Premium Awareness Ads",
     prompt: "Create a surreal CGI advertisement where The Provided Product is enlarged to colossal size and placed floating in a river, lake, or beside the seashore. Boats, fishermen, or swimmers nearby look miniature in comparison. Add water reflections, ripples, and splashes to blend the product naturally into the environment. Cinematic atmosphere with morning mist or golden sunset lighting. Wide panoramic angle, epic composition, ultra-photorealistic, 9:16 ratio. The image provided should be analyzed and used as a reference image.",
