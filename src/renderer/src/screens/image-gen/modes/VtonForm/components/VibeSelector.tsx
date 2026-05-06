@@ -14,7 +14,7 @@ export function VibeSelector({ vibe, onSelect }: VibeSelectorProps) {
         3 · Select Casting Vibe
       </label>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
         {VIBES.map(item => (
           <div
             key={item.id}
@@ -24,7 +24,7 @@ export function VibeSelector({ vibe, onSelect }: VibeSelectorProps) {
               borderRadius: 8,
               overflow: 'hidden',
               cursor: 'pointer',
-              aspectRatio: '1/1',
+              aspectRatio: '3/4',
               border: `2px solid ${vibe === item.id ? 'var(--ma-accent)' : 'transparent'}`,
               transition: 'all 0.15s',
             }}
