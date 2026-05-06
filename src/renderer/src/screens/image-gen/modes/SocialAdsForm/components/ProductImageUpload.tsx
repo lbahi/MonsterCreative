@@ -43,7 +43,9 @@ export const ProductImageUpload = ({
         onClick={() => !productImageDataUrl && fileInputRef.current?.click()}
         style={{
           border: `2px dashed ${dragging ? 'var(--ma-accent)' : productImageDataUrl ? 'transparent' : 'rgba(255,255,255,0.12)'}`,
-          borderRadius: 10, flex: 1, minHeight: 200, display: 'flex',
+          borderRadius: 10,
+          aspectRatio: '3/4',
+          display: 'flex',
           flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           cursor: productImageDataUrl ? 'default' : 'pointer',
           background: productImageDataUrl ? '#000' : 'rgba(255,255,255,0.02)',

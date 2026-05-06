@@ -33,10 +33,10 @@ export const TemplateGrid = ({
 
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-        gap: 10,
+        gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))',
+        gap: 12,
         overflowY: 'auto',
-        maxHeight: 700,
+        maxHeight: 7000,
         paddingRight: 4,
       }}>
         {SOCIAL_TEMPLATES.map(t => {
@@ -79,19 +79,10 @@ export const TemplateGrid = ({
               <div style={{ width: '100%', aspectRatio: '4 / 5', position: 'relative', background: '#000' }}>
                 <img
                   src={`/OutputSocialAds/${t.id}.png`}
-                  alt={t.label}
+                  alt={`Template ${t.id}`}
                   onError={(e) => { (e.target as HTMLImageElement).src = t.coverImage; }}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
-                <div style={{
-                  position: 'absolute', inset: 0,
-                  background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 50%)',
-                  display: 'flex', alignItems: 'flex-end', padding: 10
-                }}>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: '#FFF', lineHeight: 1.3 }}>
-                    {t.label}
-                  </span>
-                </div>
 
                 {isSelected && (
                   <div style={{
