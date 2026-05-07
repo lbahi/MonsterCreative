@@ -55,12 +55,12 @@ export const KONTEXT_RESIZE_PROMPT =
   'Extend the background to fill the new canvas naturally and seamlessly. Preserve colors, lighting, and overall style.';
 
 export const VIBES = [
-  { id: 'Studio', label: 'Studio', desc: 'Professional minimalist studio, white backdrop, high-key lighting', image: '/VtonVibes/studio.png' },
-  { id: 'Urban', label: 'Urban', desc: 'City street scene, concrete textures, natural daylight', image: '/VtonVibes/urban.png' },
-  { id: 'Nature', label: 'Nature', desc: 'Golden hour in a lush park or beach setting, warm lighting', image: '/VtonVibes/nature.png' },
-  { id: 'Luxury', label: 'Luxury', desc: 'High-end penthouse, dramatic lighting, marble surfaces', image: '/VtonVibes/luxury.png' },
-  { id: 'Vintage', label: 'Vintage', desc: '35mm film grain aesthetic, warm amber tones, soft focus', image: '/VtonVibes/vintage.png' },
-  { id: 'Candid', label: 'Candid', desc: 'Handheld smartphone style, realistic home setting', image: '/VtonVibes/candid.png' },
+  { id: 'Studio', label: 'Studio', desc: 'Professional minimalist studio, white backdrop, high-key lighting', image: './VtonVibes/studio.png' },
+  { id: 'Urban', label: 'Urban', desc: 'City street scene, concrete textures, natural daylight', image: './VtonVibes/urban.png' },
+  { id: 'Nature', label: 'Nature', desc: 'Golden hour in a lush park or beach setting, warm lighting', image: './VtonVibes/nature.png' },
+  { id: 'Luxury', label: 'Luxury', desc: 'High-end penthouse, dramatic lighting, marble surfaces', image: './VtonVibes/luxury.png' },
+  { id: 'Vintage', label: 'Vintage', desc: '35mm film grain aesthetic, warm amber tones, soft focus', image: './VtonVibes/vintage.png' },
+  { id: 'Candid', label: 'Candid', desc: 'Handheld smartphone style, realistic home setting', image: './VtonVibes/candid.png' },
 ];
 export const MODEL_ENDPOINT_MAP: Record<string, string> = {
   'FLUX.1 Pro': 'fal-ai/flux-pro',

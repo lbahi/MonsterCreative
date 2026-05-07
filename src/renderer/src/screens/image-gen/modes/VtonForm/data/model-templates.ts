@@ -14,7 +14,7 @@ export const MODEL_TEMPLATES: ModelTemplate[] = [
     ageMin: 0,
     ageMax: 3,
     promptFragment: 'A 2 year old baby boy, chubby cheeks, soft expression, playful energy.',
-    thumbnail: '/VtonModels/baby_boy.png',
+    thumbnail: './VtonModels/baby_boy.png',
     color: '#3B82F6',
   },
   {
@@ -25,7 +25,7 @@ export const MODEL_TEMPLATES: ModelTemplate[] = [
     ageMin: 0,
     ageMax: 3,
     promptFragment: 'A 2 year old baby girl, soft features, curious bright eyes, gentle smile.',
-    thumbnail: '/VtonModels/baby_girl.png',
+    thumbnail: './VtonModels/baby_girl.png',
     color: '#EC4899',
   },
   {
@@ -36,7 +36,7 @@ export const MODEL_TEMPLATES: ModelTemplate[] = [
     ageMin: 4,
     ageMax: 12,
     promptFragment: 'An 8 year old boy, energetic posture, confident smile, short hair.',
-    thumbnail: '/VtonModels/boy.png',
+    thumbnail: './VtonModels/boy.png',
     color: '#6366F1',
   },
   {
@@ -47,7 +47,7 @@ export const MODEL_TEMPLATES: ModelTemplate[] = [
     ageMin: 4,
     ageMax: 12,
     promptFragment: 'A 7 year old girl, lively expression, natural hair, cheerful energy.',
-    thumbnail: '/VtonModels/girl.png',
+    thumbnail: './VtonModels/girl.png',
     color: '#F472B6',
   },
   {
@@ -58,7 +58,7 @@ export const MODEL_TEMPLATES: ModelTemplate[] = [
     ageMin: 13,
     ageMax: 17,
     promptFragment: 'A 15 year old teenage boy, casual confidence, modern hairstyle.',
-    thumbnail: '/VtonModels/teen_boy.png',
+    thumbnail: './VtonModels/teen_boy.png',
     color: '#8B5CF6',
   },
   {
@@ -69,7 +69,7 @@ export const MODEL_TEMPLATES: ModelTemplate[] = [
     ageMin: 13,
     ageMax: 17,
     promptFragment: 'A 15 year old teenage girl, trendy style, expressive eyes, natural look.',
-    thumbnail: '/VtonModels/teen_girl.png',
+    thumbnail: './VtonModels/teen_girl.png',
     color: '#F59E0B',
   },
   {
@@ -80,7 +80,7 @@ export const MODEL_TEMPLATES: ModelTemplate[] = [
     ageMin: 18,
     ageMax: 45,
     promptFragment: 'A 28 year old man, athletic build, well-groomed, confident expression.',
-    thumbnail: '/VtonModels/man.png',
+    thumbnail: './VtonModels/man.png',
     color: '#10B981',
   },
   {
@@ -91,7 +91,7 @@ export const MODEL_TEMPLATES: ModelTemplate[] = [
     ageMin: 18,
     ageMax: 45,
     promptFragment: 'A 25 year old woman, elegant posture, natural beauty, poised expression.',
-    thumbnail: '/VtonModels/woman.png',
+    thumbnail: './VtonModels/woman.png',
     color: '#EF4444',
   },
 ];

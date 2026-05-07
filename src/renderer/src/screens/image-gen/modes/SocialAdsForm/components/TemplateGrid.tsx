@@ -111,7 +111,7 @@ export const TemplateGrid = ({
             >
               <div style={{ width: '100%', aspectRatio: '4 / 5', position: 'relative', background: '#000' }}>
                 <img
-                  src={`/OutputSocialAds/${t.id}.png`}
+                  src={`./OutputSocialAds/${t.id}.png`}
                   alt={`Template ${t.id}`}
                   onError={(e) => { (e.target as HTMLImageElement).src = t.coverImage; }}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}

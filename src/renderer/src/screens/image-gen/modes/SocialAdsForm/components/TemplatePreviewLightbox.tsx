@@ -62,7 +62,7 @@ export const TemplatePreviewLightbox = ({
         }}>
           <div style={{ width: '100%', height: '100%', borderRadius: 10, overflow: 'hidden', position: 'relative', background: '#000' }}>
             <img
-              src={`/OutputSocialAds/${previewTemplate.id}.png`}
+              src={`./OutputSocialAds/${previewTemplate.id}.png`}
               onError={(e) => { (e.target as HTMLImageElement).src = previewTemplate.coverImage; }}
               alt={previewTemplate.category}
               style={{ width: '100%', height: '100%', objectFit: 'contain' }}
