@@ -5,8 +5,8 @@ import { resolveImageInput } from '../../../utils/resolveImageInput';
 
 export const useSocialAds = (props: SocialAdsFormProps) => {
   const {
-    generating, setGenerating, setGeneratedImages, setGenerated,
-    refImage, setRefImage, model, setModel
+    setGenerating, setGeneratedImages, setGenerated,
+    refImage, setRefImage, model
   } = props;
 
   const [dragging, setDragging] = useState(false);
@@ -52,7 +52,6 @@ export const useSocialAds = (props: SocialAdsFormProps) => {
       const uploadedProduct = await resolveImageInput(refImage, 'Product');
       if (!uploadedProduct) throw new Error('Product upload failed');
 
-      const langLabel = SOCIAL_LANGUAGES.find(l => l.id === selectedLanguage);
       const langDirective = selectedLanguage === 'english'
         ? 'All text in the poster must be written in English.'
         : selectedLanguage === 'arabic'

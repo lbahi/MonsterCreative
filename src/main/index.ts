@@ -1,5 +1,6 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
+import { autoUpdater } from 'electron-updater'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { dbService } from './database'
@@ -59,6 +60,20 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  autoUpdater.checkForUpdatesAndNotify()
+
+  autoUpdater.on('update-available', () => {
+    mainWindow.webContents.send('update:available')
+  })
+
+  autoUpdater.on('update-downloaded', () => {
+    mainWindow.webContents.send('update:downloaded')
+  })
+
+  ipcMain.handle('update:install', () => {
+    autoUpdater.quitAndInstall()
+  })
 }
 
 // Support for YouTube embeds and silencing dxcompiler.dll warnings

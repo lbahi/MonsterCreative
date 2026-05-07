@@ -16,7 +16,7 @@ const INITIAL_SLOTS: GarmentSlot[] = [
 ];
 
 export const useVton = (props: VtonFormProps) => {
-  const { generating, setGenerating, setGeneratedImages, setGenerated, model, numImages, resolution, aspectRatio } = props;
+  const { setGenerating, setGeneratedImages, setGenerated, model, numImages, resolution, aspectRatio } = props;
 
   const [garmentSlots, setGarmentSlots] = useState<GarmentSlot[]>(INITIAL_SLOTS);
   const [selectedModelType, setSelectedModelType] = useState<ModelTemplate | null>(null);

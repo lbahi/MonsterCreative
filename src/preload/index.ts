@@ -61,6 +61,11 @@ const api = {
     validateLicense: () => ipcRenderer.invoke('auth:validateLicense'),
     getStartupState: () => ipcRenderer.invoke('auth:getStartupState'),
     getLicenseStatus: () => ipcRenderer.invoke('auth:getLicenseStatus'),
+  },
+  update: {
+    onAvailable: (cb: any) => ipcRenderer.on('update:available', cb),
+    onDownloaded: (cb: any) => ipcRenderer.on('update:downloaded', cb),
+    install: () => ipcRenderer.invoke('update:install')
   }
 }
 

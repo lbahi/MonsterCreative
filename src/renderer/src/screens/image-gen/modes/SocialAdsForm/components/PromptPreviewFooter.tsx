@@ -43,7 +43,7 @@ export const PromptPreviewFooter = ({
         {generating ? (
           <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />{progressMsg || 'Generating...'}</>
         ) : (
-          <><Sparkles size={16} />Generate Social Ad {selectedTemplate ? `· ${selectedTemplate.label}` : ''} {selectedRatio}</>
+          <><Sparkles size={16} />Generate Social Ad {selectedTemplate ? `· ${selectedTemplate.category}` : ''} {selectedRatio}</>
         )}
       </button>
 

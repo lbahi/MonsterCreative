@@ -10,8 +10,19 @@ import { motion, AnimatePresence } from 'framer-motion';
 export function Shell() {
   const { onboardingComplete, licenseChecking } = useApp();
   const [showOnboarding, setShowOnboarding] = useState(!onboardingComplete);
+  const [updateAvailable, setUpdateAvailable] = useState(false);
   const { completeOnboarding } = useApp();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // @ts-ignore
+    if (window.api?.update) {
+      // @ts-ignore
+      window.api.update.onDownloaded(() => {
+        setUpdateAvailable(true);
+      });
+    }
+  }, []);
 
   // Sync showOnboarding when license check overrides onboardingComplete
   useEffect(() => {
@@ -54,20 +65,59 @@ export function Shell() {
   }
 
   return (
-    <div
-      style={{
-        width: '100vw',
-        height: '100vh',
-        background: 'var(--ma-bg)',
-        display: 'flex',
-        flexDirection: 'row',
-        overflow: 'hidden',
-        fontFamily: 'var(--font-body)',
-        color: 'var(--ma-text)',
-        minWidth: 800,
-      }}
-    >
-      <Sidebar />
+    <div style={{ width: '100vw', height: '100vh', display: 'flex', flexDirection: 'column' }}>
+      {updateAvailable && (
+        <div style={{
+          width: '100%',
+          height: 40,
+          background: 'var(--ma-accent)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 12,
+          color: '#FFF',
+          fontSize: 13,
+          fontWeight: 600,
+          zIndex: 100,
+          flexShrink: 0
+        }}>
+          ✨ Update available — 
+          <button 
+            // @ts-ignore
+            onClick={() => window.api.update.install()}
+            style={{ 
+              background: 'rgba(0,0,0,0.2)', 
+              border: 'none', 
+              padding: '4px 12px', 
+              borderRadius: 6, 
+              color: '#FFF', 
+              cursor: 'pointer',
+              fontWeight: 700
+            }}
+          >
+            Install & Restart
+          </button>
+          <button 
+            onClick={() => setUpdateAvailable(false)}
+            style={{ position: 'absolute', right: 24, background: 'none', border: 'none', color: '#FFF', cursor: 'pointer', fontSize: 16 }}
+          >
+            ×
+          </button>
+        </div>
+      )}
+      <div
+        style={{
+          flex: 1,
+          background: 'var(--ma-bg)',
+          display: 'flex',
+          flexDirection: 'row',
+          overflow: 'hidden',
+          fontFamily: 'var(--font-body)',
+          color: 'var(--ma-text)',
+          minWidth: 800,
+        }}
+      >
+        <Sidebar />
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
         {/* Top Header */}
@@ -143,6 +193,7 @@ export function Shell() {
           </motion.div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 }

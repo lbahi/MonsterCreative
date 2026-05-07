@@ -51,5 +51,20 @@ interface Window {
       playAudio: (filePath: string) => Promise<{ success: boolean }>;
       saveAudio: (filePath: string, destPath: string) => Promise<{ success: boolean }>;
     };
+    social: {
+      saveAdImage: (params: { imageUrl: string; filename: string }) => Promise<{ success: boolean; path?: string; localUrl?: string; error?: string }>;
+      openOutputFolder: () => Promise<void>;
+    };
+    auth: {
+      activateLicense: (key: string) => Promise<{ activated: boolean; error: string | null; license_key?: any; instance?: any; meta?: any }>;
+      validateLicense: () => Promise<{ valid: boolean; error: string | null }>;
+      getStartupState: () => Promise<{ licensed: boolean; error?: string }>;
+      getLicenseStatus: () => Promise<{ hasKey: boolean; key?: string; instanceId?: string }>;
+    };
+    update: {
+      onAvailable: (cb: any) => void;
+      onDownloaded: (cb: any) => void;
+      install: () => Promise<void>;
+    };
   }
 }
