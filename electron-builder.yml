@@ -11,6 +11,8 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
   - resources/**
+  - out/renderer/OutputVideos/**
+  - out/renderer/OutputVoices/**
 win:
   executableName: monster-creative
 nsis:
