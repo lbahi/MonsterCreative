@@ -69,14 +69,14 @@ export function Shell() {
       {updateAvailable && (
         <div style={{
           width: '100%',
-          height: 40,
+          height: 28,
           background: 'var(--ma-accent)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           gap: 12,
           color: '#FFF',
-          fontSize: 13,
+          fontSize: 11,
           fontWeight: 600,
           zIndex: 100,
           flexShrink: 0
@@ -88,18 +88,18 @@ export function Shell() {
             style={{ 
               background: 'rgba(0,0,0,0.2)', 
               border: 'none', 
-              padding: '4px 12px', 
-              borderRadius: 6, 
+              padding: '2px 8px', 
+              borderRadius: 4, 
               color: '#FFF', 
               cursor: 'pointer',
-              fontWeight: 700
+              fontWeight: 600
             }}
           >
             Install & Restart
           </button>
           <button 
             onClick={() => setUpdateAvailable(false)}
-            style={{ position: 'absolute', right: 24, background: 'none', border: 'none', color: '#FFF', cursor: 'pointer', fontSize: 16 }}
+            style={{ position: 'absolute', right: 16, background: 'none', border: 'none', color: '#FFF', cursor: 'pointer', fontSize: 14 }}
           >
             ×
           </button>

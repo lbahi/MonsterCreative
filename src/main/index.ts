@@ -61,7 +61,9 @@ function createWindow(): void {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
-  autoUpdater.checkForUpdatesAndNotify()
+  if (!is.dev) {
+    autoUpdater.checkForUpdatesAndNotify()
+  }
 
   autoUpdater.on('update-available', () => {
     mainWindow.webContents.send('update:available')

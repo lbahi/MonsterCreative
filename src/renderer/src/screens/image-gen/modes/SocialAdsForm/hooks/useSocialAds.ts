@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { SOCIAL_LANGUAGES } from '../data/social-templates';
+
 import type { Template, SocialAdsFormProps } from '../types';
 import { resolveImageInput } from '../../../utils/resolveImageInput';
 
