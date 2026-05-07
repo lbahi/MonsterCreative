@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Eye, EyeOff, Key, ChevronRight, Zap, Globe, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Key, ChevronRight, Zap, Globe, ArrowRight, Loader2, AlertCircle, Shield, CheckCircle2 } from 'lucide-react';
 import { useApp } from '../contexts/AppContext';
 
 interface OnboardingModalProps {
@@ -7,15 +7,26 @@ interface OnboardingModalProps {
 }
 
 const STEPS = [
+  { title: 'MonsterCreative License', description: 'Activate your license key to unlock the full suite.' },
   { title: 'fal.ai API Key', description: 'Powers Image & Video generation via the fal.ai platform.' },
 ];
 
 export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [phase, setPhase] = useState<'welcome' | 'wizard'>('welcome');
+  const [currentStep, setCurrentStep] = useState(0);
+
+  // License key state
+  const [licenseKey, setLicenseKey] = useState('');
+  const [licenseValidating, setLicenseValidating] = useState(false);
+  const [licenseError, setLicenseError] = useState<string | null>(null);
+  const [licenseActivated, setLicenseActivated] = useState(false);
+
+  // Fal key state
   const [falKey, setFalKey] = useState('');
   const [showFal, setShowFal] = useState(false);
-  const [validating, setValidating] = useState(false);
-  const [keyError, setKeyError] = useState<string | null>(null);
+  const [falValidating, setFalValidating] = useState(false);
+  const [falError, setFalError] = useState<string | null>(null);
+
   const [shake, setShake] = useState(false);
   const { refreshConnectionStatus, completeOnboarding } = useApp();
 
@@ -24,14 +35,39 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     setTimeout(() => setShake(false), 600);
   };
 
-  const handleLaunch = async () => {
-    if (!falKey.trim()) {
-      setKeyError('Please enter your fal.ai API key to continue.');
+  const handleActivateLicense = async () => {
+    if (!licenseKey.trim()) {
+      setLicenseError('Please enter your MonsterCreative license key.');
       triggerShake();
       return;
     }
-    setValidating(true);
-    setKeyError(null);
+    setLicenseValidating(true);
+    setLicenseError(null);
+    try {
+      const result = await window.api.auth.activateLicense(licenseKey.trim());
+      if (result.activated) {
+        setLicenseActivated(true);
+        setCurrentStep(1);
+      } else {
+        setLicenseError(result.error || 'License activation failed. Please check your key.');
+        triggerShake();
+      }
+    } catch {
+      setLicenseError('Network error. Please check your connection and try again.');
+      triggerShake();
+    } finally {
+      setLicenseValidating(false);
+    }
+  };
+
+  const handleLaunch = async () => {
+    if (!falKey.trim()) {
+      setFalError('Please enter your fal.ai API key to continue.');
+      triggerShake();
+      return;
+    }
+    setFalValidating(true);
+    setFalError(null);
     try {
       // Smoke test BEFORE saving to keystore
       const result = await window.api.fal.validateKey(falKey.trim());
@@ -43,14 +79,14 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
         completeOnboarding();
         onComplete();
       } else {
-        setKeyError(result.error || 'Invalid API key. Please check your fal.ai dashboard.');
+        setFalError(result.error || 'Invalid API key. Please check your fal.ai dashboard.');
         triggerShake();
       }
     } catch {
-      setKeyError('Network error. Please check your connection and try again.');
+      setFalError('Network error. Please check your connection and try again.');
       triggerShake();
     } finally {
-      setValidating(false);
+      setFalValidating(false);
     }
   };
 
@@ -81,15 +117,25 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 
       {phase === 'welcome' ? (
         <WelcomePhase onGetStarted={() => setPhase('wizard')} />
+      ) : currentStep === 0 ? (
+        <LicenseStep
+          licenseKey={licenseKey}
+          setLicenseKey={setLicenseKey}
+          validating={licenseValidating}
+          error={licenseError}
+          shake={shake}
+          onActivate={handleActivateLicense}
+        />
       ) : (
-        <WizardPhase
+        <FalKeyStep
           falKey={falKey}
           setFalKey={setFalKey}
           showFal={showFal}
           setShowFal={setShowFal}
-          validating={validating}
-          keyError={keyError}
+          validating={falValidating}
+          error={falError}
           shake={shake}
+          licenseActivated={licenseActivated}
           onNext={handleLaunch}
         />
       )}
@@ -102,7 +148,7 @@ function WelcomePhase({ onGetStarted }: { onGetStarted: () => void }) {
 
   return (
     <div style={{
-      width: 840, // Increased from 680
+      width: 840,
       background: 'var(--ma-elevated)',
       border: '1px solid var(--ma-border)',
       borderRadius: 16,
@@ -113,7 +159,7 @@ function WelcomePhase({ onGetStarted }: { onGetStarted: () => void }) {
       <div 
         style={{ 
           width: '100%', 
-          height: 472, // Increased from 382 to maintain 16:9
+          height: 472,
           background: '#000', 
           position: 'relative', 
           overflow: 'hidden',
@@ -218,17 +264,164 @@ function WelcomePhase({ onGetStarted }: { onGetStarted: () => void }) {
   );
 }
 
-function WizardPhase({ falKey, setFalKey, showFal, setShowFal, validating, keyError, shake, onNext }: any) {
+function LicenseStep({ licenseKey, setLicenseKey, validating, error, shake, onActivate }: any) {
+  const [showKey, setShowKey] = useState(false);
+
   return (
     <div
       className={shake ? 'shake' : ''}
       style={{
         width: 560,
         background: 'var(--ma-elevated)',
-        border: `1px solid ${keyError ? 'rgba(239,68,68,0.4)' : 'var(--ma-border)'}`,
+        border: `1px solid ${error ? 'rgba(239,68,68,0.4)' : 'var(--ma-border)'}`,
         borderRadius: 16,
         overflow: 'hidden',
-        boxShadow: keyError
+        boxShadow: error
+          ? '0 40px 120px rgba(7,7,15,0.8), 0 0 40px rgba(239,68,68,0.15)'
+          : '0 40px 120px rgba(7,7,15,0.8), 0 0 60px rgba(108,99,255,0.1)',
+        transition: 'border-color 0.3s, box-shadow 0.3s',
+      }}
+    >
+      {/* Header */}
+      <div style={{ padding: '24px 32px', borderBottom: '1px solid var(--ma-border)', display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div style={{
+          width: 36, height: 36, borderRadius: 10,
+          background: 'linear-gradient(135deg, var(--ma-accent), #9B8FFF)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 0 16px var(--ma-accent-glow)',
+        }}>
+          <Shield size={16} color="white" />
+        </div>
+        <div style={{ flex: 1 }}>
+          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: '#FFF', margin: 0 }}>
+            {STEPS[0].title}
+          </h2>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', margin: 0 }}>{STEPS[0].description}</p>
+        </div>
+        {/* Step indicator */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--ma-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'white' }}>1</div>
+          <div style={{ width: 16, height: 1, background: 'var(--ma-border)' }} />
+          <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 600, color: 'rgba(255,255,255,0.3)' }}>2</div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div style={{ padding: '32px' }}>
+        <div>
+          <label style={{ display: 'block', fontSize: 13, fontWeight: 500, color: 'rgba(255,255,255,0.7)', marginBottom: 8 }}>
+            License Key
+          </label>
+          <div style={{ position: 'relative' }}>
+            <input
+              type={showKey ? 'text' : 'password'}
+              value={licenseKey}
+              onChange={e => setLicenseKey(e.target.value)}
+              placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+              style={{
+                width: '100%', padding: '12px 48px 12px 16px',
+                background: error ? 'rgba(239,68,68,0.05)' : 'rgba(255,255,255,0.04)',
+                border: `1px solid ${error ? 'rgba(239,68,68,0.4)' : 'var(--ma-border)'}`,
+                borderRadius: 10, color: '#FFFFFF',
+                fontSize: 13, outline: 'none',
+                fontFamily: 'var(--font-mono)',
+                boxSizing: 'border-box',
+                transition: 'border-color 0.2s',
+              }}
+              onFocus={e => (e.target.style.borderColor = error ? 'rgba(239,68,68,0.6)' : 'var(--ma-accent)')}
+              onBlur={e => (e.target.style.borderColor = error ? 'rgba(239,68,68,0.4)' : 'var(--ma-border)')}
+              onKeyDown={e => e.key === 'Enter' && onActivate()}
+            />
+            <button
+              onClick={() => setShowKey(!showKey)}
+              style={{
+                position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)',
+                background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(255,255,255,0.3)',
+                display: 'flex', alignItems: 'center',
+              }}
+            >
+              {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </div>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <Globe size={11} />
+            <span>
+              Enter the license key from your purchase confirmation email
+            </span>
+          </p>
+        </div>
+
+        {/* Error message */}
+        {error && (
+          <div style={{
+            marginTop: 12, padding: '10px 14px',
+            background: 'rgba(239,68,68,0.1)',
+            border: '1px solid rgba(239,68,68,0.25)',
+            borderRadius: 8,
+            display: 'flex', alignItems: 'flex-start', gap: 8,
+          }}>
+            <AlertCircle size={14} style={{ color: '#EF4444', flexShrink: 0, marginTop: 1 }} />
+            <p style={{ fontSize: 12, color: '#EF4444', margin: 0, lineHeight: 1.5 }}>{error}</p>
+          </div>
+        )}
+
+        <div style={{
+          marginTop: 20, padding: 16, borderRadius: 10,
+          background: 'rgba(108,99,255,0.08)',
+          border: '1px solid rgba(108,99,255,0.15)',
+        }}>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, margin: 0 }}>
+            🔒 Your license is validated securely with Lemon Squeezy and stored locally in your OS keychain. It is never shared with third parties.
+          </p>
+        </div>
+
+        {/* Actions */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 28 }}>
+          <button
+            onClick={onActivate}
+            disabled={validating}
+            style={{
+              display: 'flex', alignItems: 'center', gap: 8,
+              padding: '10px 28px',
+              background: validating ? 'rgba(108,99,255,0.5)' : 'var(--ma-accent)',
+              color: 'white', border: 'none', borderRadius: 8,
+              cursor: validating ? 'not-allowed' : 'pointer',
+              fontSize: 13, fontWeight: 600,
+              boxShadow: validating ? 'none' : '0 0 20px rgba(108,99,255,0.35)',
+              fontFamily: 'var(--font-body)',
+              transition: 'all 0.2s',
+              minWidth: 200,
+              justifyContent: 'center',
+            }}
+          >
+            {validating ? (
+              <>
+                <Loader2 size={15} className="animate-spin" />
+                Activating...
+              </>
+            ) : (
+              <>
+                Validate & Activate <ChevronRight size={15} />
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FalKeyStep({ falKey, setFalKey, showFal, setShowFal, validating, error, shake, licenseActivated, onNext }: any) {
+  return (
+    <div
+      className={shake ? 'shake' : ''}
+      style={{
+        width: 560,
+        background: 'var(--ma-elevated)',
+        border: `1px solid ${error ? 'rgba(239,68,68,0.4)' : 'var(--ma-border)'}`,
+        borderRadius: 16,
+        overflow: 'hidden',
+        boxShadow: error
           ? '0 40px 120px rgba(7,7,15,0.8), 0 0 40px rgba(239,68,68,0.15)'
           : '0 40px 120px rgba(7,7,15,0.8), 0 0 60px rgba(108,99,255,0.1)',
         transition: 'border-color 0.3s, box-shadow 0.3s',
@@ -244,14 +437,35 @@ function WizardPhase({ falKey, setFalKey, showFal, setShowFal, validating, keyEr
         }}>
           <Key size={16} color="white" />
         </div>
-        <div>
+        <div style={{ flex: 1 }}>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: '#FFF', margin: 0 }}>
-            {STEPS[0].title}
+            {STEPS[1].title}
           </h2>
-          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', margin: 0 }}>{STEPS[0].description}</p>
+          <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', margin: 0 }}>{STEPS[1].description}</p>
         </div>
-        <div style={{ marginLeft: 'auto', width: 18 }} />
+        {/* Step indicator */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'rgba(34,197,94,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <CheckCircle2 size={13} style={{ color: '#22C55E' }} />
+          </div>
+          <div style={{ width: 16, height: 1, background: '#22C55E' }} />
+          <div style={{ width: 20, height: 20, borderRadius: '50%', background: 'var(--ma-accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: 'white' }}>2</div>
+        </div>
       </div>
+
+      {/* License success badge */}
+      {licenseActivated && (
+        <div style={{
+          margin: '16px 32px 0', padding: '8px 14px',
+          background: 'rgba(34,197,94,0.08)',
+          border: '1px solid rgba(34,197,94,0.2)',
+          borderRadius: 8,
+          display: 'flex', alignItems: 'center', gap: 8,
+        }}>
+          <CheckCircle2 size={14} style={{ color: '#22C55E', flexShrink: 0 }} />
+          <p style={{ fontSize: 12, color: '#22C55E', margin: 0 }}>License activated successfully</p>
+        </div>
+      )}
 
       {/* Content */}
       <div style={{ padding: '32px' }}>
@@ -262,7 +476,7 @@ function WizardPhase({ falKey, setFalKey, showFal, setShowFal, validating, keyEr
           show={showFal}
           toggleShow={() => setShowFal(!showFal)}
           placeholder="fal-..."
-          hasError={!!keyError}
+          hasError={!!error}
           hint={
             <span>
               Bring your own fal.ai API key{' '}
@@ -281,7 +495,7 @@ function WizardPhase({ falKey, setFalKey, showFal, setShowFal, validating, keyEr
         />
 
         {/* Error message */}
-        {keyError && (
+        {error && (
           <div style={{
             marginTop: 12, padding: '10px 14px',
             background: 'rgba(239,68,68,0.1)',
@@ -290,7 +504,7 @@ function WizardPhase({ falKey, setFalKey, showFal, setShowFal, validating, keyEr
             display: 'flex', alignItems: 'flex-start', gap: 8,
           }}>
             <AlertCircle size={14} style={{ color: '#EF4444', flexShrink: 0, marginTop: 1 }} />
-            <p style={{ fontSize: 12, color: '#EF4444', margin: 0, lineHeight: 1.5 }}>{keyError}</p>
+            <p style={{ fontSize: 12, color: '#EF4444', margin: 0, lineHeight: 1.5 }}>{error}</p>
           </div>
         )}
 

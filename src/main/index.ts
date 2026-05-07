@@ -4,6 +4,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { dbService } from './database'
 import { keystoreService } from './keystore'
+import { licenseService } from './services/license.service'
 import { 
   BillingService, 
   TextService, 
@@ -90,6 +91,46 @@ app.whenReady().then(() => {
   ipcMain.handle('key:setFalKey', (_, key) => keystoreService.setFalKey(key))
   ipcMain.handle('key:getFalKey', () => keystoreService.getFalKey())
   ipcMain.handle('key:deleteFalKey', () => keystoreService.deleteFalKey())
+
+  // IPC Handlers: License / Auth
+  ipcMain.handle('auth:activateLicense', async (_, key: string) => {
+    try {
+      const result = await licenseService.activateLicense(key)
+      return result
+    } catch (error: any) {
+      return { activated: false, error: error.message || 'Network error. Please check your connection.' }
+    }
+  })
+
+  ipcMain.handle('auth:validateLicense', async () => {
+    try {
+      const result = await licenseService.validateLicense()
+      return result
+    } catch (error: any) {
+      return { valid: false, error: error.message || 'Network error during license validation.' }
+    }
+  })
+
+  ipcMain.handle('auth:getStartupState', async () => {
+    try {
+      const info = await licenseService.getStoredLicenseInfo()
+      if (!info.hasKey) {
+        return { licensed: false, error: 'No license key found.' }
+      }
+      const result = await licenseService.validateLicense()
+      return { licensed: result.valid, error: result.error }
+    } catch {
+      return { licensed: false, error: 'Could not validate license. Please check your connection.' }
+    }
+  })
+
+  ipcMain.handle('auth:getLicenseStatus', async () => {
+    try {
+      return await licenseService.getStoredLicenseInfo()
+    } catch {
+      return { hasKey: false }
+    }
+  })
 
   // IPC Handlers: Fal
   ipcMain.handle('fal:generateCopy', (_, promptOrMessages, modelId) => textService.generateCopy(promptOrMessages, modelId))

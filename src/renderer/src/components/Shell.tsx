@@ -2,22 +2,56 @@ import { Outlet, useNavigate } from 'react-router';
 import { Sidebar } from './Sidebar';
 import { RightPanel } from './RightPanel';
 import { useApp } from '../contexts/AppContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { OnboardingModal } from '../screens/OnboardingScreen';
-import { Bell, Search } from 'lucide-react';
+import { Bell, Search, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export function Shell() {
-  const { onboardingComplete } = useApp();
+  const { onboardingComplete, licenseChecking } = useApp();
   const [showOnboarding, setShowOnboarding] = useState(!onboardingComplete);
   const { completeOnboarding } = useApp();
   const navigate = useNavigate();
+
+  // Sync showOnboarding when license check overrides onboardingComplete
+  useEffect(() => {
+    if (!licenseChecking && !onboardingComplete) {
+      setShowOnboarding(true);
+    }
+  }, [licenseChecking, onboardingComplete]);
 
   const handleOnboardingDone = () => {
     completeOnboarding();
     setShowOnboarding(false);
     navigate('/');
   };
+
+  // Show loading while license is being validated
+  if (licenseChecking) {
+    return (
+      <div style={{
+        width: '100vw', height: '100vh',
+        background: 'var(--ma-bg)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        flexDirection: 'column', gap: 16,
+        fontFamily: 'var(--font-body)', color: 'var(--ma-text)',
+      }}>
+        <div style={{
+          width: 40, height: 40, borderRadius: 10,
+          background: 'linear-gradient(135deg, var(--ma-accent), #9B8FFF)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 0 24px var(--ma-accent-glow)',
+          animation: 'pulse 2s ease-in-out infinite',
+        }}>
+          <Zap size={18} color="white" />
+        </div>
+        <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', letterSpacing: '0.5px' }}>
+          Validating license...
+        </p>
+        <style>{`@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.7; transform: scale(0.95); } }`}</style>
+      </div>
+    );
+  }
 
   return (
     <div

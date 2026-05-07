@@ -10,6 +10,7 @@ interface AppContextType {
   setRightPanelContent: (content: ReactNode) => void;
   onboardingComplete: boolean;
   completeOnboarding: () => void;
+  licenseChecking: boolean;
   activeImageMode: string;
   setActiveImageMode: (mode: string) => void;
   activeVideoMode: string;
@@ -32,6 +33,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [activeImageMode, setActiveImageMode] = useState('generate');
   const [activeVideoMode, setActiveVideoMode] = useState('text-to-video');
   const [mcpEnabled, setMcpEnabled] = useState(false);
+  const [licenseChecking, setLicenseChecking] = useState(true);
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('idle');
   const [falCredits, setFalCredits] = useState<number | null>(null);
 
@@ -74,11 +76,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // On mount: auto-check status (informational only — never blocks post-onboarded users)
+  // On mount: validate license via main process, then check fal connection
   useEffect(() => {
-    if (localStorage.getItem('mosterads_onboarded') === 'true') {
-      refreshConnectionStatus();
-    }
+    const checkLicense = async () => {
+      setLicenseChecking(true);
+      try {
+        const state = await window.api.auth.getStartupState();
+        if (!state.licensed) {
+          // License invalid — force onboarding regardless of localStorage
+          setOnboardingComplete(false);
+        } else if (localStorage.getItem('mosterads_onboarded') === 'true') {
+          // License valid + previously onboarded — check fal connection
+          refreshConnectionStatus();
+        }
+      } catch {
+        // Network error — force onboarding so user can re-validate
+        setOnboardingComplete(false);
+      } finally {
+        setLicenseChecking(false);
+      }
+    };
+    checkLicense();
   }, [refreshConnectionStatus]);
 
   return (
@@ -90,6 +108,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setRightPanelContent,
       onboardingComplete,
       completeOnboarding,
+      licenseChecking,
       activeImageMode,
       setActiveImageMode,
       activeVideoMode,

@@ -55,6 +55,12 @@ const api = {
     deleteCustomVoice: (id: number) => ipcRenderer.invoke('audio:deleteCustomVoice', id),
     playAudio: (filePath: string) => ipcRenderer.invoke('audio:playAudio', filePath),
     saveAudio: (filePath: string, destPath: string) => ipcRenderer.invoke('audio:saveAudio', filePath, destPath),
+  },
+  auth: {
+    activateLicense: (key: string) => ipcRenderer.invoke('auth:activateLicense', key),
+    validateLicense: () => ipcRenderer.invoke('auth:validateLicense'),
+    getStartupState: () => ipcRenderer.invoke('auth:getStartupState'),
+    getLicenseStatus: () => ipcRenderer.invoke('auth:getLicenseStatus'),
   }
 }
 
