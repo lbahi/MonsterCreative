@@ -62,6 +62,13 @@ function createWindow(): void {
   }
 
   if (!is.dev) {
+    // IMPORTANT: For a private repo, electron-updater needs a token to read releases.
+    // DANGER: We are embedding a token. You should generate a "Fine-Grained" Personal Access Token
+    // that ONLY has "Read" access to "Contents" and "Metadata" of this repository.
+    // Do NOT use your full-access classic token here in production for security!
+    autoUpdater.requestHeaders = {
+      "Authorization": "token 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"
+    }
     autoUpdater.checkForUpdatesAndNotify()
   }
 
