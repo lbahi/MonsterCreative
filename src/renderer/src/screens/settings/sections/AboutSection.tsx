@@ -1,4 +1,5 @@
 import { ExternalLink, AlertCircle, Globe } from 'lucide-react';
+import packageJson from '../../../../../../package.json';
 
 export const AboutSection = () => {
   return (
@@ -23,7 +24,7 @@ export const AboutSection = () => {
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {[
-            { label: 'Version', value: '1.0.0 (build 20260409)' },
+            { label: 'Version', value: `${packageJson.version}` },
             { label: 'License', value: 'Pro — Active' },
             { label: 'Plan', value: 'Media Buyer Pro' },
           ].map(item => (

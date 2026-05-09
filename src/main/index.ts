@@ -1,6 +1,7 @@
 import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { autoUpdater } from 'electron-updater'
+import log from 'electron-log'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { dbService } from './database'
@@ -66,9 +67,45 @@ function createWindow(): void {
     // DANGER: We are embedding a token. You should generate a "Fine-Grained" Personal Access Token
     // that ONLY has "Read" access to "Contents" and "Metadata" of this repository.
     // Do NOT use your full-access classic token here in production for security!
-    autoUpdater.requestHeaders = {
-      "Authorization": "token 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"
-    }
+    autoUpdater.setFeedURL({
+      provider: 'github',
+      owner: 'lbahi',
+      repo: 'MonsterCreative',
+      private: true,
+      token: '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'
+    })
+    
+    autoUpdater.logger = log
+    // @ts-ignore
+    autoUpdater.logger.transports.file.level = 'info'
+
+    log.info('App version:', app.getVersion())
+    log.info('Checking for updates...')
+
+    autoUpdater.on('checking-for-update', () => {
+      log.info('Checking for update...')
+    })
+
+    autoUpdater.on('update-available', (info) => {
+      log.info('Update available:', info)
+    })
+
+    autoUpdater.on('update-not-available', (info) => {
+      log.info('Update NOT available:', info)
+    })
+
+    autoUpdater.on('error', (err) => {
+      log.error('Updater error:', err)
+    })
+
+    autoUpdater.on('download-progress', (p) => {
+      log.info('Download progress:', p.percent)
+    })
+
+    autoUpdater.on('update-downloaded', (info) => {
+      log.info('Update downloaded:', info)
+    })
+
     autoUpdater.checkForUpdatesAndNotify()
   }
 

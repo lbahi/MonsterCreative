@@ -1,7 +1,7 @@
 {
   "name": "monster-creative",
   "productName": "MonsterCreative",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
   "author": "example.com",
@@ -27,6 +27,7 @@
     "@headlessui/react": "^2.2.10",
     "better-sqlite3": "^12.8.0",
     "dexie": "^4.4.2",
+    "electron-log": "^5.4.3",
     "electron-updater": "^6.8.3",
     "framer-motion": "^12.38.0",
     "keytar": "^7.9.0",
