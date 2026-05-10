@@ -12,6 +12,7 @@
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
+    "compress-templates": "node scripts/compress-templates.js",
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
     "build": "npm run typecheck && electron-vite build",
@@ -60,6 +61,7 @@
     "prettier": "^3.7.4",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
+    "sharp": "^0.34.5",
     "tailwindcss": "^4.2.2",
     "typescript": "^5.9.3",
     "vite": "^7.2.6"
