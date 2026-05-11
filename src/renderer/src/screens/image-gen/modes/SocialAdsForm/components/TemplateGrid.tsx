@@ -117,7 +117,6 @@ export const TemplateGrid = ({
                   decoding="async"
                   width={400}
                   height={400}
-                  onError={(e) => { (e.target as HTMLImageElement).src = `./OutputSocialAds/${t.id}.png`; }}
                   style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
 
