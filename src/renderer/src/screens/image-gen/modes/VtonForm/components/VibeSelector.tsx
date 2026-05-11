@@ -29,7 +29,15 @@ export function VibeSelector({ vibe, onSelect }: VibeSelectorProps) {
               transition: 'all 0.15s',
             }}
           >
-            <img src={item.image} alt={item.label} style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: vibe === item.id ? 1 : 0.6 }} />
+            <img 
+              src={item.image.replace('.png', '.thumb.webp')} 
+              loading="lazy"
+              decoding="async"
+              width={400}
+              height={400}
+              alt={item.label} 
+              style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: vibe === item.id ? 1 : 0.6 }} 
+            />
             <div style={{
               position: 'absolute', bottom: 0, left: 0, right: 0,
               background: 'linear-gradient(transparent, rgba(0,0,0,0.85))',

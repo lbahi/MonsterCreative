@@ -41,7 +41,11 @@ export function ModelTypeSelector({ modelTemplates, selectedModelType, onSelect 
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
               }}>
                 <img
-                  src={tmpl.thumbnail}
+                  src={tmpl.thumbnail.replace('.png', '.thumb.webp')}
+                  loading="lazy"
+                  decoding="async"
+                  width={400}
+                  height={400}
                   alt={tmpl.label}
                   style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: isSelected ? 1 : 0.65, transition: 'opacity 0.15s' }}
                   onError={(e) => {

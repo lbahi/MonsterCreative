@@ -13,6 +13,7 @@ asarUnpack:
   - resources/**
   - out/renderer/OutputVideos/**
   - out/renderer/OutputVoices/**
+  - node_modules/keytar/**
 win:
   executableName: monster-creative
 nsis:
