@@ -54,6 +54,24 @@ export const AboutSection = () => {
             {item.icon}
           </button>
         ))}
+
+        <button 
+          onClick={async () => {
+            if (confirm('Are you sure you want to transfer your license? This will deactivate it on this device and you will need to enter your key again.')) {
+              await (window as any).api.license.deactivate();
+              window.location.reload();
+            }
+          }}
+          style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '11px 16px', background: 'rgba(239,68,68,0.05)',
+            border: '1px solid rgba(239,68,68,0.2)', borderRadius: 9,
+            cursor: 'pointer', color: '#EF4444', fontSize: 13,
+            fontFamily: 'var(--font-body)', marginTop: 8
+          }}>
+          Transfer License
+          <AlertCircle size={14} />
+        </button>
       </div>
     </div>
   );

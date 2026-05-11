@@ -44,8 +44,8 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     setLicenseValidating(true);
     setLicenseError(null);
     try {
-      const result = await window.api.auth.activateLicense(licenseKey.trim());
-      if (result.activated) {
+      const result = await (window as any).api.license.activate(licenseKey.trim());
+      if (result.success) {
         setLicenseActivated(true);
         setCurrentStep(1);
       } else {
@@ -371,7 +371,7 @@ function LicenseStep({ licenseKey, setLicenseKey, validating, error, shake, onAc
           border: '1px solid rgba(108,99,255,0.15)',
         }}>
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, margin: 0 }}>
-            🔒 Your license is validated securely with Lemon Squeezy and stored locally in your OS keychain. It is never shared with third parties.
+            🔒 Your license is validated securely with Gumroad and stored locally in your OS keychain. It is never shared with third parties.
           </p>
         </div>
 

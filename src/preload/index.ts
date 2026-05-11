@@ -60,6 +60,7 @@ const api = {
     activate: (key: string) => ipcRenderer.invoke('license:activate', key),
     validate: () => ipcRenderer.invoke('license:validate'),
     deactivate: () => ipcRenderer.invoke('license:deactivate'),
+    getKey: () => ipcRenderer.invoke('license:getKey'),
   },
   update: {
     onAvailable: (cb: any) => ipcRenderer.on('update:available', cb),

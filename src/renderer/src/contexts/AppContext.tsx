@@ -81,8 +81,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const checkLicense = async () => {
       setLicenseChecking(true);
       try {
-        const state = await window.api.auth.getStartupState();
-        if (!state.licensed) {
+        const result = await (window as any).api.license.validate();
+        if (!result.valid) {
           // License invalid — force onboarding regardless of localStorage
           setOnboardingComplete(false);
         } else if (localStorage.getItem('mosterads_onboarded') === 'true') {

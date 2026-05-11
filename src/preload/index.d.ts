@@ -50,6 +50,7 @@ declare global {
         activate: (key: string) => Promise<{ success: boolean; error?: string; purchaserEmail?: string }>
         validate: () => Promise<{ valid: boolean; error?: string }>
         deactivate: () => Promise<void>
+        getKey: () => Promise<string | null>
       }
     }
   }

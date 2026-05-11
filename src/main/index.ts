@@ -166,6 +166,10 @@ app.whenReady().then(() => {
     return await licenseService.deactivate()
   })
 
+  ipcMain.handle('license:getKey', async () => {
+    return await keystoreService.getLicenseData('license-key')
+  })
+
   // IPC Handlers: Fal
   ipcMain.handle('fal:generateCopy', (_, promptOrMessages, modelId) => textService.generateCopy(promptOrMessages, modelId))
   ipcMain.handle('fal:analyzeImageVision', (_, imageUrl, prompt, systemPrompt, modelId) => textService.analyzeImageVision(imageUrl, prompt, systemPrompt, modelId))

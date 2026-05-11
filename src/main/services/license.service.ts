@@ -1,13 +1,11 @@
 import log from 'electron-log'
-import { app } from 'electron'
 import { keystoreService } from '../keystore'
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const GUMROAD_PRODUCT_ID = "YOUR_8_CHAR_ID"
+const GUMROAD_PRODUCT_ID = "E68N0D3GnrI9-UgafMCUXg=="
 const GUMROAD_API_URL = "https://api.gumroad.com/v2/licenses/verify"
-const MAX_ACTIVATIONS = 2
 const REVALIDATION_DAYS = 7
 
 export interface ActivateResult {
@@ -42,7 +40,7 @@ export class LicenseService {
 
       // CASE 1 — data.success is false
       if (!data.success) {
-        return { success: false, error: "Invalid license key.\nPlease check your key and try again." }
+        return { success: false, error: data.message ? `Gumroad Error: ${data.message}` : "Invalid license key.\nPlease check your key and try again." }
       }
 
       // CASE 2 — data.purchase.refunded is true
@@ -57,14 +55,15 @@ export class LicenseService {
 
       // CASE 4 — data.purchase.test is true
       if (data.purchase?.test) {
-        log.info("Test key detected")
-        if (app.isPackaged) {
-          return { success: false, error: "This is a test key and cannot be used\nin the production app." }
-        }
+        log.info("Test key detected - allowing for test purposes")
       }
 
-      // CASE 5 — data.uses > MAX_ACTIVATIONS
-      if (data.uses > MAX_ACTIVATIONS) {
+      // Determine max activations based on variant
+      const variant = data.purchase?.variants || '';
+      const maxActivations = variant === 'Agency' ? 5 : 2;
+
+      // CASE 5 — data.uses > maxActivations
+      if (data.uses > maxActivations) {
         // Decrement uses immediately
         await fetch(GUMROAD_API_URL, {
           method: 'POST',
@@ -75,7 +74,7 @@ export class LicenseService {
             increment_uses_count: "false"
           }).toString()
         })
-        return { success: false, error: `Activation limit reached (${MAX_ACTIVATIONS} devices).\nTo transfer your license, contact support.` }
+        return { success: false, error: `Activation limit reached (${maxActivations} devices).\nTo transfer your license, contact support.` }
       }
 
       // CASE 6 — Activation successful

@@ -14,6 +14,7 @@ interface ApiKey {
 
 const INITIAL_KEYS: ApiKey[] = [
   { id: 'fal', provider: 'fal.ai', label: 'fal.ai API Key', value: '', status: 'unconfigured', color: '#6C63FF', required: true },
+  { id: 'gumroad', provider: 'Gumroad', label: 'License Key', value: '', status: 'unconfigured', color: '#FF90E8', required: true },
 ];
 
 export const useSettings = () => {
@@ -30,11 +31,12 @@ export const useSettings = () => {
   useEffect(() => {
     async function loadKeys() {
       const falKey = await (window as any).api.keystore.getFalKey();
-      setKeys(prev => prev.map(k =>
-        k.id === 'fal'
-          ? { ...k, value: falKey || '', status: falKey ? 'connected' : 'unconfigured' }
-          : k
-      ));
+      const gumroadKey = await (window as any).api.license.getKey();
+      setKeys(prev => prev.map(k => {
+        if (k.id === 'fal') return { ...k, value: falKey || '', status: falKey ? 'connected' : 'unconfigured' };
+        if (k.id === 'gumroad') return { ...k, value: gumroadKey || '', status: gumroadKey ? 'connected' : 'unconfigured' };
+        return k;
+      }));
     }
     loadKeys();
   }, []);
@@ -44,13 +46,23 @@ export const useSettings = () => {
     setSaving(keyId);
     setKeyError(null);
     try {
-      const result = await (window as any).api.fal.validateKey(editValue.trim());
-      if (!result.valid) {
-        setKeyError(result.error || 'Invalid API key.');
-        setSaving(null);
-        return;
+      if (keyId === 'fal') {
+        const result = await (window as any).api.fal.validateKey(editValue.trim());
+        if (!result.valid) {
+          setKeyError(result.error || 'Invalid API key.');
+          setSaving(null);
+          return;
+        }
+        await (window as any).api.keystore.setFalKey(editValue.trim());
+      } else if (keyId === 'gumroad') {
+        const result = await (window as any).api.license.activate(editValue.trim());
+        if (!result.success) {
+          setKeyError(result.error || 'Invalid license key.');
+          setSaving(null);
+          return;
+        }
       }
-      await (window as any).api.keystore.setFalKey(editValue.trim());
+
       setKeys(prev => prev.map(k => k.id === keyId
         ? { ...k, value: editValue.trim(), status: 'connected', lastUsed: 'Just now' }
         : k
@@ -69,6 +81,11 @@ export const useSettings = () => {
 
   const handleDeleteKey = async (keyId: string) => {
     if (keyId === 'fal') await (window as any).api.keystore.deleteFalKey();
+    if (keyId === 'gumroad') {
+      await (window as any).api.license.deactivate();
+      window.location.reload();
+      return;
+    }
     setKeys(prev => prev.map(k => k.id === keyId
       ? { ...k, value: '', status: 'unconfigured', lastUsed: undefined }
       : k
