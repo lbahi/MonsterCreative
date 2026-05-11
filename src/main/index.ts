@@ -153,44 +153,17 @@ app.whenReady().then(() => {
   ipcMain.handle('key:getFalKey', () => keystoreService.getFalKey())
   ipcMain.handle('key:deleteFalKey', () => keystoreService.deleteFalKey())
 
-  // IPC Handlers: License / Auth
-  ipcMain.handle('auth:activateLicense', async (_, key: string) => {
-    try {
-      const result = await licenseService.activateLicense(key)
-      return result
-    } catch (error: any) {
-      return { activated: false, error: error.message || 'Network error. Please check your connection.' }
-    }
+  // IPC Handlers: License
+  ipcMain.handle('license:activate', async (_, key: string) => {
+    return await licenseService.activate(key)
   })
 
-  ipcMain.handle('auth:validateLicense', async () => {
-    try {
-      const result = await licenseService.validateLicense()
-      return result
-    } catch (error: any) {
-      return { valid: false, error: error.message || 'Network error during license validation.' }
-    }
+  ipcMain.handle('license:validate', async () => {
+    return await licenseService.validate()
   })
 
-  ipcMain.handle('auth:getStartupState', async () => {
-    try {
-      const info = await licenseService.getStoredLicenseInfo()
-      if (!info.hasKey) {
-        return { licensed: false, error: 'No license key found.' }
-      }
-      const result = await licenseService.validateLicense()
-      return { licensed: result.valid, error: result.error }
-    } catch {
-      return { licensed: false, error: 'Could not validate license. Please check your connection.' }
-    }
-  })
-
-  ipcMain.handle('auth:getLicenseStatus', async () => {
-    try {
-      return await licenseService.getStoredLicenseInfo()
-    } catch {
-      return { hasKey: false }
-    }
+  ipcMain.handle('license:deactivate', async () => {
+    return await licenseService.deactivate()
   })
 
   // IPC Handlers: Fal

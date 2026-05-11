@@ -46,17 +46,10 @@ declare global {
       external: {
         open: (url: string) => Promise<void>
       }
-      auth: {
-        activateLicense: (key: string) => Promise<{
-          activated: boolean
-          error: string | null
-          license_key?: { id: number; status: string; key: string; activation_limit: number; activation_usage: number }
-          instance?: { id: string; name: string }
-          meta?: { product_name: string; customer_name: string; customer_email: string }
-        }>
-        validateLicense: () => Promise<{ valid: boolean; error: string | null }>
-        getStartupState: () => Promise<{ licensed: boolean; error?: string }>
-        getLicenseStatus: () => Promise<{ hasKey: boolean; key?: string; instanceId?: string }>
+      license: {
+        activate: (key: string) => Promise<{ success: boolean; error?: string; purchaserEmail?: string }>
+        validate: () => Promise<{ valid: boolean; error?: string }>
+        deactivate: () => Promise<void>
       }
     }
   }

@@ -56,11 +56,10 @@ const api = {
     playAudio: (filePath: string) => ipcRenderer.invoke('audio:playAudio', filePath),
     saveAudio: (filePath: string, destPath: string) => ipcRenderer.invoke('audio:saveAudio', filePath, destPath),
   },
-  auth: {
-    activateLicense: (key: string) => ipcRenderer.invoke('auth:activateLicense', key),
-    validateLicense: () => ipcRenderer.invoke('auth:validateLicense'),
-    getStartupState: () => ipcRenderer.invoke('auth:getStartupState'),
-    getLicenseStatus: () => ipcRenderer.invoke('auth:getLicenseStatus'),
+  license: {
+    activate: (key: string) => ipcRenderer.invoke('license:activate', key),
+    validate: () => ipcRenderer.invoke('license:validate'),
+    deactivate: () => ipcRenderer.invoke('license:deactivate'),
   },
   update: {
     onAvailable: (cb: any) => ipcRenderer.on('update:available', cb),

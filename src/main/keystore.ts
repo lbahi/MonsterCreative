@@ -105,6 +105,37 @@ export class KeystoreService {
       return false
     }
   }
+
+  // --- Generic Data (Gumroad) ---
+  async setLicenseData(account: string, value: string): Promise<void> {
+    try {
+      await keytar.setPassword(SERVICE_NAME, account, value)
+      log.info(`Gumroad data saved: ${account}`)
+    } catch (err) {
+      log.error(`keytar setPassword (${account}) failed:`, err)
+      throw err
+    }
+  }
+
+  async getLicenseData(account: string): Promise<string | null> {
+    try {
+      return await keytar.getPassword(SERVICE_NAME, account)
+    } catch (err) {
+      log.error(`keytar getPassword (${account}) failed:`, err)
+      return null
+    }
+  }
+
+  async deleteLicenseData(account: string): Promise<boolean> {
+    try {
+      const result = await keytar.deletePassword(SERVICE_NAME, account)
+      log.info(`Gumroad data deleted: ${account}`)
+      return result
+    } catch (err) {
+      log.error(`keytar deletePassword (${account}) failed:`, err)
+      return false
+    }
+  }
 }
 
 export const keystoreService = new KeystoreService()
