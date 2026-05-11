@@ -3,68 +3,119 @@
 interface Window {
   api: {
     database: {
-      getSettings: () => Promise<any>;
-      updateSettings: (settings: any) => Promise<void>;
-      getAllCampaigns: () => Promise<any[]>;
-      createCampaign: (name: string, platforms: string[]) => Promise<void>;
-      saveImage: (img: any) => Promise<void>;
-      saveCopyVariant: (v: any) => Promise<void>;
-      saveVideo: (vid: any) => Promise<void>;
-    };
+      getSettings: () => Promise<Record<string, unknown>>
+      updateSettings: (settings: Record<string, unknown>) => Promise<void>
+      getAllCampaigns: () => Promise<unknown[]>
+      createCampaign: (name: string, platforms: string[]) => Promise<void>
+      saveImage: (img: unknown) => Promise<void>
+      saveCopyVariant: (v: unknown) => Promise<void>
+      saveVideo: (vid: unknown) => Promise<void>
+    }
     keystore: {
-      setFalKey: (key: string) => Promise<void>;
-      getFalKey: () => Promise<string | null>;
-      deleteFalKey: () => Promise<void>;
-    };
+      setFalKey: (key: string) => Promise<void>
+      getFalKey: () => Promise<string | null>
+      deleteFalKey: () => Promise<void>
+    }
     fal: {
-      generateCopy: (promptOrMessages: any, modelId?: string) => Promise<any>;
-      analyzeImageVision: (imageUrl: string, prompt: string, systemPrompt: string, modelId?: string) => Promise<any>;
-      chatCompletion: (messages: any[], modelId?: string) => Promise<any>;
-      getUsage: (timeframe: any, start: any, end: any) => Promise<any>;
-      getBilling: () => Promise<any>;
-      validateKey: (key: string) => Promise<{ valid: boolean, error?: string, credits?: number, currency?: string }>;
-      getPricing: (ids: string[]) => Promise<any>;
-      getAnalytics: (ids: string[], start: any, end: any) => Promise<any>;
-      uploadImageFromDataUrl: (dataUrl: string) => Promise<any>;
-      nanoBananaEdit: (params: any) => Promise<any>;
-      reframeImage: (params: any) => Promise<any>;
-      kontextEdit: (params: any) => Promise<any>;
-      generateVideo: (params: any) => Promise<any>;
-    };
+      generateCopy: (
+        promptOrMessages: string | unknown[],
+        modelId?: string
+      ) => Promise<{ data?: string; error?: string }>
+      analyzeImageVision: (
+        imageUrl: string,
+        prompt: string,
+        systemPrompt: string,
+        modelId?: string
+      ) => Promise<{ data?: string; error?: string }>
+      chatCompletion: (
+        messages: unknown[],
+        modelId?: string
+      ) => Promise<{ data?: string; error?: string }>
+      getUsage: (timeframe: string, start?: string, end?: string) => Promise<unknown>
+      getBilling: () => Promise<unknown>
+      validateKey: (
+        key: string
+      ) => Promise<{ valid: boolean; error?: string; credits?: number; currency?: string }>
+      getPricing: (ids: string[]) => Promise<unknown>
+      getAnalytics: (ids: string[], start?: string, end?: string) => Promise<unknown>
+      uploadImageFromDataUrl: (dataUrl: string) => Promise<{ url?: string; error?: string }>
+      nanoBananaEdit: (params: unknown) => Promise<unknown>
+      reframeImage: (params: unknown) => Promise<unknown>
+      kontextEdit: (params: unknown) => Promise<unknown>
+      generateVideo: (params: unknown) => Promise<unknown>
+    }
     video: {
-      generate: (request: any) => Promise<{ success: boolean; data?: any; error?: string }>;
-    };
+      generate: (request: {
+        modelId: string
+        prompt: string
+        imageUrl: string
+        endImageUrl?: string
+        aspectRatio?: string
+        resolution: string
+        duration: number
+        audio: boolean
+        negativePrompt?: string
+      }) => Promise<{
+        success: boolean
+        data?: { url: string; fileName: string; fileSize: number }
+        error?: string
+      }>
+    }
     external: {
-      open: (url: string) => Promise<void>;
-    };
+      open: (url: string) => Promise<void>
+    }
     utils: {
-      downloadFile: (params: { url: string, filename: string }) => Promise<{ success: boolean; path?: string; cancelled?: boolean; error?: string }>;
-    };
+      downloadFile: (params: {
+        url: string
+        filename: string
+      }) => Promise<{ success: boolean; path?: string; cancelled?: boolean; error?: string }>
+    }
     audio: {
-      generateSpeech: (params: any) => Promise<{ success: boolean; data?: any; error?: string }>;
-      speechToSpeech: (params: any) => Promise<{ success: boolean; data?: any; error?: string }>;
-      cloneVoice: (params: any) => Promise<{ success: boolean; data?: any; error?: string }>;
-      generateClonedSpeech: (params: any) => Promise<{ success: boolean; data?: any; error?: string }>;
-      saveCustomVoice: (params: any) => Promise<{ success: boolean; data?: any; error?: string }>;
-      getAllCustomVoices: () => Promise<{ success: boolean; data?: any; error?: string }>;
-      deleteCustomVoice: (id: number) => Promise<{ success: boolean; error?: string }>;
-      playAudio: (filePath: string) => Promise<{ success: boolean }>;
-      saveAudio: (filePath: string, destPath: string) => Promise<{ success: boolean }>;
-    };
+      generateSpeech: (params: {
+        text: string
+        voiceId: string
+        stability?: number
+      }) => Promise<{ success: boolean; data?: { url: string }; error?: string }>
+      speechToSpeech: (
+        params: unknown
+      ) => Promise<{ success: boolean; data?: { url: string }; error?: string }>
+      cloneVoice: (params: {
+        audioUrl: string
+        referenceText?: string
+      }) => Promise<{ success: boolean; data?: { speakerEmbeddingUrl: string }; error?: string }>
+      generateClonedSpeech: (params: {
+        text: string
+        speakerEmbeddingUrl: string
+      }) => Promise<{ success: boolean; data?: { url: string }; error?: string }>
+      saveCustomVoice: (
+        params: unknown
+      ) => Promise<{ success: boolean; data?: unknown; error?: string }>
+      getAllCustomVoices: () => Promise<{ success: boolean; data?: unknown[]; error?: string }>
+      deleteCustomVoice: (id: number) => Promise<{ success: boolean; error?: string }>
+      playAudio: (filePath: string) => Promise<{ success: boolean }>
+      saveAudio: (filePath: string, destPath: string) => Promise<{ success: boolean }>
+    }
     social: {
-      saveAdImage: (params: { imageUrl: string; filename: string }) => Promise<{ success: boolean; path?: string; localUrl?: string; error?: string }>;
-      openOutputFolder: () => Promise<void>;
-    };
+      saveAdImage: (params: {
+        imageUrl: string
+        filename: string
+      }) => Promise<{ success: boolean; path?: string; localUrl?: string; error?: string }>
+      openOutputFolder: () => Promise<void>
+    }
     auth: {
-      activateLicense: (key: string) => Promise<{ activated: boolean; error: string | null; license_key?: any; instance?: any; meta?: any }>;
-      validateLicense: () => Promise<{ valid: boolean; error: string | null }>;
-      getStartupState: () => Promise<{ licensed: boolean; error?: string }>;
-      getLicenseStatus: () => Promise<{ hasKey: boolean; key?: string; instanceId?: string }>;
-    };
+      activateLicense: (key: string) => Promise<{
+        activated: boolean
+        error: string | null
+        purchaserEmail?: string
+      }>
+      validateLicense: () => Promise<{ valid: boolean; error: string | null }>
+      getStartupState: () => Promise<{ licensed: boolean; error?: string }>
+      getLicenseStatus: () => Promise<{ hasKey: boolean; key?: string; instanceId?: string }>
+    }
     update: {
-      onAvailable: (cb: any) => void;
-      onDownloaded: (cb: any) => void;
-      install: () => Promise<void>;
-    };
+      onAvailable: (cb: () => void) => void
+      onDownloaded: (cb: () => void) => void
+      install: () => Promise<void>
+    }
   }
 }

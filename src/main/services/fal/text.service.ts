@@ -19,7 +19,7 @@ export class TextService extends FalClient {
       const auth = `Key ${apiKey}`
       const queueUrl = 'https://queue.fal.run/openrouter/router/vision'
 
-      const body: Record<string, any> = {
+      const body: Record<string, unknown> = {
         image_urls: [imageUrl],
         prompt,
         system_prompt: systemPrompt,
@@ -30,7 +30,7 @@ export class TextService extends FalClient {
       const response = await fetch(queueUrl, {
         method: 'POST',
         headers: {
-          'Authorization': auth,
+          Authorization: auth,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
@@ -41,12 +41,17 @@ export class TextService extends FalClient {
         return { error: `Vision queue submit failed (${response.status}): ${errBody}` }
       }
 
-      const queueData = await response.json();
-      const result = await this.pollStatus(queueData.request_id, 'openrouter/router/vision', 120, auth);
+      const queueData = (await response.json()) as any
+      const result = (await this.pollStatus(
+        queueData.request_id,
+        'openrouter/router/vision',
+        120,
+        auth
+      )) as any
       // The vision endpoint returns { output: string, usage: {...} }
       return { data: result?.output ?? JSON.stringify(result) }
-    } catch (err: any) {
-      return { error: `Network error: ${err.message}` }
+    } catch (err: unknown) {
+      return { error: `Network error: ${(err as Error).message}` }
     }
   }
 
@@ -60,31 +65,34 @@ export class TextService extends FalClient {
    * No polling needed - response comes back directly.
    */
   async chatCompletion(
-    messages: any[],
+    messages: unknown[],
     modelId: string,
-    maxTokens: number = 4096
+    maxTokens = 4096
   ): Promise<{ data?: string; error?: string }> {
     try {
-      const response = await this.request('https://fal.run/openrouter/router/openai/v1/chat/completions', {
-        method: 'POST',
-        body: JSON.stringify({
-          model: modelId,
-          messages,
-          max_tokens: maxTokens
-        })
-      })
+      const response = await this.request(
+        'https://fal.run/openrouter/router/openai/v1/chat/completions',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            model: modelId,
+            messages,
+            max_tokens: maxTokens
+          })
+        }
+      )
 
       if (!response.ok) {
         const errBody = await response.text()
         return { error: `Chat completion failed (${response.status}): ${errBody}` }
       }
 
-      const data = await response.json()
+      const data = (await response.json()) as any
       // Standard OpenAI response format
       const text = data?.choices?.[0]?.message?.content ?? ''
       return { data: text }
-    } catch (err: any) {
-      return { error: `Network error: ${err.message}` }
+    } catch (err: unknown) {
+      return { error: `Network error: ${(err as Error).message}` }
     }
   }
 
@@ -93,7 +101,11 @@ export class TextService extends FalClient {
    * String prompt → wraps in a user message → calls chatCompletion.
    * Message array → calls chatCompletion directly.
    */
-  async generateCopy(promptOrMessages: any, modelId: string, maxTokens: number = 4096): Promise<{ data?: string; error?: string }> {
+  async generateCopy(
+    promptOrMessages: string | unknown[],
+    modelId: string,
+    maxTokens = 4096
+  ): Promise<{ data?: string; error?: string }> {
     const messages = Array.isArray(promptOrMessages)
       ? promptOrMessages
       : [{ role: 'user', content: promptOrMessages }]

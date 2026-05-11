@@ -1,13 +1,13 @@
-import { useEffect } from 'react';
-import { useApp } from '../../../contexts/AppContext';
-import { IMG_STEPS, SAMPLE_OUTPUTS } from '../constants';
-import { ImageGenRightPanel } from '../panels/ImageGenRightPanel';
-import { NanoBananaRightPanel } from '../panels/NanoBananaRightPanel';
-import { ResizeRightPanel } from '../panels/ResizeRightPanel';
-import type { ActiveImageGenMode } from '../types';
+import { useEffect } from 'react'
+import { useApp } from '../../../contexts/AppContext'
+import { IMG_STEPS, SAMPLE_OUTPUTS } from '../constants'
+import { ImageGenRightPanel } from '../panels/ImageGenRightPanel'
+import { NanoBananaRightPanel } from '../panels/NanoBananaRightPanel'
+import { ResizeRightPanel } from '../panels/ResizeRightPanel'
+import type { ActiveImageGenMode } from '../types'
 
 export function useImageGenRightPanel(activeMode: ActiveImageGenMode, imageGen: any) {
-  const { setRightPanelContent } = useApp();
+  const { setRightPanelContent } = useApp()
 
   const {
     model,
@@ -30,8 +30,8 @@ export function useImageGenRightPanel(activeMode: ActiveImageGenMode, imageGen: 
     resizeModel,
     resizeTotalCost,
     handleStepsComplete,
-    nbEstimatedCost,
-  } = imageGen;
+    nbEstimatedCost
+  } = imageGen
 
   useEffect(() => {
     if (activeMode === 'generate' || activeMode === 'vton' || activeMode === 'social') {
@@ -50,8 +50,8 @@ export function useImageGenRightPanel(activeMode: ActiveImageGenMode, imageGen: 
           selectedOutput={selectedOutput}
           setSelectedOutput={setSelectedOutput}
           refImage={nbReferenceImage}
-        />,
-      );
+        />
+      )
     } else if (activeMode === 'resize') {
       setRightPanelContent(
         <ResizeRightPanel
@@ -61,8 +61,8 @@ export function useImageGenRightPanel(activeMode: ActiveImageGenMode, imageGen: 
           selectedFormats={resizeSelectedFormats}
           totalCost={resizeTotalCost}
           outputs={generatedImages}
-        />,
-      );
+        />
+      )
     } else {
       setRightPanelContent(
         <ImageGenRightPanel
@@ -77,11 +77,11 @@ export function useImageGenRightPanel(activeMode: ActiveImageGenMode, imageGen: 
           ratio={ratio}
           style={style}
           numImages={numImages}
-        />,
-      );
+        />
+      )
     }
 
-    return () => setRightPanelContent(null);
+    return () => setRightPanelContent(null)
   }, [
     activeMode,
     generated,
@@ -103,6 +103,6 @@ export function useImageGenRightPanel(activeMode: ActiveImageGenMode, imageGen: 
     style,
     resizeSelectedFormats,
     resizeModel,
-    resizeTotalCost,
-  ]);
+    resizeTotalCost
+  ])
 }

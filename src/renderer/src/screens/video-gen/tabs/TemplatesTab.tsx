@@ -1,13 +1,14 @@
-import { TemplateGallery } from '../modes/TemplateGallery';
-import { VideoTemplate } from '../types';
+import { TemplateGallery } from '../modes/TemplateGallery'
+import { VideoTemplate } from '../types'
 
 interface TemplatesTabProps {
-  onTemplateSelect: (template: VideoTemplate, config: { model: string; duration: number; aspectRatio: string }) => void;
-  disabled: boolean;
+  onTemplateSelect: (
+    template: VideoTemplate,
+    config: { model: string; duration: number; aspectRatio: string }
+  ) => void
+  disabled: boolean
 }
 
-export function TemplatesTab({ onTemplateSelect, disabled }: TemplatesTabProps) {
-  return (
-    <TemplateGallery onSelectTemplate={onTemplateSelect} disabled={disabled} />
-  );
+export function TemplatesTab({ onTemplateSelect, disabled }: TemplatesTabProps): JSX.Element {
+  return <TemplateGallery onSelectTemplate={onTemplateSelect} disabled={disabled} />
 }

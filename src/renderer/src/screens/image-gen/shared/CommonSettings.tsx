@@ -1,18 +1,18 @@
-import { ChevronDown, Sliders } from 'lucide-react';
+import { ChevronDown, Sliders } from 'lucide-react'
 
-import { MODELS, MODEL_FALLBACK_PRICES, RATIOS, STYLES } from '../constants';
+import { MODELS, MODEL_FALLBACK_PRICES, RATIOS, STYLES } from '../constants'
 
 type CommonSettingsProps = {
-  style: string;
-  setStyle: (value: string) => void;
-  ratio: string;
-  setRatio: (value: string) => void;
-  model: string;
-  setModel: (value: string) => void;
-  numImages: number;
-  setNumImages: (value: number) => void;
-  modelPrices: Record<string, number>;
-};
+  style: string
+  setStyle: (value: string) => void
+  ratio: string
+  setRatio: (value: string) => void
+  model: string
+  setModel: (value: string) => void
+  numImages: number
+  setNumImages: (value: number) => void
+  modelPrices: Record<string, number>
+}
 
 export function CommonSettings({
   style,
@@ -23,19 +23,42 @@ export function CommonSettings({
   setModel,
   numImages,
   setNumImages,
-  modelPrices,
+  modelPrices
 }: CommonSettingsProps) {
   return (
-    <div style={{ background: 'var(--ma-elevated)', border: '1px solid var(--ma-border)', borderRadius: 12, padding: 20 }}>
+    <div
+      style={{
+        background: 'var(--ma-elevated)',
+        border: '1px solid var(--ma-border)',
+        borderRadius: 12,
+        padding: 20
+      }}
+    >
       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
         <Sliders size={14} style={{ color: 'rgba(255,255,255,0.4)' }} />
-        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+        <span
+          style={{
+            fontSize: 12,
+            color: 'rgba(255,255,255,0.4)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.8px'
+          }}
+        >
           Generation Settings
         </span>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
         <div>
-          <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 6 }}>Style</label>
+          <label
+            style={{
+              fontSize: 11,
+              color: 'rgba(255,255,255,0.3)',
+              display: 'block',
+              marginBottom: 6
+            }}
+          >
+            Style
+          </label>
           <div style={{ position: 'relative' }}>
             <select
               value={style}
@@ -51,7 +74,7 @@ export function CommonSettings({
                 outline: 'none',
                 appearance: 'none',
                 cursor: 'pointer',
-                fontFamily: 'var(--font-body)',
+                fontFamily: 'var(--font-body)'
               }}
             >
               {STYLES.map((item) => (
@@ -60,11 +83,30 @@ export function CommonSettings({
                 </option>
               ))}
             </select>
-            <ChevronDown size={12} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
+            <ChevronDown
+              size={12}
+              style={{
+                position: 'absolute',
+                right: 10,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: 'rgba(255,255,255,0.3)',
+                pointerEvents: 'none'
+              }}
+            />
           </div>
         </div>
         <div>
-          <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 6 }}>Aspect Ratio</label>
+          <label
+            style={{
+              fontSize: 11,
+              color: 'rgba(255,255,255,0.3)',
+              display: 'block',
+              marginBottom: 6
+            }}
+          >
+            Aspect Ratio
+          </label>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5 }}>
             {RATIOS.map((item) => (
               <button
@@ -78,7 +120,7 @@ export function CommonSettings({
                   color: ratio === item ? 'var(--ma-accent-light)' : 'rgba(255,255,255,0.4)',
                   fontSize: 11,
                   cursor: 'pointer',
-                  fontFamily: 'var(--font-mono)',
+                  fontFamily: 'var(--font-mono)'
                 }}
               >
                 {item}
@@ -87,7 +129,16 @@ export function CommonSettings({
           </div>
         </div>
         <div>
-          <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 6 }}>Model</label>
+          <label
+            style={{
+              fontSize: 11,
+              color: 'rgba(255,255,255,0.3)',
+              display: 'block',
+              marginBottom: 6
+            }}
+          >
+            Model
+          </label>
           <div style={{ position: 'relative' }}>
             <select
               value={model}
@@ -103,7 +154,7 @@ export function CommonSettings({
                 outline: 'none',
                 appearance: 'none',
                 cursor: 'pointer',
-                fontFamily: 'var(--font-body)',
+                fontFamily: 'var(--font-body)'
               }}
             >
               {MODELS.map((item) => (
@@ -112,11 +163,30 @@ export function CommonSettings({
                 </option>
               ))}
             </select>
-            <ChevronDown size={12} style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', color: 'rgba(255,255,255,0.3)', pointerEvents: 'none' }} />
+            <ChevronDown
+              size={12}
+              style={{
+                position: 'absolute',
+                right: 10,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: 'rgba(255,255,255,0.3)',
+                pointerEvents: 'none'
+              }}
+            />
           </div>
         </div>
         <div>
-          <label style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', display: 'block', marginBottom: 6 }}>Images: {numImages}</label>
+          <label
+            style={{
+              fontSize: 11,
+              color: 'rgba(255,255,255,0.3)',
+              display: 'block',
+              marginBottom: 6
+            }}
+          >
+            Images: {numImages}
+          </label>
           <input
             type="range"
             min={1}
@@ -128,5 +198,5 @@ export function CommonSettings({
         </div>
       </div>
     </div>
-  );
+  )
 }

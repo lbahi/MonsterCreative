@@ -1,131 +1,133 @@
-import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, ReactNode } from 'react'
 
-export type ConnectionStatus = 'idle' | 'verifying' | 'connected' | 'invalid' | 'error' | 'required';
+export type ConnectionStatus = 'idle' | 'verifying' | 'connected' | 'invalid' | 'error' | 'required'
 
 interface AppContextType {
-  sidebarCollapsed: boolean;
-  setSidebarCollapsed: (v: boolean) => void;
-  toggleSidebar: () => void;
-  rightPanelContent: ReactNode;
-  setRightPanelContent: (content: ReactNode) => void;
-  onboardingComplete: boolean;
-  completeOnboarding: () => void;
-  licenseChecking: boolean;
-  activeImageMode: string;
-  setActiveImageMode: (mode: string) => void;
-  activeVideoMode: string;
-  setActiveVideoMode: (mode: string) => void;
-  mcpEnabled: boolean;
-  setMcpEnabled: (v: boolean) => void;
-  connectionStatus: ConnectionStatus;
-  falCredits: number | null;
-  refreshConnectionStatus: () => Promise<ConnectionStatus>;
+  sidebarCollapsed: boolean
+  setSidebarCollapsed: (v: boolean) => void
+  toggleSidebar: () => void
+  rightPanelContent: ReactNode
+  setRightPanelContent: (content: ReactNode) => void
+  onboardingComplete: boolean
+  completeOnboarding: () => void
+  licenseChecking: boolean
+  activeImageMode: string
+  setActiveImageMode: (mode: string) => void
+  activeVideoMode: string
+  setActiveVideoMode: (mode: string) => void
+  mcpEnabled: boolean
+  setMcpEnabled: (v: boolean) => void
+  connectionStatus: ConnectionStatus
+  falCredits: number | null
+  refreshConnectionStatus: () => Promise<ConnectionStatus>
 }
 
-const AppContext = createContext<AppContextType | null>(null);
+const AppContext = createContext<AppContextType | null>(null)
 
 export function AppProvider({ children }: { children: ReactNode }) {
-  const [sidebarCollapsed, setSidebarCollapsedState] = useState(false);
-  const [rightPanelContent, setRightPanelContent] = useState<ReactNode>(null);
+  const [sidebarCollapsed, setSidebarCollapsedState] = useState(false)
+  const [rightPanelContent, setRightPanelContent] = useState<ReactNode>(null)
   const [onboardingComplete, setOnboardingComplete] = useState(() => {
-    return localStorage.getItem('mosterads_onboarded') === 'true';
-  });
-  const [activeImageMode, setActiveImageMode] = useState('generate');
-  const [activeVideoMode, setActiveVideoMode] = useState('text-to-video');
-  const [mcpEnabled, setMcpEnabled] = useState(false);
-  const [licenseChecking, setLicenseChecking] = useState(true);
-  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('idle');
-  const [falCredits, setFalCredits] = useState<number | null>(null);
+    return localStorage.getItem('mosterads_onboarded') === 'true'
+  })
+  const [activeImageMode, setActiveImageMode] = useState('generate')
+  const [activeVideoMode, setActiveVideoMode] = useState('text-to-video')
+  const [mcpEnabled, setMcpEnabled] = useState(false)
+  const [licenseChecking, setLicenseChecking] = useState(true)
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('idle')
+  const [falCredits, setFalCredits] = useState<number | null>(null)
 
   const setSidebarCollapsed = useCallback((v: boolean) => {
-    setSidebarCollapsedState(v);
-  }, []);
+    setSidebarCollapsedState(v)
+  }, [])
 
   const toggleSidebar = useCallback(() => {
-    setSidebarCollapsedState(prev => !prev);
-  }, []);
+    setSidebarCollapsedState((prev) => !prev)
+  }, [])
 
   const completeOnboarding = useCallback(() => {
-    localStorage.setItem('mosterads_onboarded', 'true');
-    setOnboardingComplete(true);
-  }, []);
+    localStorage.setItem('mosterads_onboarded', 'true')
+    setOnboardingComplete(true)
+  }, [])
 
   const refreshConnectionStatus = useCallback(async (): Promise<ConnectionStatus> => {
-    setConnectionStatus('verifying');
+    setConnectionStatus('verifying')
     try {
       // Check if any key exists first
-      const existingKey = await window.api.keystore.getFalKey();
+      const existingKey = await window.api.keystore.getFalKey()
       if (!existingKey) {
-        setConnectionStatus('required');
-        return 'required';
+        setConnectionStatus('required')
+        return 'required'
       }
       // Smoke test against billing endpoint
-      const result = await window.api.fal.validateKey(existingKey);
+      const result = await window.api.fal.validateKey(existingKey)
       if (result.valid) {
-        setConnectionStatus('connected');
-        if (result.credits !== undefined) setFalCredits(result.credits);
-        return 'connected';
+        setConnectionStatus('connected')
+        if (result.credits !== undefined) setFalCredits(result.credits)
+        return 'connected'
       } else {
         // 401 = invalid key
-        setConnectionStatus('invalid');
-        return 'invalid';
+        setConnectionStatus('invalid')
+        return 'invalid'
       }
     } catch {
-      setConnectionStatus('error');
-      return 'error';
+      setConnectionStatus('error')
+      return 'error'
     }
-  }, []);
+  }, [])
 
   // On mount: validate license via main process, then check fal connection
   useEffect(() => {
     const checkLicense = async () => {
-      setLicenseChecking(true);
+      setLicenseChecking(true)
       try {
-        const result = await (window as any).api.license.validate();
+        const result = await window.api.license.validate()
         if (!result.valid) {
           // License invalid — force onboarding regardless of localStorage
-          setOnboardingComplete(false);
+          setOnboardingComplete(false)
         } else if (localStorage.getItem('mosterads_onboarded') === 'true') {
           // License valid + previously onboarded — check fal connection
-          refreshConnectionStatus();
+          refreshConnectionStatus()
         }
       } catch {
         // Network error — force onboarding so user can re-validate
-        setOnboardingComplete(false);
+        setOnboardingComplete(false)
       } finally {
-        setLicenseChecking(false);
+        setLicenseChecking(false)
       }
-    };
-    checkLicense();
-  }, [refreshConnectionStatus]);
+    }
+    checkLicense()
+  }, [refreshConnectionStatus])
 
   return (
-    <AppContext.Provider value={{
-      sidebarCollapsed,
-      setSidebarCollapsed,
-      toggleSidebar,
-      rightPanelContent,
-      setRightPanelContent,
-      onboardingComplete,
-      completeOnboarding,
-      licenseChecking,
-      activeImageMode,
-      setActiveImageMode,
-      activeVideoMode,
-      setActiveVideoMode,
-      mcpEnabled,
-      setMcpEnabled,
-      connectionStatus,
-      falCredits,
-      refreshConnectionStatus,
-    }}>
+    <AppContext.Provider
+      value={{
+        sidebarCollapsed,
+        setSidebarCollapsed,
+        toggleSidebar,
+        rightPanelContent,
+        setRightPanelContent,
+        onboardingComplete,
+        completeOnboarding,
+        licenseChecking,
+        activeImageMode,
+        setActiveImageMode,
+        activeVideoMode,
+        setActiveVideoMode,
+        mcpEnabled,
+        setMcpEnabled,
+        connectionStatus,
+        falCredits,
+        refreshConnectionStatus
+      }}
+    >
       {children}
     </AppContext.Provider>
-  );
+  )
 }
 
 export function useApp() {
-  const ctx = useContext(AppContext);
-  if (!ctx) throw new Error('useApp must be used within AppProvider');
-  return ctx;
+  const ctx = useContext(AppContext)
+  if (!ctx) throw new Error('useApp must be used within AppProvider')
+  return ctx
 }

@@ -1,9 +1,9 @@
 type InfoRowProps = {
-  label: string;
-  value: any;
-  mono?: boolean;
-  green?: boolean;
-};
+  label: string
+  value: any
+  mono?: boolean
+  green?: boolean
+}
 
 export function InfoRow({ label, value, mono, green }: InfoRowProps) {
   return (
@@ -13,11 +13,11 @@ export function InfoRow({ label, value, mono, green }: InfoRowProps) {
         style={{
           fontSize: 12,
           color: green ? 'var(--ma-green)' : '#FFF',
-          fontFamily: mono ? 'var(--font-mono)' : 'var(--font-body)',
+          fontFamily: mono ? 'var(--font-mono)' : 'var(--font-body)'
         }}
       >
         {value}
       </span>
     </div>
-  );
+  )
 }

@@ -27,7 +27,7 @@ export class FalClient {
     endpoint: string,
     maxAttempts = 60,
     auth: string
-  ): Promise<any> {
+  ): Promise<unknown> {
     const resultUrl = `https://queue.fal.run/${endpoint}/requests/${requestId}`
 
     for (let i = 0; i < maxAttempts; i++) {

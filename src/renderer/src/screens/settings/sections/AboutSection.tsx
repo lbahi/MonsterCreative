@@ -1,36 +1,79 @@
-import { ExternalLink, AlertCircle, Globe } from 'lucide-react';
-import packageJson from '../../../../../../package.json';
+import { ExternalLink, AlertCircle, Globe } from 'lucide-react'
+import packageJson from '../../../../../../package.json'
 
 export const AboutSection = () => {
   return (
     <div>
-      <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: '#FFF', margin: '0 0 6px' }}>About</h2>
-      <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', margin: '0 0 24px' }}>MonsterCreative application information.</p>
+      <h2
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 18,
+          fontWeight: 700,
+          color: '#FFF',
+          margin: '0 0 6px'
+        }}
+      >
+        About
+      </h2>
+      <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', margin: '0 0 24px' }}>
+        MonsterCreative application information.
+      </p>
 
-      <div style={{ background: 'var(--ma-elevated)', border: '1px solid var(--ma-border)', borderRadius: 12, padding: 24, marginBottom: 16 }}>
+      <div
+        style={{
+          background: 'var(--ma-elevated)',
+          border: '1px solid var(--ma-border)',
+          borderRadius: 12,
+          padding: 24,
+          marginBottom: 16
+        }}
+      >
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-          <div style={{
-            width: 48, height: 48, borderRadius: 12,
-            background: 'linear-gradient(135deg, var(--ma-accent), #9B8FFF)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 0 20px var(--ma-accent-glow)',
-          }}>
+          <div
+            style={{
+              width: 48,
+              height: 48,
+              borderRadius: 12,
+              background: 'linear-gradient(135deg, var(--ma-accent), #9B8FFF)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 0 20px var(--ma-accent-glow)'
+            }}
+          >
             <span style={{ fontSize: 22 }}>⚡</span>
           </div>
           <div>
-            <p style={{ fontSize: 16, fontWeight: 700, color: '#FFF', margin: 0, fontFamily: 'var(--font-display)' }}>MonsterCreative</p>
-            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', margin: '2px 0 0' }}>AI-Powered Ad Creative Suite</p>
+            <p
+              style={{
+                fontSize: 16,
+                fontWeight: 700,
+                color: '#FFF',
+                margin: 0,
+                fontFamily: 'var(--font-display)'
+              }}
+            >
+              MonsterCreative
+            </p>
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', margin: '2px 0 0' }}>
+              AI-Powered Ad Creative Suite
+            </p>
           </div>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {[
             { label: 'Version', value: `${packageJson.version}` },
             { label: 'License', value: 'Pro — Active' },
-            { label: 'Plan', value: 'Media Buyer Pro' },
-          ].map(item => (
-            <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            { label: 'Plan', value: 'Media Buyer Pro' }
+          ].map((item) => (
+            <div
+              key={item.label}
+              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
+            >
               <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)' }}>{item.label}</span>
-              <span style={{ fontSize: 12, color: '#FFF', fontFamily: 'var(--font-mono)' }}>{item.value}</span>
+              <span style={{ fontSize: 12, color: '#FFF', fontFamily: 'var(--font-mono)' }}>
+                {item.value}
+              </span>
             </div>
           ))}
         </div>
@@ -41,38 +84,59 @@ export const AboutSection = () => {
           { label: 'Documentation', icon: <ExternalLink size={14} /> },
           { label: 'View Changelog', icon: <ExternalLink size={14} /> },
           { label: 'Report a Bug', icon: <AlertCircle size={14} /> },
-          { label: 'Privacy Policy', icon: <Globe size={14} /> },
-        ].map(item => (
-          <button key={item.label} style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '11px 16px', background: 'rgba(255,255,255,0.03)',
-            border: '1px solid var(--ma-border)', borderRadius: 9,
-            cursor: 'pointer', color: 'rgba(255,255,255,0.5)', fontSize: 13,
-            fontFamily: 'var(--font-body)',
-          }}>
+          { label: 'Privacy Policy', icon: <Globe size={14} /> }
+        ].map((item) => (
+          <button
+            key={item.label}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '11px 16px',
+              background: 'rgba(255,255,255,0.03)',
+              border: '1px solid var(--ma-border)',
+              borderRadius: 9,
+              cursor: 'pointer',
+              color: 'rgba(255,255,255,0.5)',
+              fontSize: 13,
+              fontFamily: 'var(--font-body)'
+            }}
+          >
             {item.label}
             {item.icon}
           </button>
         ))}
 
-        <button 
+        <button
           onClick={async () => {
-            if (confirm('Are you sure you want to transfer your license? This will deactivate it on this device and you will need to enter your key again.')) {
-              await (window as any).api.license.deactivate();
-              window.location.reload();
+            if (
+              confirm(
+                'Are you sure you want to transfer your license? This will deactivate it on this device and you will need to enter your key again.'
+              )
+            ) {
+              await window.api.license.deactivate()
+              window.location.reload()
             }
           }}
           style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '11px 16px', background: 'rgba(239,68,68,0.05)',
-            border: '1px solid rgba(239,68,68,0.2)', borderRadius: 9,
-            cursor: 'pointer', color: '#EF4444', fontSize: 13,
-            fontFamily: 'var(--font-body)', marginTop: 8
-          }}>
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '11px 16px',
+            background: 'rgba(239,68,68,0.05)',
+            border: '1px solid rgba(239,68,68,0.2)',
+            borderRadius: 9,
+            cursor: 'pointer',
+            color: '#EF4444',
+            fontSize: 13,
+            fontFamily: 'var(--font-body)',
+            marginTop: 8
+          }}
+        >
           Transfer License
           <AlertCircle size={14} />
         </button>
       </div>
     </div>
-  );
-};
+  )
+}

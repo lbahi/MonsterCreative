@@ -73,7 +73,7 @@ export const VOICE_REGISTRY: VoiceEntry[] = [
     gender: 'male',
     tier: 'premium',
     useCase: 'Prestige car ads, classic French luxury.',
-    sampleText: 'L\'élégance à la française, redéfinie.'
+    sampleText: "L'élégance à la française, redéfinie."
   },
   {
     id: 'sam',
@@ -97,7 +97,7 @@ export const VOICE_REGISTRY: VoiceEntry[] = [
     gender: 'female',
     tier: 'premium',
     useCase: 'High-end perfumes, sophisticated jewelry.',
-    sampleText: 'L\'essence même de la beauté intemporelle.'
+    sampleText: "L'essence même de la beauté intemporelle."
   },
   {
     id: 'audrey',
@@ -233,4 +233,4 @@ export const VOICE_REGISTRY: VoiceEntry[] = [
     useCase: 'Engaging, lifestyle narrative in Algerian dialect.',
     sampleText: 'تبعونا باش تكتشفو كولش جديد.'
   }
-];
+]

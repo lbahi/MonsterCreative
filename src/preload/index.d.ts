@@ -20,34 +20,49 @@ declare global {
       fal: {
         getUsage: (timeframe?: string, start?: string, end?: string) => Promise<any>
         getBilling: () => Promise<any>
-        validateKey: (key: string) => Promise<{ valid: boolean; credits?: number; currency?: string; error?: string }>
+        validateKey: (
+          key: string
+        ) => Promise<{ valid: boolean; credits?: number; currency?: string; error?: string }>
         getPricing: (ids: string[]) => Promise<any>
         getAnalytics: (ids: string[], start?: string, end?: string) => Promise<any>
-        generateCopy: (promptOrMessages: any, modelId: string) => Promise<{ data?: string; error?: string }>
-        analyzeImageVision: (imageUrl: string, prompt: string, systemPrompt: string, modelId: string) => Promise<{ data?: string; error?: string }>
-        chatCompletion: (messages: any[], modelId: string) => Promise<{ data?: string; error?: string }>
+        generateCopy: (
+          promptOrMessages: any,
+          modelId: string
+        ) => Promise<{ data?: string; error?: string }>
+        analyzeImageVision: (
+          imageUrl: string,
+          prompt: string,
+          systemPrompt: string,
+          modelId: string
+        ) => Promise<{ data?: string; error?: string }>
+        chatCompletion: (
+          messages: any[],
+          modelId: string
+        ) => Promise<{ data?: string; error?: string }>
         uploadImageFromDataUrl: (dataUrl: string) => Promise<{ url?: string; error?: string }>
         nanoBananaEdit: (params: any) => Promise<any>
         reframeImage: (params: {
-          image_url: string;
-          aspect_ratio: string;
-          output_format?: string;
+          image_url: string
+          aspect_ratio: string
+          output_format?: string
         }) => Promise<any>
         kontextEdit: (params: {
-          image_url: string;
-          prompt: string;
-          aspect_ratio?: string;
-          width?: number;
-          height?: number;
-          output_format?: string;
-          num_images?: number;
+          image_url: string
+          prompt: string
+          aspect_ratio?: string
+          width?: number
+          height?: number
+          output_format?: string
+          num_images?: number
         }) => Promise<any>
-      },
+      }
       external: {
         open: (url: string) => Promise<void>
       }
       license: {
-        activate: (key: string) => Promise<{ success: boolean; error?: string; purchaserEmail?: string }>
+        activate: (
+          key: string
+        ) => Promise<{ success: boolean; error?: string; purchaserEmail?: string }>
         validate: () => Promise<{ valid: boolean; error?: string }>
         deactivate: () => Promise<void>
         getKey: () => Promise<string | null>

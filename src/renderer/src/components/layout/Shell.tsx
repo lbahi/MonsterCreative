@@ -1,10 +1,10 @@
 import React from 'react'
-import { 
-  LayoutDashboard, 
-  FileText, 
-  Image as ImageIcon, 
-  Video, 
-  BarChart3, 
+import {
+  LayoutDashboard,
+  FileText,
+  Image as ImageIcon,
+  Video,
+  BarChart3,
   Settings,
   HelpCircle,
   Bell
@@ -23,7 +23,7 @@ const Shell: React.FC<ShellProps> = ({ children, activeTab, onTabChange }) => {
     { id: 'imagegen', label: 'Image Gen', icon: ImageIcon },
     { id: 'videoads', label: 'Video Ads', icon: Video },
     { id: 'tracker', label: 'AI Spending Tracker', icon: BarChart3 },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'settings', label: 'Settings', icon: Settings }
   ]
 
   return (
@@ -34,8 +34,12 @@ const Shell: React.FC<ShellProps> = ({ children, activeTab, onTabChange }) => {
       {/* Sidebar */}
       <aside className="w-64 h-full mica-effect border-r border-white/5 flex flex-col z-20">
         <div className="p-8">
-          <h1 className="text-ocean-cerulean text-2xl font-black tracking-tighter italic">MosterAds</h1>
-          <p className="text-[10px] uppercase tracking-[0.2em] text-subtle-silver font-bold mt-1">Monster Creative</p>
+          <h1 className="text-ocean-cerulean text-2xl font-black tracking-tighter italic">
+            MosterAds
+          </h1>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-subtle-silver font-bold mt-1">
+            Monster Creative
+          </p>
         </div>
 
         <nav className="flex-1 px-4 space-y-2 mt-4">
@@ -47,12 +51,19 @@ const Shell: React.FC<ShellProps> = ({ children, activeTab, onTabChange }) => {
                 key={item.id}
                 onClick={() => onTabChange(item.id)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${
-                  isActive 
-                    ? 'bg-white/10 text-soft-cloud border-l-4 border-ocean-cerulean' 
+                  isActive
+                    ? 'bg-white/10 text-soft-cloud border-l-4 border-ocean-cerulean'
                     : 'text-subtle-silver hover:bg-white/5 hover:text-soft-cloud'
                 }`}
               >
-                <Icon size={18} className={isActive ? 'text-ocean-cerulean' : 'group-hover:text-ocean-cerulean transition-colors'} />
+                <Icon
+                  size={18}
+                  className={
+                    isActive
+                      ? 'text-ocean-cerulean'
+                      : 'group-hover:text-ocean-cerulean transition-colors'
+                  }
+                />
                 <span className="text-sm font-semibold">{item.label}</span>
               </button>
             )
@@ -66,7 +77,9 @@ const Shell: React.FC<ShellProps> = ({ children, activeTab, onTabChange }) => {
             </div>
             <div className="flex-1 overflow-hidden">
               <p className="text-xs font-bold truncate">Bahaa</p>
-              <p className="text-[10px] uppercase tracking-wider text-subtle-silver font-bold">Pro Account</p>
+              <p className="text-[10px] uppercase tracking-wider text-subtle-silver font-bold">
+                Pro Account
+              </p>
             </div>
           </div>
         </div>
@@ -86,14 +99,14 @@ const Shell: React.FC<ShellProps> = ({ children, activeTab, onTabChange }) => {
           <div className="h-4 w-[1px] bg-white/10" />
           <div className="flex items-center gap-3">
             <div className="w-2.5 h-2.5 rounded-full bg-emerald-growth/80" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-growth">System Live</span>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-growth">
+              System Live
+            </span>
           </div>
         </header>
 
         {/* View Content */}
-        <div className="flex-1 overflow-y-auto p-10 scroll-smooth">
-          {children}
-        </div>
+        <div className="flex-1 overflow-y-auto p-10 scroll-smooth">{children}</div>
       </main>
     </div>
   )

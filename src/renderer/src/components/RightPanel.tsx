@@ -1,8 +1,7 @@
-import { useApp } from '../contexts/AppContext';
-
+import { useApp } from '../contexts/AppContext'
 
 export function RightPanel() {
-  const { rightPanelContent } = useApp();
+  const { rightPanelContent } = useApp()
 
   return (
     <div
@@ -14,21 +13,22 @@ export function RightPanel() {
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-        fontFamily: 'var(--font-body)',
+        fontFamily: 'var(--font-body)'
       }}
     >
       <div style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingTop: 32 }}>
         {rightPanelContent ?? <DefaultPanelContent />}
       </div>
     </div>
-  );
+  )
 }
 
 function DefaultPanelContent() {
   return (
-    <div style={{ padding: 20, color: 'rgba(255,255,255,0.3)', textAlign: 'center', paddingTop: 30 }}>
+    <div
+      style={{ padding: 20, color: 'rgba(255,255,255,0.3)', textAlign: 'center', paddingTop: 30 }}
+    >
       <p style={{ fontSize: 13 }}>Select a tool to get started</p>
     </div>
-  );
+  )
 }
-

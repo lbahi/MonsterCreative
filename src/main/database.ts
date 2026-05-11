@@ -3,13 +3,69 @@ import { app } from 'electron'
 import path from 'path'
 import fs from 'fs'
 
+export interface AppSettings {
+  id?: number
+  default_copy_tone: string
+  default_image_model: string
+  default_video_model: string
+  default_image_format: string
+  auto_save_generations: number | boolean
+  asset_save_path: string
+  accent_color: string
+}
+
+export interface GeneratedImage {
+  id?: number
+  campaign_id?: number
+  local_path: string
+  prompt: string
+  model: string
+  format: string
+  width: number
+  height: number
+  fal_request_id: string
+  created_at?: string
+}
+
+export interface CopyVariantRecord {
+  id?: number
+  campaign_id?: number
+  variant_type: string
+  platform: string
+  headline1?: string
+  headline2?: string
+  headline3?: string
+  hook?: string
+  body_copy?: string
+  cta?: string
+  tone?: string
+  triggers_used?: string
+  landing_page_part?: string
+  video_scripts?: string
+  created_at?: string
+}
+
+export interface GeneratedVideo {
+  id?: number
+  campaign_id?: number
+  local_path?: string
+  prompt: string
+  model: string
+  resolution: string
+  duration: number
+  url: string
+  fileName: string
+  fileSize: number
+  createdAt?: string
+}
+
 export class DatabaseService {
   private db: Database.Database
 
   constructor() {
     const userDataPath = app.getPath('userData')
     const dbPath = path.join(userDataPath, 'monstercreative.db')
-    
+
     // Ensure directory exists
     if (!fs.existsSync(userDataPath)) {
       fs.mkdirSync(userDataPath, { recursive: true })
@@ -97,9 +153,9 @@ export class DatabaseService {
           sample_path TEXT,
           created_at TEXT NOT NULL
         );
-      `);
-    } catch (err) {
-      console.error('Database core init failed:', err);
+      `)
+    } catch (err: unknown) {
+      console.error('Database core init failed:', err instanceof Error ? err.message : String(err))
     }
 
     // --- MIGRATIONS ---
@@ -109,26 +165,28 @@ export class DatabaseService {
       'ALTER TABLE generated_videos ADD COLUMN file_name TEXT;',
       'ALTER TABLE generated_videos ADD COLUMN file_size INTEGER;',
       'ALTER TABLE generated_videos ADD COLUMN created_at TEXT;'
-    ];
+    ]
 
     for (const sql of migrations) {
       try {
-        this.db.exec(sql);
-      } catch (err: any) {
+        this.db.exec(sql)
+      } catch (err: unknown) {
         // Ignore "duplicate column name" errors
-        if (!err.message.includes('duplicate column name')) {
-          console.error('Migration failed:', sql, err);
+        if (err instanceof Error && !err.message.includes('duplicate column name')) {
+          console.error('Migration failed:', sql, err.message)
         }
       }
     }
   }
 
   // --- Settings ---
-  getSettings() {
-    return this.db.prepare('SELECT * FROM app_settings WHERE id = 1').get()
+  getSettings(): AppSettings | undefined {
+    return this.db.prepare('SELECT * FROM app_settings WHERE id = 1').get() as
+      | AppSettings
+      | undefined
   }
 
-  updateSettings(settings: any) {
+  updateSettings(settings: AppSettings): Database.RunResult {
     const stmt = this.db.prepare(`
       UPDATE app_settings SET 
         default_copy_tone = ?, 
@@ -152,11 +210,11 @@ export class DatabaseService {
   }
 
   // --- Campaigns ---
-  getAllCampaigns() {
+  getAllCampaigns(): unknown[] {
     return this.db.prepare('SELECT * FROM campaigns ORDER BY created_at DESC').all()
   }
 
-  createCampaign(name: string, platforms: string) {
+  createCampaign(name: string, platforms: string): number | bigint {
     const now = new Date().toISOString()
     const stmt = this.db.prepare(`
       INSERT INTO campaigns (name, platforms, status, created_at, updated_at)
@@ -167,19 +225,26 @@ export class DatabaseService {
   }
 
   // --- Content Saving ---
-  saveImage(img: any) {
+  saveImage(img: GeneratedImage): number | bigint {
     const stmt = this.db.prepare(`
       INSERT INTO generated_images
         (campaign_id, local_path, prompt, model, format, width, height, fal_request_id, created_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
     return stmt.run(
-      img.campaign_id, img.local_path, img.prompt, img.model,
-      img.format, img.width, img.height, img.fal_request_id, new Date().toISOString()
+      img.campaign_id,
+      img.local_path,
+      img.prompt,
+      img.model,
+      img.format,
+      img.width,
+      img.height,
+      img.fal_request_id,
+      new Date().toISOString()
     ).lastInsertRowid
   }
 
-  saveCopyVariant(v: any) {
+  saveCopyVariant(v: CopyVariantRecord): number | bigint {
     const stmt = this.db.prepare(`
       INSERT INTO copy_variants
         (campaign_id, variant_type, platform, headline1, headline2, headline3,
@@ -187,12 +252,24 @@ export class DatabaseService {
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `)
     return stmt.run(
-      v.campaign_id, v.variant_type, v.platform, v.headline1, v.headline2, v.headline3,
-      v.hook, v.body_copy, v.cta, v.tone, v.triggers_used, v.landing_page_part, v.video_scripts, new Date().toISOString()
+      v.campaign_id,
+      v.variant_type,
+      v.platform,
+      v.headline1,
+      v.headline2,
+      v.headline3,
+      v.hook,
+      v.body_copy,
+      v.cta,
+      v.tone,
+      v.triggers_used,
+      v.landing_page_part,
+      v.video_scripts,
+      new Date().toISOString()
     ).lastInsertRowid
   }
 
-  saveGeneratedVideo(video: any) {
+  saveGeneratedVideo(video: GeneratedVideo): number | bigint {
     const stmt = this.db.prepare(`
       INSERT INTO generated_videos
         (prompt, model, resolution, duration_seconds, url, file_name, file_size, created_at)
@@ -211,20 +288,29 @@ export class DatabaseService {
   }
 
   // --- Custom Voices ---
-  saveCustomVoice(voice: { name: string; embeddingPath: string; samplePath?: string }) {
+  saveCustomVoice(voice: {
+    name: string
+    embeddingPath: string
+    samplePath?: string
+  }): number | bigint {
     const stmt = this.db.prepare(`
       INSERT INTO custom_voices (name, embedding_path, sample_path, created_at)
       VALUES (?, ?, ?, ?)
     `)
-    const result = stmt.run(voice.name, voice.embeddingPath, voice.samplePath || null, new Date().toISOString())
+    const result = stmt.run(
+      voice.name,
+      voice.embeddingPath,
+      voice.samplePath || null,
+      new Date().toISOString()
+    )
     return result.lastInsertRowid
   }
 
-  getAllCustomVoices() {
+  getAllCustomVoices(): unknown[] {
     return this.db.prepare('SELECT * FROM custom_voices ORDER BY created_at DESC').all()
   }
 
-  deleteCustomVoice(id: number) {
+  deleteCustomVoice(id: number): Database.RunResult {
     return this.db.prepare('DELETE FROM custom_voices WHERE id = ?').run(id)
   }
 }

@@ -1,12 +1,5 @@
 import React, { useState } from 'react'
-import { 
-  Sparkles, 
-  Image as ImageIcon, 
-  Download, 
-  Filter, 
-  ChevronRight,
-  Loader2
-} from 'lucide-react'
+import { Sparkles, Image as ImageIcon, Download, Filter, ChevronRight, Loader2 } from 'lucide-react'
 import { falService } from '../services/fal.service'
 
 interface GeneratedImage {
@@ -16,28 +9,28 @@ interface GeneratedImage {
   model: string
 }
 
-const ImageGenView: React.FC = () => {
+const ImageGenView: React.FC = (): JSX.Element => {
   const [prompt, setPrompt] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [results, setResults] = useState<GeneratedImage[]>([])
   const [selectedModel, setSelectedModel] = useState('flux/pro-1.1')
   const [aspectRatio, setAspectRatio] = useState('1:1')
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (): Promise<void> => {
     if (!prompt.trim()) return
-    
+
     setIsGenerating(true)
     try {
       const response = await falService.generateImage(prompt, selectedModel)
       if (response.images && response.images.length > 0) {
-        const newImages = response.images.map(img => ({
+        const newImages = response.images.map((img) => ({
           url: img.url,
           prompt: prompt,
           timestamp: new Date().toLocaleTimeString(),
           model: selectedModel
         }))
-        setResults(prev => [...newImages, ...prev])
-        
+        setResults((prev) => [...newImages, ...prev])
+
         // Save to database
         for (const img of response.images) {
           await window.api.database.saveImage({
@@ -52,9 +45,9 @@ const ImageGenView: React.FC = () => {
           })
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Generation failed:', error)
-      alert(`Generation failed: ${error.message}`)
+      alert(`Generation failed: ${(error as Error).message}`)
     } finally {
       setIsGenerating(false)
     }
@@ -72,8 +65,10 @@ const ImageGenView: React.FC = () => {
 
           {/* Prompt */}
           <div className="space-y-3">
-            <label className="text-[10px] uppercase tracking-widest text-subtle-silver font-black">Prompt Input</label>
-            <textarea 
+            <label className="text-[10px] uppercase tracking-widest text-subtle-silver font-black">
+              Prompt Input
+            </label>
+            <textarea
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               className="premium-input h-32 resize-none"
@@ -83,18 +78,20 @@ const ImageGenView: React.FC = () => {
 
           {/* Model Selection */}
           <div className="space-y-3">
-            <label className="text-[10px] uppercase tracking-widest text-subtle-silver font-black">AI Model</label>
+            <label className="text-[10px] uppercase tracking-widest text-subtle-silver font-black">
+              AI Model
+            </label>
             <div className="grid grid-cols-1 gap-2">
               {[
                 { id: 'flux/pro-1.1', name: 'FLUX Pro 1.1 (Premium)' },
                 { id: 'flux/schnell', name: 'FLUX Schnell (Fast)' }
-              ].map(model => (
+              ].map((model) => (
                 <button
                   key={model.id}
                   onClick={() => setSelectedModel(model.id)}
                   className={`text-left px-4 py-3 rounded-xl text-xs font-bold border transition-all ${
-                    selectedModel === model.id 
-                      ? 'bg-ocean-cerulean/10 border-ocean-cerulean text-ocean-cerulean' 
+                    selectedModel === model.id
+                      ? 'bg-ocean-cerulean/10 border-ocean-cerulean text-ocean-cerulean'
                       : 'bg-charcoal-surface border-white/5 text-subtle-silver hover:border-white/20'
                   }`}
                 >
@@ -106,9 +103,11 @@ const ImageGenView: React.FC = () => {
 
           {/* Aspect Ratio */}
           <div className="space-y-3">
-            <label className="text-[10px] uppercase tracking-widest text-subtle-silver font-black">Aspect Ratio</label>
+            <label className="text-[10px] uppercase tracking-widest text-subtle-silver font-black">
+              Aspect Ratio
+            </label>
             <div className="grid grid-cols-2 gap-2">
-              {['1:1', '16:9', '9:16', '4:5'].map(ratio => (
+              {['1:1', '16:9', '9:16', '4:5'].map((ratio) => (
                 <button
                   key={ratio}
                   onClick={() => setAspectRatio(ratio)}
@@ -125,7 +124,7 @@ const ImageGenView: React.FC = () => {
           </div>
 
           {/* Generate Button */}
-          <button 
+          <button
             onClick={handleGenerate}
             disabled={isGenerating || !prompt.trim()}
             className="btn-primary w-full flex items-center justify-center gap-3 disabled:opacity-50 disabled:scale-100"
@@ -183,7 +182,11 @@ const ImageGenView: React.FC = () => {
               <div className="grid grid-cols-2 gap-6 h-3/5">
                 {results.slice(0, 2).map((img, i) => (
                   <div key={i} className="group relative rounded-3xl overflow-hidden glass-panel">
-                    <img src={img.url} alt="Generated creative" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                    <img
+                      src={img.url}
+                      alt="Generated creative"
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
                     <div className="absolute inset-0 bg-abyss-black/60 opacity-0 group-hover:opacity-100 transition-all flex flex-col items-center justify-center gap-4">
                       <button className="px-8 py-3 bg-ocean-cerulean text-abyss-black font-black text-xs uppercase tracking-widest rounded-full hover:scale-105 active:scale-95 transition-all">
                         Use in Campaign
@@ -200,18 +203,34 @@ const ImageGenView: React.FC = () => {
 
               {/* History Row */}
               <div className="flex-1 flex flex-col gap-4 overflow-hidden">
-                <h4 className="text-[10px] uppercase tracking-widest text-subtle-silver font-black opacity-60">Recent History</h4>
+                <h4 className="text-[10px] uppercase tracking-widest text-subtle-silver font-black opacity-60">
+                  Recent History
+                </h4>
                 <div className="flex-1 overflow-y-auto space-y-3 pr-2 no-scrollbar">
                   {results.map((img, i) => (
-                    <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-charcoal-surface/40 hover:bg-charcoal-surface border border-white/0 hover:border-white/5 transition-all group cursor-pointer">
+                    <div
+                      key={i}
+                      className="flex items-center justify-between p-4 rounded-2xl bg-charcoal-surface/40 hover:bg-charcoal-surface border border-white/0 hover:border-white/5 transition-all group cursor-pointer"
+                    >
                       <div className="flex items-center gap-5 overflow-hidden">
-                        <img src={img.url} className="w-12 h-12 rounded-lg object-cover" alt="History thumbnail" />
+                        <img
+                          src={img.url}
+                          className="w-12 h-12 rounded-lg object-cover"
+                          alt="History thumbnail"
+                        />
                         <div className="overflow-hidden">
-                          <p className="text-sm font-bold text-soft-cloud truncate max-w-md italic">"{img.prompt}"</p>
-                          <p className="text-[10px] text-subtle-silver font-medium mt-0.5 uppercase tracking-tighter">{img.timestamp} • {img.model}</p>
+                          <p className="text-sm font-bold text-soft-cloud truncate max-w-md italic">
+                            &quot;{img.prompt}&quot;
+                          </p>
+                          <p className="text-[10px] text-subtle-silver font-medium mt-0.5 uppercase tracking-tighter">
+                            {img.timestamp} • {img.model}
+                          </p>
                         </div>
                       </div>
-                      <ChevronRight size={18} className="text-subtle-silver group-hover:text-ocean-cerulean transition-colors" />
+                      <ChevronRight
+                        size={18}
+                        className="text-subtle-silver group-hover:text-ocean-cerulean transition-colors"
+                      />
                     </div>
                   ))}
                 </div>

@@ -4,8 +4,8 @@ import { keystoreService } from '../keystore'
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 // CONSTANTS
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-const GUMROAD_PRODUCT_ID = "E68N0D3GnrI9-UgafMCUXg=="
-const GUMROAD_API_URL = "https://api.gumroad.com/v2/licenses/verify"
+const GUMROAD_PRODUCT_ID = 'E68N0D3GnrI9-UgafMCUXg=='
+const GUMROAD_API_URL = 'https://api.gumroad.com/v2/licenses/verify'
 const REVALIDATION_DAYS = 7
 
 export interface ActivateResult {
@@ -19,6 +19,19 @@ export interface ValidateResult {
   error?: string
 }
 
+interface GumroadResponse {
+  success: boolean
+  message?: string
+  uses: number
+  purchase?: {
+    refunded?: boolean
+    chargebacked?: boolean
+    test?: boolean
+    email?: string
+    variants?: string
+  }
+}
+
 export class LicenseService {
   /**
    * Called when user enters their key for the first time.
@@ -28,7 +41,7 @@ export class LicenseService {
       const body = new URLSearchParams({
         product_id: GUMROAD_PRODUCT_ID,
         license_key: key,
-        increment_uses_count: "true"
+        increment_uses_count: 'true'
       })
 
       const res = await fetch(GUMROAD_API_URL, {
@@ -36,31 +49,39 @@ export class LicenseService {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body.toString()
       })
-      const data = await res.json()
+      const data = (await res.json()) as GumroadResponse
 
       // CASE 1 — data.success is false
       if (!data.success) {
-        return { success: false, error: data.message ? `Gumroad Error: ${data.message}` : "Invalid license key.\nPlease check your key and try again." }
+        return {
+          success: false,
+          error: data.message
+            ? `Gumroad Error: ${data.message}`
+            : 'Invalid license key.\nPlease check your key and try again.'
+        }
       }
 
       // CASE 2 — data.purchase.refunded is true
       if (data.purchase?.refunded) {
-        return { success: false, error: "This license key has been refunded\nand is no longer valid." }
+        return {
+          success: false,
+          error: 'This license key has been refunded\nand is no longer valid.'
+        }
       }
 
       // CASE 3 — data.purchase.chargebacked is true
       if (data.purchase?.chargebacked) {
-        return { success: false, error: "This license key is not valid." }
+        return { success: false, error: 'This license key is not valid.' }
       }
 
       // CASE 4 — data.purchase.test is true
       if (data.purchase?.test) {
-        log.info("Test key detected - allowing for test purposes")
+        log.info('Test key detected - allowing for test purposes')
       }
 
       // Determine max activations based on variant
-      const variant = data.purchase?.variants || '';
-      const maxActivations = variant === 'Agency' ? 5 : 2;
+      const variant = data.purchase?.variants || ''
+      const maxActivations = variant === 'Agency' ? 5 : 2
 
       // CASE 5 — data.uses > maxActivations
       if (data.uses > maxActivations) {
@@ -71,10 +92,13 @@ export class LicenseService {
           body: new URLSearchParams({
             product_id: GUMROAD_PRODUCT_ID,
             license_key: key,
-            increment_uses_count: "false"
+            increment_uses_count: 'false'
           }).toString()
         })
-        return { success: false, error: `Activation limit reached (${maxActivations} devices).\nTo transfer your license, contact support.` }
+        return {
+          success: false,
+          error: `Activation limit reached (${maxActivations} devices).\nTo transfer your license, contact support.`
+        }
       }
 
       // CASE 6 — Activation successful
@@ -84,7 +108,7 @@ export class LicenseService {
       await keystoreService.setLicenseData('purchaser-email', data.purchase?.email || '')
 
       return { success: true, purchaserEmail: data.purchase?.email }
-    } catch (err: any) {
+    } catch (err: unknown) {
       log.error('Gumroad activation error:', err)
       return { success: false, error: 'Network error. Please check your connection.' }
     }
@@ -114,7 +138,7 @@ export class LicenseService {
       const body = new URLSearchParams({
         product_id: GUMROAD_PRODUCT_ID,
         license_key: key,
-        increment_uses_count: "false"
+        increment_uses_count: 'false'
       })
 
       const res = await fetch(GUMROAD_API_URL, {
@@ -122,7 +146,7 @@ export class LicenseService {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body.toString()
       })
-      const data = await res.json()
+      const data = (await res.json()) as GumroadResponse
 
       if (!data.success) {
         await this.clearLicense()
