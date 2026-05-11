@@ -1,3 +1,4 @@
+import React from 'react'
 import { ChevronRight } from 'lucide-react'
 
 interface NavItemProps {
@@ -25,7 +26,7 @@ export const NavItem = ({
   isExpanded,
   onToggle,
   onNavigate
-}: NavItemProps): JSX.Element => {
+}: NavItemProps): React.ReactElement => {
   const active = isActive(item.path) || isParentActive(item)
 
   return (

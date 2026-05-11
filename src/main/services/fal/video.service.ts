@@ -1,6 +1,15 @@
 import { FalClient } from './base'
 import { VideoGenerationRequest, VideoGenerationResult } from './types'
 
+interface FalVideoOutput {
+  video?: { url: string; file_name?: string; file_size?: number }
+  output?: { video?: { url: string; file_name?: string; file_size?: number } }
+  data?: { video?: { url: string; file_name?: string; file_size?: number } }
+  url?: string
+  file_name?: string
+  file_size?: number
+}
+
 export class VideoService extends FalClient {
   /**
    * Universal Video Generation Handler
@@ -20,14 +29,6 @@ export class VideoService extends FalClient {
     const payload = this.buildVideoPayload(request)
     console.log(`[VideoService:generateVideo] Payload prepared for ${modelId}`)
 
-    interface FalVideoOutput {
-      video?: { url: string; file_name?: string; file_size?: number }
-      output?: { video?: { url: string; file_name?: string; file_size?: number } }
-      data?: { video?: { url: string; file_name?: string; file_size?: number } }
-      url?: string
-      file_name?: string
-      file_size?: number
-    }
 
     const toVideoResult = (data: unknown): VideoGenerationResult | null => {
       const d = data as FalVideoOutput

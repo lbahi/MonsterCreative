@@ -47,14 +47,16 @@ const CampaignsView: React.FC = () => {
           ])
         } else {
           setCampaigns(
-            data.map((c: { id: number; name: string; created_at: string; platforms: string }) => ({
-              id: c.id,
-              name: c.name,
-              created_at: c.created_at,
-              status: 'Live', // Simplification
-              platform: c.platforms,
-              budget: '$0'
-            }))
+            (data as Array<{ id: number; name: string; created_at: string; platforms: string }>).map(
+              (c) => ({
+                id: c.id,
+                name: c.name,
+                created_at: c.created_at,
+                status: 'Live', // Simplification
+                platform: c.platforms,
+                budget: '$0'
+              })
+            )
           )
         }
       } catch (err) {

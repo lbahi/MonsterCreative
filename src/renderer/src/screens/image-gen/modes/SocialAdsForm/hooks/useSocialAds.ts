@@ -90,8 +90,9 @@ export const useSocialAds = (props: SocialAdsFormProps) => {
         output_format: 'jpeg'
       })
 
-      if (!result?.images?.length) throw new Error('No image returned from model')
-      const imageUrl = result.images[0].url
+      const res = result as { images: Array<{ url: string }> }
+      if (!res?.images?.length) throw new Error('No image returned from model')
+      const imageUrl = res.images[0].url
 
       setGeneratedImages([imageUrl])
       setGenerated(true)
@@ -101,9 +102,9 @@ export const useSocialAds = (props: SocialAdsFormProps) => {
       const saveResult = await window.api.social.saveAdImage({ imageUrl, filename })
 
       if (saveResult.success) {
-        setSavedPath(saveResult.localUrl)
+        setSavedPath(saveResult.localUrl ?? null)
       } else {
-        setSaveError(saveResult.error)
+        setSaveError(saveResult.error ?? 'Unknown error saving image')
       }
     } catch (err: any) {
       console.error(err)

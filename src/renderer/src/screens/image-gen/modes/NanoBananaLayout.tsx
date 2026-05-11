@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import type { ChangeEvent, DragEvent } from 'react'
 import { ChevronDown, Image, RefreshCw, Settings2, Upload, Wand2, X } from 'lucide-react'
 
@@ -74,7 +74,7 @@ export function NanoBananaLayout({
   onGenerate,
   nbModel,
   setNbModel
-}: NanoBananaLayoutProps): JSX.Element {
+}: NanoBananaLayoutProps): React.ReactElement {
   const [dragRef, setDragRef] = useState(false)
   const [dragAsset, setDragAsset] = useState(false)
 

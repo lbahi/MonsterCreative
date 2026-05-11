@@ -1,5 +1,27 @@
 import { FalClient } from './base'
 
+interface FalUploadResponse {
+  access_url?: string
+}
+
+interface FalImageOutput {
+  image?: { url: string }
+  images?: Array<{ url: string }>
+  output?: {
+    image?: { url: string }
+    images?: Array<{ url: string }>
+  }
+}
+
+interface FalKontextOutput {
+  images?: Array<{ url: string }>
+  image?: { url: string }
+  output?: {
+    images?: Array<{ url: string }>
+    image?: { url: string }
+  }
+}
+
 export class ImageService extends FalClient {
   /**
    * Uploads a base64 data URL to fal.media CDN.
@@ -25,9 +47,6 @@ export class ImageService extends FalClient {
         { label: 'buffer', body: buffer }
       ]
 
-      interface FalUploadResponse {
-        access_url?: string
-      }
 
       const failures: string[] = []
 
@@ -214,14 +233,6 @@ export class ImageService extends FalClient {
       throw new Error(`Reframe failed (${response.status}): ${errText}`)
     }
 
-    interface FalImageOutput {
-      image?: { url: string }
-      images?: Array<{ url: string }>
-      output?: {
-        image?: { url: string }
-        images?: Array<{ url: string }>
-      }
-    }
 
     const data = (await response.json()) as FalImageOutput
     console.log('[reframeImage] raw response:', JSON.stringify(data).slice(0, 400))
@@ -280,14 +291,6 @@ export class ImageService extends FalClient {
       throw new Error(`Kontext edit failed (${response.status}): ${errText}`)
     }
 
-    interface FalKontextOutput {
-      images?: Array<{ url: string }>
-      image?: { url: string }
-      output?: {
-        images?: Array<{ url: string }>
-        image?: { url: string }
-      }
-    }
 
     const data = (await response.json()) as FalKontextOutput
     console.log('[kontextEdit] raw response:', JSON.stringify(data).slice(0, 400))

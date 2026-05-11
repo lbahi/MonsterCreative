@@ -1,3 +1,4 @@
+import React from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface CollapseButtonProps {
@@ -5,7 +6,10 @@ interface CollapseButtonProps {
   onToggle: () => void
 }
 
-export const CollapseButton = ({ collapsed, onToggle }: CollapseButtonProps): JSX.Element => {
+export const CollapseButton = ({
+  collapsed,
+  onToggle
+}: CollapseButtonProps): React.ReactElement => {
   return (
     <button
       onClick={onToggle}

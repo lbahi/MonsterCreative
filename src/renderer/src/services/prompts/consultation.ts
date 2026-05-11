@@ -1,4 +1,4 @@
-import { ProductAnalysis } from '../anthropic.service'
+import { ProductAnalysis } from '../anthropic.types'
 
 /**
  * Consultation Prompt

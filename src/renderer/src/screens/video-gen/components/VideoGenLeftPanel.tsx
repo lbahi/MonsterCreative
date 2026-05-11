@@ -1,10 +1,11 @@
+import React from 'react'
 import { Upload, X, ImageIcon, Settings2 } from 'lucide-react'
 import { VIDEO_MODELS, VIDEO_DURATIONS, VIDEO_ASPECT_RATIOS, VIDEO_RESOLUTIONS } from '../constants'
 import { useVideoGen } from '../hooks/useVideoGen'
 
 interface VideoGenLeftPanelProps extends ReturnType<typeof useVideoGen> {}
 
-export function VideoGenLeftPanel(props: VideoGenLeftPanelProps): JSX.Element {
+export function VideoGenLeftPanel(props: VideoGenLeftPanelProps): React.ReactElement {
   const {
     sourceImage,
     setSourceImage,
@@ -405,7 +406,7 @@ export function VideoGenLeftPanel(props: VideoGenLeftPanelProps): JSX.Element {
               </label>
               <select
                 value={resolution}
-                onChange={(e) => setResolution(e.target.value)}
+                onChange={(e) => setResolution(e.target.value as any)}
                 disabled={generating}
                 style={{
                   width: '100%',

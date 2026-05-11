@@ -1,3 +1,4 @@
+import React from 'react'
 import { Loader2, Sparkles } from 'lucide-react'
 import type { VtonFormProps } from './types'
 import { useVton } from './hooks/useVton'
@@ -6,7 +7,7 @@ import { ModelTypeSelector } from './components/ModelTypeSelector'
 import { VibeSelector } from './components/VibeSelector'
 import { VtonSettings } from './components/VtonSettings'
 
-export function VtonForm(props: VtonFormProps): JSX.Element {
+export function VtonForm(props: VtonFormProps): React.ReactElement {
   const vton = useVton(props)
   const canGenerate = !props.generating && vton.hasMainGarment && !!vton.selectedModelType
 

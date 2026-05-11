@@ -1,3 +1,4 @@
+import React from 'react'
 import { Video, Sparkles, Settings2 } from 'lucide-react'
 import { ActiveVideoGenMode } from '../types'
 
@@ -6,7 +7,10 @@ interface VideoGenHeaderProps {
   onModeChange: (mode: ActiveVideoGenMode) => void
 }
 
-export function VideoGenHeader({ activeMode, onModeChange }: VideoGenHeaderProps): JSX.Element {
+export function VideoGenHeader({
+  activeMode,
+  onModeChange
+}: VideoGenHeaderProps): React.ReactElement {
   return (
     <div
       style={{

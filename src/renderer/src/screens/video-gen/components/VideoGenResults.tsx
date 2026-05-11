@@ -1,3 +1,4 @@
+import React from 'react'
 import { VideoPlayer } from '../../../components/VideoPlayer'
 import { TemplatesTab } from '../tabs/TemplatesTab'
 import { ManualTab } from '../tabs/ManualTab'
@@ -7,7 +8,7 @@ interface VideoGenResultsProps {
   videoGen: ReturnType<typeof useVideoGen>
 }
 
-export function VideoGenResults({ videoGen }: VideoGenResultsProps): JSX.Element {
+export function VideoGenResults({ videoGen }: VideoGenResultsProps): React.ReactElement {
   const {
     generating,
     error,

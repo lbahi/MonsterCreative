@@ -1,10 +1,11 @@
+import React from 'react'
 import { Wand2 } from 'lucide-react'
 import { ManualVideoForm } from '../modes/ManualVideoForm'
 import { useVideoGen } from '../hooks/useVideoGen'
 
 interface ManualTabProps extends ReturnType<typeof useVideoGen> {}
 
-export function ManualTab(props: ManualTabProps): JSX.Element {
+export function ManualTab(props: ManualTabProps): React.ReactElement {
   const { prompt, setPrompt, generating, handleManualGenerate, sourceImage, estimatedCost } = props
 
   return (

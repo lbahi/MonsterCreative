@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { Play, Sparkles, Clock, Zap, X } from 'lucide-react'
 import { VIDEO_TEMPLATES } from '../constants'
 import type { VideoTemplate } from '../types'
@@ -11,7 +11,10 @@ interface TemplateGalleryProps {
   disabled?: boolean
 }
 
-export function TemplateGallery({ onSelectTemplate, disabled }: TemplateGalleryProps): JSX.Element {
+export function TemplateGallery({
+  onSelectTemplate,
+  disabled
+}: TemplateGalleryProps): React.ReactElement {
   const [previewTemplate, setPreviewTemplate] = useState<VideoTemplate | null>(null)
 
   const [targetModel, setTargetModel] = useState('')

@@ -4,7 +4,7 @@
  * Sub-components live in components/ or tabs/
  * Max 100 lines. If growing beyond that, extract.
  */
-import { useState } from 'react'
+import React, { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router'
 import {
   LayoutDashboard,
@@ -93,7 +93,7 @@ const bottomItems = [
   { id: 'settings', label: 'Settings', icon: <Settings size={18} />, path: '/settings' }
 ]
 
-export const Sidebar = (): JSX.Element => {
+export const Sidebar = (): React.ReactElement => {
   const { sidebarCollapsed, toggleSidebar, connectionStatus, refreshConnectionStatus } = useApp()
   const navigate = useNavigate()
   const location = useLocation()
@@ -217,7 +217,7 @@ function ConnectionStatusPill({
 }: {
   status: string
   onRefresh: () => void
-}): JSX.Element {
+}): React.ReactElement {
   const cfg = {
     connected: {
       color: 'var(--ma-green)',

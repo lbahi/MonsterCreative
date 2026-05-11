@@ -1,6 +1,12 @@
 import { FalClient } from './base'
 import { AudioGenerationRequest, AudioResult } from './types'
 
+interface FalAudioOutput {
+  audio?: { url: string }
+  url?: string
+  message?: string
+}
+
 export class AudioService extends FalClient {
   async generateSpeech(request: AudioGenerationRequest): Promise<AudioResult> {
     const key = await this.getApiKey()
@@ -26,11 +32,6 @@ export class AudioService extends FalClient {
       throw new Error(`Fal API Error: ${errorMsg}`)
     }
 
-    interface FalAudioOutput {
-      audio?: { url: string }
-      url?: string
-      message?: string
-    }
 
     const data = (await response.json()) as FalAudioOutput
     return {

@@ -1,6 +1,7 @@
+import React from 'react'
 import { LayoutTemplate } from 'lucide-react'
 
-export function LandingForm(): JSX.Element {
+export function LandingForm(): React.ReactElement {
   return (
     <div
       style={{

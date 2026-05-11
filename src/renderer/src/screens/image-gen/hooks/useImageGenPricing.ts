@@ -10,7 +10,10 @@ export function useImageGenPricing() {
     async function fetchPricing() {
       try {
         const ids = Object.values(MODEL_ENDPOINT_MAP)
-        const res = await window.api.fal.getPricing(ids)
+        const res = (await window.api.fal.getPricing(ids)) as {
+          prices?: Array<{ endpoint_id: string; unit_price: number }>
+          error?: string
+        }
         if (!res.error && res.prices) {
           const nextPrices: Record<string, number> = { ...MODEL_FALLBACK_PRICES }
           for (const [name, endpointId] of Object.entries(MODEL_ENDPOINT_MAP)) {

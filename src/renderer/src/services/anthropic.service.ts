@@ -7,6 +7,8 @@ import {
   OneShotResult,
   ContentStrategyResult
 } from './anthropic.types'
+
+export type { ProductAnalysis, OneShotResult }
 import { getContentStrategyPrompt } from './prompts/contentStrategy'
 import { getProductAnalysisPrompt } from './prompts/productAnalysis'
 import { getConsultationPrompt } from './prompts/consultation'

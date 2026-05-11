@@ -1,3 +1,4 @@
+import React from 'react'
 import { Shield, Eye, EyeOff, Trash2, Plus, RefreshCw, Check, AlertCircle } from 'lucide-react'
 
 interface ApiKey {

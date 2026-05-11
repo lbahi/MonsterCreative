@@ -9,7 +9,7 @@ interface GeneratedImage {
   model: string
 }
 
-const ImageGenView: React.FC = (): JSX.Element => {
+const ImageGenView: React.FC = (): React.ReactElement => {
   const [prompt, setPrompt] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [results, setResults] = useState<GeneratedImage[]>([])

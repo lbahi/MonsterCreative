@@ -1,4 +1,4 @@
-// No imports needed
+import React from 'react'
 
 interface ManualVideoFormProps {
   prompt: string
@@ -10,7 +10,7 @@ export function ManualVideoForm({
   prompt,
   setPrompt,
   disabled
-}: ManualVideoFormProps): JSX.Element {
+}: ManualVideoFormProps): React.ReactElement {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, flex: 1 }}>
       {/* Prompt */}

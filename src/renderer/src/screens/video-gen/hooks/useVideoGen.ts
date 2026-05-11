@@ -124,7 +124,7 @@ export function useVideoGen(): UseVideoGenReturn {
           throw new Error(response.error)
         }
 
-        const videoData = response.data
+        const videoData = response.data as { url: string; fileName: string; fileSize: number }
         setGeneratedVideoUrl(videoData.url)
         setResult(videoData)
         setGenerating(false)

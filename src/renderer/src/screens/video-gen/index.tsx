@@ -4,7 +4,7 @@
  * Sub-components live in components/ or tabs/
  * Max 100 lines. If growing beyond that, extract.
  */
-import { useEffect } from 'react'
+import React, { useEffect } from 'react'
 import { useApp } from '../../contexts/AppContext'
 import { VideoRightPanel } from './panels/VideoRightPanel'
 import { useVideoGen } from './hooks/useVideoGen'
@@ -12,7 +12,7 @@ import { VideoGenHeader } from './components/VideoGenHeader'
 import { VideoGenLeftPanel } from './components/VideoGenLeftPanel'
 import { VideoGenResults } from './components/VideoGenResults'
 
-export function VideoGenScreen(): JSX.Element {
+export function VideoGenScreen(): React.ReactElement {
   const { setRightPanelContent } = useApp()
   const videoGen = useVideoGen()
 

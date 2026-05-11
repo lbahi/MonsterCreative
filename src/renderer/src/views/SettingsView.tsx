@@ -12,7 +12,7 @@ import {
   Loader2
 } from 'lucide-react'
 
-const SettingsView: React.FC = (): JSX.Element => {
+const SettingsView: React.FC = (): React.ReactElement => {
   const [falKey, setFalKey] = useState('')
   const [isSaved, setIsSaved] = useState(false)
   const [isSaving, setIsSaving] = useState(false)

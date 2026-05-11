@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useApp } from '../../../contexts/AppContext'
-import { UsageResponse, BillingResponse, ActivityItem } from '../types'
+import { BillingResponse } from '../types'
 
 export interface DashStats {
   totalGenerations: number
@@ -21,7 +21,6 @@ function getMtdStart(): string {
 export const useDashboard = () => {
   const { setRightPanelContent } = useApp()
   const [stats, setStats] = useState<DashStats | null>(null)
-  const [activity, setActivity] = useState<ActivityItem[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
 
@@ -40,14 +39,15 @@ export const useDashboard = () => {
       let totalGenerations = 0
       let mtdSpend = 0
 
-      if (!('error' in usageRes)) {
-        if (usageRes.summary && usageRes.summary.length > 0) {
-          for (const row of usageRes.summary) {
+      if (usageRes && typeof usageRes === 'object' && !('error' in usageRes)) {
+        const usage = usageRes as any
+        if (usage.summary && usage.summary.length > 0) {
+          for (const row of usage.summary) {
             totalGenerations += row.quantity ?? 0
             mtdSpend += row.cost ?? 0
           }
-        } else if (usageRes.time_series) {
-          for (const bucket of usageRes.time_series) {
+        } else if (usage.time_series) {
+          for (const bucket of usage.time_series) {
             for (const result of bucket.results) {
               totalGenerations += result.quantity ?? 0
               mtdSpend += result.cost ?? 0

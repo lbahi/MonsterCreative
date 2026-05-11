@@ -44,6 +44,12 @@ interface Window {
       kontextEdit: (params: unknown) => Promise<unknown>
       generateVideo: (params: unknown) => Promise<unknown>
     }
+    license: {
+      activate: (key: string) => Promise<{ success: boolean; error?: string; purchaserEmail?: string }>
+      validate: () => Promise<{ valid: boolean; error?: string }>
+      deactivate: () => Promise<void>
+      getKey: () => Promise<string | null>
+    }
     video: {
       generate: (request: {
         modelId: string

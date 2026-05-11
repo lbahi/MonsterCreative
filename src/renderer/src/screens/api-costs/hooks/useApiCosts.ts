@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useApp } from '../../../contexts/AppContext'
-import { Transaction, ChartDataPoint, ModelBreakdownItem } from '../types'
+import { Transaction, ChartDataPoint } from '../types'
 
 type SortField = 'model' | 'cost' | 'time' | 'type'
 type SortDir = 'asc' | 'desc'
@@ -39,11 +39,11 @@ export const useApiCosts = () => {
           'fal-ai/wan/v2.1/1.3b/text-to-video'
         ]
 
-        const usageResponse = await window.api.fal.getUsage('day')
+        const usageResponse: any = await window.api.fal.getUsage('day')
         await new Promise((r) => setTimeout(r, 200))
-        const billingResponse = await window.api.fal.getBilling()
+        const billingResponse: any = await window.api.fal.getBilling()
         await new Promise((r) => setTimeout(r, 200))
-        const analyticsResponse = await window.api.fal
+        const analyticsResponse: any = await window.api.fal
           .getAnalytics(FAL_MODEL_IDS)
           .catch(() => ({ error: 'unavailable' }))
 

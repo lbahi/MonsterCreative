@@ -1,3 +1,4 @@
+import React from 'react'
 import { useSocialAds } from './hooks/useSocialAds'
 import {
   SOCIAL_MODELS,
@@ -11,7 +12,7 @@ import { ProductImageUpload } from './components/ProductImageUpload'
 import { TemplateGrid } from './components/TemplateGrid'
 import { PromptPreviewFooter } from './components/PromptPreviewFooter'
 
-export function SocialAdsForm(props: SocialAdsFormProps): JSX.Element {
+export function SocialAdsForm(props: SocialAdsFormProps): React.ReactElement {
   const socialAds = useSocialAds(props)
   const { model, setModel } = props
 

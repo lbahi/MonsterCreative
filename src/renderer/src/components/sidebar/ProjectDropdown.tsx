@@ -1,8 +1,10 @@
+import React from 'react'
+
 interface ProjectDropdownProps {
   collapsed: boolean
 }
 
-export const ProjectDropdown = ({ collapsed }: ProjectDropdownProps): JSX.Element => {
+export const ProjectDropdown = ({ collapsed }: ProjectDropdownProps): React.ReactElement => {
   if (collapsed) {
     return (
       <div

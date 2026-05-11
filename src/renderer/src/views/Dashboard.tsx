@@ -1,7 +1,7 @@
 import React from 'react'
 import { TrendingUp, Target, ExternalLink } from 'lucide-react'
 
-const Dashboard: React.FC = (): JSX.Element => {
+const Dashboard: React.FC = (): React.ReactElement => {
   const kpis = [
     { label: 'Total Ad Spend', value: '$24,560', change: '+12.5%', color: 'text-soft-cloud' },
     { label: 'Impressions', value: '1.2M', change: 'Stable', color: 'text-soft-cloud' },
@@ -167,7 +167,7 @@ const Dashboard: React.FC = (): JSX.Element => {
   )
 }
 
-const FileText: React.FC<{ size?: number }> = ({ size = 24 }): JSX.Element => (
+const FileText: React.FC<{ size?: number }> = ({ size = 24 }): React.ReactElement => (
   <svg
     width={size}
     height={size}

@@ -1,3 +1,4 @@
+import React from 'react'
 import { Download, Check, Film } from 'lucide-react'
 import { StepChecklist } from '../../../components/ui/StepChecklist'
 import { VIDEO_STEPS } from '../constants'
@@ -27,7 +28,7 @@ export function VideoRightPanel({
   isGenerating,
   generatedVideoUrl,
   currentCost
-}: VideoRightPanelProps): JSX.Element {
+}: VideoRightPanelProps): React.ReactElement {
   const handleDownload = async (): Promise<void> => {
     if (!generatedVideoUrl) return
     try {
@@ -225,7 +226,7 @@ export function VideoRightPanel({
   )
 }
 
-function Zap({ size, color }: { size: number; color?: string }): JSX.Element {
+function Zap({ size, color }: { size: number; color?: string }): React.ReactElement {
   return (
     <svg
       width={size}
