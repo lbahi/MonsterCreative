@@ -6,11 +6,17 @@ import crypto from 'crypto'
 import { FREEMIUS_CONFIG, IS_SANDBOX } from '../config/freemius.config'
 
 const SERVICE_NAME = 'MonsterCreative'
+const APP_URL = 'https://monstercreative.lbahi.digital'
+
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 export interface ActivateResult {
   success: boolean
+  alreadyActive?: boolean
   error?: string
   email?: string
+  planName?: string
+  installId?: string
   activationsUsed?: number
   activationsAllowed?: number
 }
@@ -20,200 +26,204 @@ export interface ValidateResult {
   reason?: string
 }
 
-export class FreemiusService {
-  private buildAuthHeader(): string {
-    const authString = `${FREEMIUS_CONFIG.PUBLIC_KEY}:${FREEMIUS_CONFIG.SECRET_KEY}`
-    return `Basic ${Buffer.from(authString).toString('base64')}`
+// ── Helper: safe fetch (always reads text first, never crashes on HTML) ────────
+
+async function safeFetch(url: string, options: RequestInit): Promise<{ status: number; data: any; raw: string }> {
+  const res = await fetch(url, options)
+  const raw = await res.text()
+
+  log.info('[Freemius] Response status:', res.status)
+  log.info('[Freemius] Response body:', raw.substring(0, 300))
+
+  if (raw.trimStart().startsWith('<')) {
+    log.error('[Freemius] Server returned HTML — wrong endpoint or server-side error')
+    throw new Error(`API returned HTML page (HTTP ${res.status}). Check logs.`)
   }
 
-  private buildInstallAuthHeader(installApiToken: string): string {
-    return `Bearer ${installApiToken}`
+  const data = raw.length > 0 ? JSON.parse(raw) : {}
+  return { status: res.status, data, raw }
+}
+
+// ── Helper: get or generate stable device UID ─────────────────────────────────
+
+async function getOrCreateDeviceUid(): Promise<string> {
+  const existing = await keytar.getPassword(SERVICE_NAME, 'device-uid')
+  if (existing && existing.length === 32) {
+    log.info('[Freemius] Using existing device UID')
+    return existing
   }
+  const uid = crypto.randomBytes(16).toString('hex') // exactly 32 hex chars
+  await keytar.setPassword(SERVICE_NAME, 'device-uid', uid)
+  log.info('[Freemius] Generated new device UID:', uid)
+  return uid
+}
+
+// ── Service class ─────────────────────────────────────────────────────────────
+
+export class FreemiusService {
+
+  // ── Activate ────────────────────────────────────────────────────────────────
 
   async activate(licenseKey: string): Promise<ActivateResult> {
     try {
-      const url = `${FREEMIUS_CONFIG.API_BASE}/products/${FREEMIUS_CONFIG.PRODUCT_ID}/licenses/${licenseKey}/installs.json`
-      
+      const uid = await getOrCreateDeviceUid()
+
+      const url = `${FREEMIUS_CONFIG.API_BASE}/products/${FREEMIUS_CONFIG.PRODUCT_ID}/licenses/activate.json`
+      log.info('[Freemius] Activation URL:', url)
+
       const body = {
-        uid: `${os.hostname()}-${os.platform()}`,
-        title: `${os.hostname()} - Windows ${os.release()}`,
+        uid,
+        license_key: licenseKey,
+        title: `${os.hostname()} — Windows ${os.release()}`,
         version: app.getVersion(),
-        platform_version: os.release(),
-        programming_language_version: process.versions.node,
-        country_code: 'DZ',
-        language: 'en'
+        url: APP_URL,
+        allow_unreleased_plan_activation: true
       }
 
-      const res = await fetch(url, {
+      log.info('[Freemius] Request body (key masked):', JSON.stringify({ ...body, license_key: '***' }))
+
+      const { status, data } = await safeFetch(url, {
         method: 'POST',
-        headers: {
-          'Authorization': this.buildAuthHeader(),
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      })
+        headers: { 'Content-Type': 'application/json' }
+        // No Authorization header — this endpoint is public
+      , body: JSON.stringify(body) })
 
-      if (res.status === 404) {
-        return {
-          success: false,
-          error: 'Invalid license key. Please check your key and try again.'
+      // ── Error handling ────────────────────────────────────────
+      if (data.error) {
+        const code: string = data.error.code ?? ''
+        const msg: string = data.error.message ?? ''
+
+        log.error('[Freemius] Activation error code:', code, '—', msg)
+
+        switch (code) {
+          case 'invalid_license_key':
+            return { success: false, error: 'Invalid license key. Please check and try again.' }
+
+          case 'license_expired':
+            return { success: false, error: 'This license has expired. Please contact support.' }
+
+          case 'license_utilized':
+            return {
+              success: false,
+              error: `Activation limit reached (${FREEMIUS_CONFIG.MAX_ACTIVATIONS} devices). To transfer your license go to Settings → Transfer License.`
+            }
+
+          case 'license_activated':
+            // Device is already activated — treat as success
+            log.info('[Freemius] Device already activated — accepting as valid')
+            return { success: true, alreadyActive: true }
+
+          default:
+            return { success: false, error: msg || `Activation failed (${code}).` }
         }
       }
 
-      if (res.status === 401) {
-        return {
-          success: false,
-          error: 'License key authentication failed. Please contact support.'
-        }
-      }
-
-      const data = await res.json()
-
-      if (res.status === 400 || (data.message && (data.message.includes('limit') || data.message.includes('exceeded')))) {
-        return {
-          success: false,
-          error: `Activation limit reached (${FREEMIUS_CONFIG.MAX_ACTIVATIONS} devices). To transfer your license, go to Settings -> Transfer License.`
-        }
-      }
-
-      if (res.status === 200) {
+      // ── Success ───────────────────────────────────────────────
+      if (status === 200 && data.install_id) {
         await keytar.setPassword(SERVICE_NAME, 'license-key', licenseKey)
-        await keytar.setPassword(SERVICE_NAME, 'install-id', String(data.id))
-        await keytar.setPassword(SERVICE_NAME, 'install-api-token', data.api_token)
-        await keytar.setPassword(SERVICE_NAME, 'purchaser-email', data.user.email)
-        await keytar.setPassword(SERVICE_NAME, 'license-quota', String(data.license.quota))
+        await keytar.setPassword(SERVICE_NAME, 'device-uid', uid)
+        await keytar.setPassword(SERVICE_NAME, 'install-id', String(data.install_id))
+        await keytar.setPassword(SERVICE_NAME, 'install-api-token', data.install_api_token ?? '')
+        await keytar.setPassword(SERVICE_NAME, 'install-secret-key', data.install_secret_key ?? '')
+        await keytar.setPassword(SERVICE_NAME, 'user-id', String(data.user_id ?? ''))
+        await keytar.setPassword(SERVICE_NAME, 'license-plan', data.license_plan_name ?? '')
         await keytar.setPassword(SERVICE_NAME, 'last-validated', String(Date.now()))
         await keytar.setPassword(SERVICE_NAME, 'app-version', app.getVersion())
 
-        log.info(`Freemius activation successful: install_id=${data.id}`)
-        log.info('keytar save successful for all fields')
-
-        // Fire and forget install properties update
-        setTimeout(() => {
-          this.updateInstallProperties()
-        }, 2000)
+        log.info(`[Freemius] Activation successful: install_id=${data.install_id}, plan=${data.license_plan_name}`)
+        log.info('[Freemius] keytar save successful for all fields')
 
         return {
           success: true,
-          email: data.user.email,
-          activationsUsed: data.license.activated,
-          activationsAllowed: data.license.quota
+          planName: data.license_plan_name,
+          installId: String(data.install_id)
         }
       }
 
-      return {
-        success: false,
-        error: 'An unknown error occurred during activation.'
-      }
+      log.error('[Freemius] Unexpected activation response:', { status, data })
+      return { success: false, error: `Unexpected API response (HTTP ${status}).` }
 
-    } catch (err: any) {
-      log.error('Freemius activation error:', err)
-      return { success: false, error: 'Network error. Please check your connection.' }
+    } catch (error: any) {
+      log.error('[Freemius] Activation exception:', { message: error.message, stack: error.stack })
+      return { success: false, error: error.message || 'Unknown error during activation.' }
     }
   }
 
+  // ── Validate ─────────────────────────────────────────────────────────────────
+
   async validate(): Promise<ValidateResult> {
     try {
-      const licenseKey = await keytar.getPassword(SERVICE_NAME, 'license-key')
       const installId = await keytar.getPassword(SERVICE_NAME, 'install-id')
       const installApiToken = await keytar.getPassword(SERVICE_NAME, 'install-api-token')
       const lastValidatedStr = await keytar.getPassword(SERVICE_NAME, 'last-validated')
 
-      if (!licenseKey || !installId || !installApiToken) {
+      if (!installId || !installApiToken) {
         return { valid: false, reason: 'not_activated' }
       }
 
+      // Skip API call if revalidated recently
       const lastValidated = lastValidatedStr ? Number(lastValidatedStr) : 0
-      const daysSinceValidation = (Date.now() - lastValidated) / 86400000
-
-      if (daysSinceValidation < FREEMIUS_CONFIG.REVALIDATION_DAYS) {
+      const daysSince = (Date.now() - lastValidated) / 86400000
+      if (daysSince < FREEMIUS_CONFIG.REVALIDATION_DAYS) {
+        log.info(`[Freemius] Skipping revalidation (${daysSince.toFixed(1)} days since last check)`)
         return { valid: true }
       }
 
       const url = `${FREEMIUS_CONFIG.API_BASE}/products/${FREEMIUS_CONFIG.PRODUCT_ID}/installs/${installId}.json`
-      const res = await fetch(url, {
+      log.info('[Freemius] Validating install:', url)
+
+      const { data } = await safeFetch(url, {
         method: 'GET',
-        headers: {
-          'Authorization': this.buildInstallAuthHeader(installApiToken)
-        }
+        headers: { 'Authorization': `Bearer ${installApiToken}` }
       })
 
-      if (res.status === 401 || res.status === 403) {
+      if (data.error) {
+        log.error('[Freemius] Validation failed — clearing license:', data.error)
         await this.clearLicense()
-        return { valid: false, reason: 'revoked' }
+        return { valid: false, reason: data.error.code ?? 'revoked' }
       }
 
-      if (res.status === 404) {
-        await this.clearLicense()
-        return { valid: false, reason: 'not_found' }
-      }
-
-      if (res.status === 200) {
-        const data = await res.json()
-        if (data.license?.is_cancelled || data.license?.is_expired || data.license?.is_whitelabeled) {
-          await this.clearLicense()
-          return { valid: false, reason: 'expired_or_cancelled' }
-        }
-
+      if (data.id) {
         await keytar.setPassword(SERVICE_NAME, 'last-validated', String(Date.now()))
+        log.info('[Freemius] Validation successful, install active')
         return { valid: true }
       }
 
       return { valid: true }
+
     } catch (err: any) {
-      log.error('Freemius validation error:', err)
-      return { valid: true } // Network down -> assume valid
+      log.error('[Freemius] Validation error (assuming valid):', err.message)
+      return { valid: true } // Network down → assume valid, retry later
     }
   }
 
-  private async updateInstallProperties(): Promise<void> {
-    try {
-      const installId = await keytar.getPassword(SERVICE_NAME, 'install-id')
-      const installApiToken = await keytar.getPassword(SERVICE_NAME, 'install-api-token')
-
-      if (!installId || !installApiToken) return
-
-      const url = `${FREEMIUS_CONFIG.API_BASE}/installs/${installId}.json`
-      const body = {
-        version: app.getVersion(),
-        title: `${os.hostname()} - Windows ${os.release()}`,
-        platform_version: os.release(),
-        programming_language_version: process.versions.node
-      }
-
-      await fetch(url, {
-        method: 'PUT',
-        headers: {
-          'Authorization': this.buildInstallAuthHeader(installApiToken),
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      })
-    } catch (err) {
-      log.error('updateInstallProperties error:', err)
-    }
-  }
+  // ── Deactivate (Transfer License) ────────────────────────────────────────────
 
   async deactivate(): Promise<void> {
     try {
       const installId = await keytar.getPassword(SERVICE_NAME, 'install-id')
       const installApiToken = await keytar.getPassword(SERVICE_NAME, 'install-api-token')
+      const licenseKey = await keytar.getPassword(SERVICE_NAME, 'license-key')
 
       if (installId && installApiToken) {
-        const url = `${FREEMIUS_CONFIG.API_BASE}/products/${FREEMIUS_CONFIG.PRODUCT_ID}/installs/${installId}.json`
-        await fetch(url, {
+        const url = `${FREEMIUS_CONFIG.API_BASE}/products/${FREEMIUS_CONFIG.PRODUCT_ID}/installs/${installId}.json?license_key=${encodeURIComponent(licenseKey ?? '')}`
+        log.info('[Freemius] Deactivating install:', url)
+
+        await safeFetch(url, {
           method: 'DELETE',
-          headers: {
-            'Authorization': this.buildInstallAuthHeader(installApiToken)
-          }
+          headers: { 'Authorization': `Bearer ${installApiToken}` }
         })
+
+        log.info('[Freemius] Deactivation API call completed')
       }
-    } catch (err) {
-      log.error('Freemius deactivation API call failed:', err)
+    } catch (err: any) {
+      log.error('[Freemius] Deactivation API call failed (continuing with local clear):', err.message)
     } finally {
       await this.clearLicense()
     }
   }
+
+  // ── Checkout URL ──────────────────────────────────────────────────────────────
 
   async getCheckoutUrl(): Promise<string> {
     const baseUrl = `${FREEMIUS_CONFIG.CHECKOUT_BASE}/app/${FREEMIUS_CONFIG.PRODUCT_ID}/plan/${FREEMIUS_CONFIG.PLAN_ID}/`
@@ -231,22 +241,37 @@ export class FreemiusService {
     return baseUrl
   }
 
+  // ── Get Details (for Settings → License tab) ──────────────────────────────────
+
   async getDetails() {
     const email = await keytar.getPassword(SERVICE_NAME, 'purchaser-email')
     const key = await keytar.getPassword(SERVICE_NAME, 'license-key')
     const quota = await keytar.getPassword(SERVICE_NAME, 'license-quota')
+    const plan = await keytar.getPassword(SERVICE_NAME, 'license-plan')
     const lastValidated = await keytar.getPassword(SERVICE_NAME, 'last-validated')
-    return { email, key, quota, lastValidated }
+    return { email, key, quota, plan, lastValidated }
   }
 
+  // ── Clear license (keeps device-uid) ─────────────────────────────────────────
+
   private async clearLicense() {
-    await keytar.deletePassword(SERVICE_NAME, 'license-key')
-    await keytar.deletePassword(SERVICE_NAME, 'install-id')
-    await keytar.deletePassword(SERVICE_NAME, 'install-api-token')
-    await keytar.deletePassword(SERVICE_NAME, 'last-validated')
-    await keytar.deletePassword(SERVICE_NAME, 'purchaser-email')
-    await keytar.deletePassword(SERVICE_NAME, 'license-quota')
-    await keytar.deletePassword(SERVICE_NAME, 'app-version')
+    const keys = [
+      'license-key',
+      'install-id',
+      'install-api-token',
+      'install-secret-key',
+      'user-id',
+      'license-plan',
+      'last-validated',
+      'purchaser-email',
+      'license-quota',
+      'app-version'
+      // NOTE: 'device-uid' is intentionally NOT cleared — persists across transfers
+    ]
+    for (const k of keys) {
+      await keytar.deletePassword(SERVICE_NAME, k)
+    }
+    log.info('[Freemius] Local license data cleared (device-uid preserved)')
   }
 }
 

@@ -45,11 +45,11 @@ interface Window {
       generateVideo: (params: unknown) => Promise<unknown>
     }
     license: {
-      activate: (key: string) => Promise<{ success: boolean; error?: string; email?: string; activationsUsed?: number; activationsAllowed?: number }>
+      activate: (key: string) => Promise<{ success: boolean; alreadyActive?: boolean; error?: string; planName?: string; installId?: string }>
       validate: () => Promise<{ valid: boolean; reason?: string }>
       deactivate: () => Promise<void>
       getCheckoutUrl: () => Promise<string>
-      getDetails: () => Promise<{ email?: string; key?: string; quota?: string; lastValidated?: string }>
+      getDetails: () => Promise<{ email?: string; key?: string; quota?: string; plan?: string; lastValidated?: string }>
     }
     video: {
       generate: (request: {

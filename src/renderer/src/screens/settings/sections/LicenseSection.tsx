@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Shield, ExternalLink, RefreshCw, Key, Mail, Calendar, HelpCircle } from 'lucide-react'
+import { Shield, RefreshCw, Key, Mail, Calendar, HelpCircle } from 'lucide-react'
 
 export const LicenseSection = () => {
   const [details, setDetails] = useState<{
@@ -37,14 +37,6 @@ export const LicenseSection = () => {
         console.error('Deactivation failed:', err)
         alert('Failed to deactivate license. Please contact support.')
       }
-    }
-  }
-
-  const handleManageLicense = async () => {
-    try {
-      await window.api.external.open('https://users.freemius.com')
-    } catch (err) {
-      console.error('Failed to open external link:', err)
     }
   }
 
@@ -168,35 +160,6 @@ export const LicenseSection = () => {
       </div>
 
       <div style={{ display: 'flex', gap: 12 }}>
-        <button
-          onClick={handleManageLicense}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '11px 20px',
-            background: 'rgba(255,255,255,0.03)',
-            border: '1px solid var(--ma-border)',
-            borderRadius: 9,
-            cursor: 'pointer',
-            color: 'rgba(255,255,255,0.8)',
-            fontSize: 13,
-            fontWeight: 500,
-            fontFamily: 'var(--font-body)',
-            transition: 'all 0.2s'
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
-            e.currentTarget.style.color = '#fff'
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
-            e.currentTarget.style.color = 'rgba(255,255,255,0.8)'
-          }}
-        >
-          Manage License <ExternalLink size={14} />
-        </button>
-
         <button
           onClick={handleDeactivate}
           style={{

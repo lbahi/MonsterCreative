@@ -38,7 +38,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [licenseValidating, setLicenseValidating] = useState(false)
   const [licenseError, setLicenseError] = useState<string | null>(null)
   const [licenseActivated, setLicenseActivated] = useState(false)
-  const [activationDetails, setActivationDetails] = useState<{email?: string, used?: number, allowed?: number}>({})
+  const [activationDetails, setActivationDetails] = useState<{planName?: string, installId?: string, alreadyActive?: boolean}>({})
 
   // Fal key state
   const [falKey, setFalKey] = useState('')
@@ -66,9 +66,9 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
       const result = await window.api.license.activate(licenseKey.trim())
       if (result.success) {
         setActivationDetails({
-          email: result.email,
-          used: result.activationsUsed,
-          allowed: result.activationsAllowed
+          planName: result.planName,
+          installId: result.installId,
+          alreadyActive: result.alreadyActive
         })
         setLicenseActivated(true)
         setCurrentStep(1)
@@ -667,7 +667,7 @@ function FalKeyStep({
   error: string | null
   shake: boolean
   licenseActivated: boolean
-  activationDetails: {email?: string, used?: number, allowed?: number}
+  activationDetails: {planName?: string, installId?: string, alreadyActive?: boolean}
   onNext: () => void
 }) {
   return (
@@ -780,14 +780,14 @@ function FalKeyStep({
               ✓ Activated successfully
             </p>
           </div>
-          {activationDetails.email && (
+          {activationDetails.planName && (
             <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', margin: 0, paddingLeft: 22 }}>
-              Welcome, {activationDetails.email}
+              Plan: <strong>{activationDetails.planName}</strong>
             </p>
           )}
-          {activationDetails.used !== undefined && activationDetails.allowed !== undefined && (
+          {activationDetails.alreadyActive && (
             <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: 0, paddingLeft: 22 }}>
-              Device {activationDetails.used} of {activationDetails.allowed}
+              This device was already registered.
             </p>
           )}
         </div>
