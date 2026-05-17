@@ -21,21 +21,12 @@ const INITIAL_KEYS: ApiKey[] = [
     status: 'unconfigured',
     color: '#6C63FF',
     required: true
-  },
-  {
-    id: 'gumroad',
-    provider: 'Gumroad',
-    label: 'License Key',
-    value: '',
-    status: 'unconfigured',
-    color: '#FF90E8',
-    required: true
   }
 ]
 
 export const useSettings = () => {
   const { setRightPanelContent, refreshConnectionStatus } = useApp()
-  const [section, setSection] = useState('api-keys')
+  const [section, setSection] = useState('license')
   const [keys, setKeys] = useState<ApiKey[]>(INITIAL_KEYS)
   const [showValues, setShowValues] = useState<Record<string, boolean>>({})
   const [editingKey, setEditingKey] = useState<string | null>(null)
@@ -47,17 +38,10 @@ export const useSettings = () => {
   useEffect(() => {
     async function loadKeys() {
       const falKey = await window.api.keystore.getFalKey()
-      const gumroadKey = await window.api.license.getKey()
       setKeys((prev) =>
         prev.map((k) => {
           if (k.id === 'fal')
             return { ...k, value: falKey || '', status: falKey ? 'connected' : 'unconfigured' }
-          if (k.id === 'gumroad')
-            return {
-              ...k,
-              value: gumroadKey || '',
-              status: gumroadKey ? 'connected' : 'unconfigured'
-            }
           return k
         })
       )
@@ -78,13 +62,6 @@ export const useSettings = () => {
           return
         }
         await window.api.keystore.setFalKey(editValue.trim())
-      } else if (keyId === 'gumroad') {
-        const result = await window.api.license.activate(editValue.trim())
-        if (!result.success) {
-          setKeyError(result.error || 'Invalid license key.')
-          setSaving(null)
-          return
-        }
       }
 
       setKeys((prev) =>
@@ -108,11 +85,6 @@ export const useSettings = () => {
 
   const handleDeleteKey = async (keyId: string) => {
     if (keyId === 'fal') await window.api.keystore.deleteFalKey()
-    if (keyId === 'gumroad') {
-      await window.api.license.deactivate()
-      window.location.reload()
-      return
-    }
     setKeys((prev) =>
       prev.map((k) =>
         k.id === keyId ? { ...k, value: '', status: 'unconfigured', lastUsed: undefined } : k

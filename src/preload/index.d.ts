@@ -62,10 +62,11 @@ declare global {
       license: {
         activate: (
           key: string
-        ) => Promise<{ success: boolean; error?: string; purchaserEmail?: string }>
-        validate: () => Promise<{ valid: boolean; error?: string }>
+        ) => Promise<{ success: boolean; error?: string; email?: string; activationsUsed?: number; activationsAllowed?: number }>
+        validate: () => Promise<{ valid: boolean; reason?: string }>
         deactivate: () => Promise<void>
-        getKey: () => Promise<string | null>
+        getCheckoutUrl: () => Promise<string>
+        getDetails: () => Promise<{ email?: string; key?: string; quota?: string; lastValidated?: string }>
       }
     }
   }

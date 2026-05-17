@@ -65,5 +65,10 @@
     "tailwindcss": "^4.2.2",
     "typescript": "^5.9.3",
     "vite": "^7.2.6"
+  },
+  "build": {
+    "asarUnpack": [
+      "node_modules/keytar/**"
+    ]
   }
 }

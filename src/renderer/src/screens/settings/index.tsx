@@ -5,15 +5,17 @@
  * Max 100 lines. If growing beyond that, extract.
  */
 import { useEffect } from 'react'
-import { Settings, Key, Bell, Info } from 'lucide-react'
+import { Settings, Key, Bell, Info, Shield } from 'lucide-react'
 import { useSettings } from './hooks/useSettings'
 import { ApiKeysSection } from './sections/ApiKeysSection'
 import { DefaultsSection } from './sections/DefaultsSection'
 import { StorageSection } from './sections/StorageSection'
 import { AboutSection } from './sections/AboutSection'
+import { LicenseSection } from './sections/LicenseSection'
 import { SettingsRightPanel } from './components/SettingsRightPanel'
 
 const SECTIONS = [
+  { id: 'license', label: 'License', icon: <Shield size={16} /> },
   { id: 'api-keys', label: 'API Keys', icon: <Key size={16} /> },
   { id: 'general', label: 'General', icon: <Settings size={16} /> },
   { id: 'notifications', label: 'Notifications', icon: <Bell size={16} /> },
@@ -111,6 +113,7 @@ export function SettingsScreen() {
 
         {/* Main content */}
         <div>
+          {section === 'license' && <LicenseSection />}
           {section === 'api-keys' && (
             <ApiKeysSection
               keys={keys}

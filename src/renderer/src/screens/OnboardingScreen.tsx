@@ -38,6 +38,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [licenseValidating, setLicenseValidating] = useState(false)
   const [licenseError, setLicenseError] = useState<string | null>(null)
   const [licenseActivated, setLicenseActivated] = useState(false)
+  const [activationDetails, setActivationDetails] = useState<{email?: string, used?: number, allowed?: number}>({})
 
   // Fal key state
   const [falKey, setFalKey] = useState('')
@@ -64,6 +65,11 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
     try {
       const result = await window.api.license.activate(licenseKey.trim())
       if (result.success) {
+        setActivationDetails({
+          email: result.email,
+          used: result.activationsUsed,
+          allowed: result.activationsAllowed
+        })
         setLicenseActivated(true)
         setCurrentStep(1)
       } else {
@@ -156,6 +162,7 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
           error={falError}
           shake={shake}
           licenseActivated={licenseActivated}
+          activationDetails={activationDetails}
           onNext={handleLaunch}
         />
       )}
@@ -535,7 +542,7 @@ function LicenseStep({
             }}
           >
             <Globe size={11} />
-            <span>Enter the license key from your purchase confirmation email</span>
+            <span>Your license key was emailed to you by Freemius after purchase. Check your inbox.</span>
           </p>
         </div>
 
@@ -568,13 +575,39 @@ function LicenseStep({
           }}
         >
           <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, margin: 0 }}>
-            🔒 Your license is validated securely with Gumroad and stored locally in your OS
+            🔒 Your license is validated securely with Freemius and stored locally in your OS
             keychain. It is never shared with third parties.
           </p>
         </div>
 
         {/* Actions */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 28 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 28 }}>
+          <button
+            onClick={async () => {
+              await window.api.license.getCheckoutUrl()
+            }}
+            type="button"
+            style={{
+              padding: '10px 20px',
+              background: 'rgba(255,255,255,0.05)',
+              color: 'rgba(255,255,255,0.8)',
+              border: '1px solid var(--ma-border)',
+              borderRadius: 8,
+              cursor: 'pointer',
+              fontSize: 13,
+              fontWeight: 500,
+              fontFamily: 'var(--font-body)',
+              transition: 'all 0.2s'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.1)'
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.05)'
+            }}
+          >
+            Buy MonsterCreative — $39
+          </button>
           <button
             onClick={onActivate}
             disabled={validating}
@@ -593,7 +626,7 @@ function LicenseStep({
               boxShadow: validating ? 'none' : '0 0 20px rgba(108,99,255,0.35)',
               fontFamily: 'var(--font-body)',
               transition: 'all 0.2s',
-              minWidth: 200,
+              minWidth: 180,
               justifyContent: 'center'
             }}
           >
@@ -623,6 +656,7 @@ function FalKeyStep({
   error,
   shake,
   licenseActivated,
+  activationDetails,
   onNext
 }: {
   falKey: string
@@ -633,6 +667,7 @@ function FalKeyStep({
   error: string | null
   shake: boolean
   licenseActivated: boolean
+  activationDetails: {email?: string, used?: number, allowed?: number}
   onNext: () => void
 }) {
   return (
@@ -730,19 +765,31 @@ function FalKeyStep({
         <div
           style={{
             margin: '16px 32px 0',
-            padding: '8px 14px',
+            padding: '12px 16px',
             background: 'rgba(34,197,94,0.08)',
             border: '1px solid rgba(34,197,94,0.2)',
             borderRadius: 8,
             display: 'flex',
-            alignItems: 'center',
-            gap: 8
+            flexDirection: 'column',
+            gap: 4
           }}
         >
-          <CheckCircle2 size={14} style={{ color: '#22C55E', flexShrink: 0 }} />
-          <p style={{ fontSize: 12, color: '#22C55E', margin: 0 }}>
-            License activated successfully
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <CheckCircle2 size={14} style={{ color: '#22C55E', flexShrink: 0 }} />
+            <p style={{ fontSize: 13, fontWeight: 600, color: '#22C55E', margin: 0 }}>
+              ✓ Activated successfully
+            </p>
+          </div>
+          {activationDetails.email && (
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.7)', margin: 0, paddingLeft: 22 }}>
+              Welcome, {activationDetails.email}
+            </p>
+          )}
+          {activationDetails.used !== undefined && activationDetails.allowed !== undefined && (
+            <p style={{ fontSize: 12, color: 'rgba(255,255,255,0.5)', margin: 0, paddingLeft: 22 }}>
+              Device {activationDetails.used} of {activationDetails.allowed}
+            </p>
+          )}
         </div>
       )}
 

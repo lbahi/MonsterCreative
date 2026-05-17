@@ -6,7 +6,7 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { dbService } from './database'
 import { keystoreService } from './keystore'
-import { licenseService } from './services/license.service'
+import { freemiusService } from './services/freemius.service'
 import {
   BillingService,
   TextService,
@@ -159,19 +159,25 @@ app.whenReady().then(() => {
 
   // IPC Handlers: License
   ipcMain.handle('license:activate', async (_, key: string) => {
-    return await licenseService.activate(key)
+    return await freemiusService.activate(key)
   })
 
   ipcMain.handle('license:validate', async () => {
-    return await licenseService.validate()
+    return await freemiusService.validate()
   })
 
   ipcMain.handle('license:deactivate', async () => {
-    return await licenseService.deactivate()
+    return await freemiusService.deactivate()
   })
 
-  ipcMain.handle('license:getKey', async () => {
-    return await keystoreService.getLicenseData('license-key')
+  ipcMain.handle('license:getCheckoutUrl', async () => {
+    const url = await freemiusService.getCheckoutUrl()
+    await shell.openExternal(url)
+    return url
+  })
+
+  ipcMain.handle('license:getDetails', async () => {
+    return await freemiusService.getDetails()
   })
 
   // IPC Handlers: Fal
