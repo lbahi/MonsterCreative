@@ -130,6 +130,18 @@ export class FreemiusService {
         await keytar.setPassword(SERVICE_NAME, 'last-validated', String(Date.now()))
         await keytar.setPassword(SERVICE_NAME, 'app-version', app.getVersion())
 
+        // Save email and quota if present in the Freemius response
+        if (data.user?.email) {
+          await keytar.setPassword(SERVICE_NAME, 'purchaser-email', data.user.email)
+        }
+        if (data.license?.quota !== undefined) {
+          await keytar.setPassword(
+            SERVICE_NAME,
+            'license-quota',
+            data.license.quota === null ? 'Unlimited' : String(data.license.quota)
+          )
+        }
+
         log.info(`[Freemius] Activation successful: install_id=${data.install_id}, plan=${data.license_plan_name}`)
         log.info('[Freemius] keytar save successful for all fields')
 
@@ -185,6 +197,19 @@ export class FreemiusService {
 
       if (data.id) {
         await keytar.setPassword(SERVICE_NAME, 'last-validated', String(Date.now()))
+        
+        // Save email and quota if present in the Freemius response
+        if (data.user?.email) {
+          await keytar.setPassword(SERVICE_NAME, 'purchaser-email', data.user.email)
+        }
+        if (data.license?.quota !== undefined) {
+          await keytar.setPassword(
+            SERVICE_NAME,
+            'license-quota',
+            data.license.quota === null ? 'Unlimited' : String(data.license.quota)
+          )
+        }
+
         log.info('[Freemius] Validation successful, install active')
         return { valid: true }
       }
