@@ -123,7 +123,7 @@ export class FreemiusService {
         await keytar.setPassword(SERVICE_NAME, 'license-key', licenseKey)
         await keytar.setPassword(SERVICE_NAME, 'device-uid', uid)
         await keytar.setPassword(SERVICE_NAME, 'install-id', String(data.install_id))
-        await keytar.setPassword(SERVICE_NAME, 'install-api-token', data.install_api_token ?? '')
+        await keytar.setPassword(SERVICE_NAME, 'install-api-token', data.install_api_token ?? data.install_secret_key ?? '')
         await keytar.setPassword(SERVICE_NAME, 'install-secret-key', data.install_secret_key ?? '')
         await keytar.setPassword(SERVICE_NAME, 'user-id', String(data.user_id ?? ''))
         await keytar.setPassword(SERVICE_NAME, 'license-plan', data.license_plan_name ?? '')
