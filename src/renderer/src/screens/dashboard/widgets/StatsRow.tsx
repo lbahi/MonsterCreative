@@ -40,7 +40,7 @@ export const StatsRow = ({ stats, loading }: StatsRowProps) => {
           ? 'N/A'
           : stats?.credits !== null
             ? `$${(stats?.credits ?? 0).toFixed(2)}`
-            : '0.00',
+            : '$0.00',
       delta: stats?.creditsRestricted ? 'admin key needed' : 'fal.ai balance',
       icon: <CreditCard size={16} />,
       color: '#F59E0B',

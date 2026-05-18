@@ -73,8 +73,7 @@ function createWindow(): void {
       provider: 'github',
       owner: 'lbahi',
       repo: 'MonsterCreative',
-      private: true,
-      token: process.env.GITHUB_TOKEN || ''
+      private: false
     })
 
     autoUpdater.logger = log

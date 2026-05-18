@@ -26,8 +26,8 @@ export function Shell() {
 
   // Sync showOnboarding when license check overrides onboardingComplete
   useEffect(() => {
-    if (!licenseChecking && !onboardingComplete) {
-      setShowOnboarding(true)
+    if (!licenseChecking) {
+      setShowOnboarding(!onboardingComplete)
     }
   }, [licenseChecking, onboardingComplete])
 

@@ -45,4 +45,4 @@ publish:
   provider: github
   owner: lbahi
   repo: MonsterCreative
-  private: true
+  private: false

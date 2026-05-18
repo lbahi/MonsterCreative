@@ -30,8 +30,9 @@ const STEPS = [
 ]
 
 export function OnboardingModal({ onComplete }: OnboardingModalProps) {
+  const { refreshConnectionStatus, completeOnboarding, isLicenseValid } = useApp()
   const [phase, setPhase] = useState<'welcome' | 'wizard'>('welcome')
-  const [currentStep, setCurrentStep] = useState(0)
+  const [currentStep, setCurrentStep] = useState(isLicenseValid ? 1 : 0)
 
   // License key state
   const [licenseKey, setLicenseKey] = useState('')
@@ -47,7 +48,6 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
   const [falError, setFalError] = useState<string | null>(null)
 
   const [shake, setShake] = useState(false)
-  const { refreshConnectionStatus, completeOnboarding } = useApp()
 
   const triggerShake = () => {
     setShake(true)
