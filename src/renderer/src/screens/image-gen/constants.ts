@@ -1,4 +1,4 @@
-import { Crop, Monitor, Shirt, Wand2, Sparkles } from 'lucide-react'
+import { Crop, Monitor, Wand2, Sparkles } from 'lucide-react'
 
 import type { ModeOption } from './types'
 
@@ -22,14 +22,6 @@ export const MODES: ModeOption[] = [
     description: 'Create original ad images from text prompts',
     icon: Wand2,
     color: '#6C63FF'
-  },
-  {
-    id: 'vton',
-    path: '/image-gen/vton',
-    label: 'Virtual Try-On',
-    description: 'AI Casting Director for your garments',
-    icon: Shirt,
-    color: '#EC4899'
   },
   {
     id: 'ai-shots',
