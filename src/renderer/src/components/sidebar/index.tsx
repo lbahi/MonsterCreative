@@ -15,7 +15,6 @@ import {
   BarChart3,
   Settings,
   Wand2,
-  Copy,
   Crop,
   Monitor,
   Sparkles
@@ -39,12 +38,6 @@ const navItems = [
         label: 'Generate',
         path: '/image-gen/generate',
         icon: <Wand2 size={14} />
-      },
-      {
-        id: 'img-vton',
-        label: 'Virtual Try-On',
-        path: '/image-gen/vton',
-        icon: <Copy size={14} />
       },
       {
         id: 'img-ai-shots',
