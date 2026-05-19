@@ -79,7 +79,7 @@ export function SettingsScreen() {
         </h1>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '200px 1fr', gap: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '200px minmax(0, 1fr)', gap: 24 }}>
         {/* Left sub-nav */}
         <div>
           <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>

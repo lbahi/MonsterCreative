@@ -26,3 +26,9 @@ debug_output.txt
 
 # Electron
 AppPackages/
+
+# Scratch and Tests
+scratch/
+test-*.js
+lint-errors*.txt
+lint-results.json

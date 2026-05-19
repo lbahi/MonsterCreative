@@ -171,7 +171,6 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 }
 
 function WelcomePhase({ onGetStarted }: { onGetStarted: () => void }) {
-  const [isPlaying, setIsPlaying] = useState(false)
 
   return (
     <div
@@ -184,85 +183,54 @@ function WelcomePhase({ onGetStarted }: { onGetStarted: () => void }) {
         boxShadow: '0 40px 120px rgba(7,7,15,0.8), 0 0 60px rgba(108,99,255,0.1)'
       }}
     >
-      {/* Video */}
+      {/* Video — webview with spoofed Chrome UA so YouTube allows playback */}
       <div
         style={{
           width: '100%',
           height: 472,
           background: '#000',
           position: 'relative',
-          overflow: 'hidden',
-          cursor: isPlaying ? 'default' : 'pointer'
+          overflow: 'hidden'
         }}
-        onClick={() => !isPlaying && setIsPlaying(true)}
       >
-        <iframe
-          width="100%"
-          height="100%"
-          src={`https://www.youtube.com/embed/Mlt0BqtmOls?autoplay=1&mute=${isPlaying ? '0' : '1'}&loop=1&playlist=Mlt0BqtmOls&controls=${isPlaying ? '1' : '0'}&modestbranding=1&rel=0`}
-          title="MonsterCreative Promo"
-          frameBorder="0"
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          style={{ border: 'none', pointerEvents: isPlaying ? 'auto' : 'none' }}
-        />
-
-        {!isPlaying && (
-          <div
-            style={{
-              position: 'absolute',
-              inset: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'rgba(0,0,0,0.3)',
-              transition: 'background 0.3s'
-            }}
-          >
-            <div
-              style={{
-                width: 80,
-                height: 80,
-                borderRadius: '50%',
-                background: 'rgba(108,99,255,0.9)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 0 40px rgba(108,99,255,0.5)'
-              }}
-            >
-              <div
-                style={{
-                  width: 0,
-                  height: 0,
-                  borderTop: '15px solid transparent',
-                  borderBottom: '15px solid transparent',
-                  borderLeft: '25px solid white',
-                  marginLeft: 6
-                }}
-              />
-            </div>
-            <p
-              style={{
-                position: 'absolute',
-                bottom: 40,
-                color: 'white',
-                fontSize: 16,
-                fontWeight: 600,
-                textShadow: '0 2px 10px rgba(0,0,0,0.5)'
-              }}
-            >
-              Click to Play with Sound
-            </p>
-          </div>
-        )}
-
-        <div
+        {/* YouTube thumbnail shown while webview loads */}
+        <img
+          src="https://i.ytimg.com/vi/Mlt0BqtmOls/maxresdefault.jpg"
+          alt=""
           style={{
             position: 'absolute',
             inset: 0,
-            background: 'linear-gradient(to top, var(--ma-elevated), transparent 40%)',
-            pointerEvents: 'none'
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            opacity: 0.5,
+            zIndex: 0
+          }}
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = 'https://i.ytimg.com/vi/Mlt0BqtmOls/hqdefault.jpg'
+          }}
+        />
+
+        {/* @ts-ignore - webview is an Electron-specific element */}
+        <webview
+          src="https://www.youtube.com/embed/Mlt0BqtmOls?autoplay=1&mute=1&loop=1&playlist=Mlt0BqtmOls&controls=1&modestbranding=1&rel=0"
+          useragent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+          partition="youtube"
+          style={{ width: '100%', height: '100%', border: 'none', position: 'relative', zIndex: 1 } as React.CSSProperties}
+          allowpopups={true}
+        />
+
+        {/* Bottom gradient */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            height: 80,
+            background: 'linear-gradient(to top, var(--ma-elevated), transparent)',
+            pointerEvents: 'none',
+            zIndex: 2
           }}
         />
       </div>
