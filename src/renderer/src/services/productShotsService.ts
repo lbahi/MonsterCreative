@@ -83,6 +83,8 @@ export async function generateProductShots({
     }
 
     const raw = response.data!
+    console.log('[AI Shots] Raw Vision LLM Output:', raw)
+
     const jsonStr = raw
       .replace(/```json\s*/g, '')
       .replace(/```\s*/g, '')
@@ -103,6 +105,8 @@ export async function generateProductShots({
         throw new Error('Failed to analyze product. Please try again.')
       }
     }
+
+    console.log('[AI Shots] Parsed Prompts Array:', prompts)
 
     if (!Array.isArray(prompts) || prompts.length === 0) {
       throw new Error('Failed to analyze product. Please try again.')
