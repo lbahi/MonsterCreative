@@ -203,7 +203,7 @@ export class AnthropicService {
     garmentImageUrls: string | string[],
     vibeDescription: string,
     variationCount: number = 2,
-    modelId: string = 'google/gemini-3.1-pro-preview',
+    modelId: string = 'google/gemini-2.5-flash',
     modelType?: {
       label: string
       gender: string
@@ -258,25 +258,35 @@ Output valid JSON only.`
       { role: 'user', content: userContent }
     ]
 
-    const response = await window.api.fal.chatCompletion(messages, modelId)
+    const activeModel = modelId === 'google/gemini-3.1-pro-preview' ? 'google/gemini-2.5-flash' : modelId
+    const response = await window.api.fal.chatCompletion(messages, activeModel)
     if (response.error) throw new Error(response.error)
 
-    let jsonStr = response
-      .data!.replace(/```json\s*/g, '')
+    const raw = response.data!
+    if (!raw || raw.trim() === '') {
+      throw new Error('The AI model blocked this garment due to safety filters. Please try another product photo.')
+    }
+
+    let jsonStr = raw
+      .replace(/```json\s*/g, '')
       .replace(/```\s*/g, '')
       .trim()
 
+    console.log('[VTON] Raw Vision LLM Output:', response.data)
+
+    const firstBrace = jsonStr.indexOf('{')
+    const lastBrace = jsonStr.lastIndexOf('}')
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+      jsonStr = jsonStr.substring(firstBrace, lastBrace + 1)
+    }
+
     try {
-      return JSON.parse(jsonStr) as VtonIdeationResponse
-    } catch {
-      if (jsonStr[jsonStr.length - 1] !== '}') {
-        jsonStr = jsonStr.replace(/,\s*$/, '') + ']}'
-      }
-      try {
-        return JSON.parse(jsonStr) as VtonIdeationResponse
-      } catch {
-        throw new Error('Failed to parse VTON JSON.')
-      }
+      const parsed = JSON.parse(jsonStr) as VtonIdeationResponse
+      console.log('[VTON] Parsed Ideation Response:', parsed)
+      return parsed
+    } catch (err: unknown) {
+      console.error('[VTON] JSON Parse Error:', err, 'Cleaned JSON String:', jsonStr)
+      throw new Error(`Failed to parse VTON JSON: ${(err as Error).message}`)
     }
   }
 }

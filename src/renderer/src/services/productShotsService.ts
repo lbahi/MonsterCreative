@@ -55,7 +55,7 @@ export async function generateProductShots({
       urls,
       vibeDescription,
       numberOfImages,
-      'google/gemini-3.1-pro-preview',
+      'google/gemini-2.5-flash',
       modelType,
       aspectRatio
     )
@@ -77,13 +77,17 @@ export async function generateProductShots({
       { role: 'user', content: userContent }
     ]
 
-    const response = await window.api.fal.chatCompletion(messages, 'google/gemini-3.1-pro-preview')
+    const response = await window.api.fal.chatCompletion(messages, 'google/gemini-2.5-flash')
     if (response.error) {
       throw new Error('Failed to analyze product. Please try again.')
     }
 
     const raw = response.data!
     console.log('[AI Shots] Raw Vision LLM Output:', raw)
+
+    if (!raw || raw.trim() === '') {
+      throw new Error('The AI model blocked this image due to safety filters. Please try another product photo.')
+    }
 
     const jsonStr = raw
       .replace(/```json\s*/g, '')
