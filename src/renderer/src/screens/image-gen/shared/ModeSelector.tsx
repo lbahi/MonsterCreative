@@ -9,7 +9,7 @@ type ModeSelectorProps = {
 export function ModeSelector({ modes, activeMode, onSelect }: ModeSelectorProps) {
   return (
     <div
-      style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, marginBottom: 24 }}
+      style={{ display: 'grid', gridTemplateColumns: `repeat(${modes.length}, 1fr)`, gap: 10, marginBottom: 24 }}
     >
       {modes.map((mode) => {
         const Icon = mode.icon

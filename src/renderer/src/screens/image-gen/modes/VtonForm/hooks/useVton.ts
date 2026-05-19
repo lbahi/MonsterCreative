@@ -1,10 +1,9 @@
 import { useState, useRef, useCallback } from 'react'
-import { falService } from '../../../../../services/fal.service'
-import { anthropicService } from '../../../../../services/anthropic.service'
 import { VIBES } from '../../../constants'
 import { resolveImageInput } from '../../../utils/resolveImageInput'
 import type { VtonFormProps, GarmentSlot, ModelTemplate } from '../types'
 import { MODEL_TEMPLATES } from '../data/model-templates'
+import { generateProductShots } from '../../../../../services/productShotsService'
 
 const INITIAL_SLOTS: GarmentSlot[] = [
   { id: 0, label: 'Main Garment', image: null },
@@ -115,39 +114,23 @@ export const useVton = (props: VtonFormProps) => {
         uploadedUrls.push(url)
       }
 
-      // 2. AI Casting Director (multi-image + explicit model type)
-      setProgressMsg('AI Casting Director analyzing ensemble...')
+      // 2. AI Casting Director & Nano Banana renderer
       const vibeDesc = VIBES.find((v) => v.id === vibe)?.desc || 'Studio'
+      const genImages = await generateProductShots({
+        productImage: uploadedUrls,
+        systemPrompt: '',
+        numberOfImages: numImages,
+        imageModelEndpoint: model,
+        aspectRatio,
+        resolution,
+        isVton: true,
+        vibeDescription: vibeDesc,
+        modelType: selectedModelType,
+        onProgress: (msg) => setProgressMsg(msg)
+      })
 
-      const ideation = await anthropicService.generateVirtualTryOnIdeas(
-        uploadedUrls,
-        vibeDesc,
-        numImages,
-        'google/gemini-3.1-pro-preview',
-        selectedModelType,
-        aspectRatio // Pass aspect ratio to AI
-      )
-
-      // 3. Generate Scenes via Nano Banana
-      const genImages: string[] = []
-      setProgressMsg('Generating campaign images...')
-
-      for (const scene of ideation.sceneVariations) {
-        const prompt = `${ideation.modelPrompt} in a ${scene}`
-
-        const result = await falService.nanoBananaEdit({
-          model,
-          prompt,
-          image_urls: uploadedUrls,
-          resolution,
-          aspect_ratio: aspectRatio, // Use selected aspect ratio
-          num_images: 1,
-          output_format: 'jpeg'
-        })
-
-        if (result.images?.length) {
-          genImages.push(result.images[0].url)
-        }
+      if (genImages.length === 0) {
+        throw new Error('All image generations failed.')
       }
 
       setGeneratedImages(genImages)

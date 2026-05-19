@@ -1,4 +1,4 @@
-export type ActiveImageGenMode = 'generate' | 'vton' | 'social' | 'resize' | 'landing'
+export type ActiveImageGenMode = 'generate' | 'vton' | 'social' | 'resize' | 'landing' | 'ai-shots'
 
 export type NanoBananaThinkingLevel = 'minimal' | 'high'
 

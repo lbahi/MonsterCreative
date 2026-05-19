@@ -17,7 +17,8 @@ import {
   Wand2,
   Copy,
   Crop,
-  Monitor
+  Monitor,
+  Sparkles
 } from 'lucide-react'
 import { useApp } from '../../contexts/AppContext'
 import logo from '../../assets/logo.png'
@@ -44,6 +45,12 @@ const navItems = [
         label: 'Virtual Try-On',
         path: '/image-gen/vton',
         icon: <Copy size={14} />
+      },
+      {
+        id: 'img-ai-shots',
+        label: 'AI Shots',
+        path: '/image-gen/ai-shots',
+        icon: <Sparkles size={14} />
       },
       {
         id: 'img-social',

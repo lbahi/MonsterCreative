@@ -12,6 +12,7 @@ import { ModeRouter } from './components/ModeRouter'
 
 function getActiveMode(pathname: string): ActiveImageGenMode {
   if (pathname.includes('vton')) return 'vton'
+  if (pathname.includes('ai-shots')) return 'ai-shots'
   if (pathname.includes('social')) return 'social'
   if (pathname.includes('resize')) return 'resize'
   if (pathname.includes('landing')) return 'landing'

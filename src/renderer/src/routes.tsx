@@ -7,6 +7,7 @@ import { AudioLabScreen } from './screens/AudioLabScreen'
 import { VideoGenScreen } from './screens/video-gen'
 import { ApiCostsScreen } from './screens/ApiCostsScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
+import { AiShotsScreen } from './screens/ai-shots'
 
 export const router = createHashRouter([
   {
@@ -19,6 +20,7 @@ export const router = createHashRouter([
       { path: 'image-gen', element: <Navigate to="/image-gen/generate" replace /> },
       { path: 'image-gen/generate', Component: ImageGenScreen },
       { path: 'image-gen/vton', Component: ImageGenScreen },
+      { path: 'image-gen/ai-shots', Component: AiShotsScreen },
       { path: 'image-gen/social', Component: ImageGenScreen },
       { path: 'image-gen/resize', Component: ImageGenScreen },
       { path: 'image-gen/landing', Component: ImageGenScreen },

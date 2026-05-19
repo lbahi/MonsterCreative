@@ -1,5 +1,4 @@
-import type { Step } from '../../components/ui/StepChecklist'
-import { Crop, Monitor, Shirt, Wand2 } from 'lucide-react'
+import { Crop, Monitor, Shirt, Wand2, Sparkles } from 'lucide-react'
 
 import type { ModeOption } from './types'
 
@@ -31,6 +30,14 @@ export const MODES: ModeOption[] = [
     description: 'AI Casting Director for your garments',
     icon: Shirt,
     color: '#EC4899'
+  },
+  {
+    id: 'ai-shots',
+    path: '/image-gen/ai-shots',
+    label: 'AI Shots',
+    description: 'Create high-end product photoshoots using AI',
+    icon: Sparkles,
+    color: '#6C63FF'
   },
   {
     id: 'social',
@@ -240,7 +247,7 @@ export const MODEL_FALLBACK_PRICES: Record<string, number> = {
   'Stable Diffusion XL': 0.006
 }
 
-export const IMG_STEPS: Step[] = [
+export const IMG_STEPS: { label: string; duration: number }[] = [
   { label: 'Processing prompt & context', duration: 800 },
   { label: 'Initializing model', duration: 1200 },
   { label: 'Generating base composition', duration: 2000 },

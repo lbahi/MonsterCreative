@@ -87,7 +87,10 @@ export function ModeRouter(props: ModeRouterProps) {
       <div
         style={{
           display:
-            activeMode === 'resize' || activeMode === 'social' || activeMode === 'vton'
+            activeMode === 'resize' ||
+            activeMode === 'social' ||
+            activeMode === 'vton' ||
+            activeMode === 'ai-shots'
               ? 'block'
               : 'grid',
           gridTemplateColumns: '1fr 320px',
@@ -146,6 +149,8 @@ export function ModeRouter(props: ModeRouterProps) {
               aspectRatio={nbRatio}
               setAspectRatio={setNbRatio}
             />
+          ) : activeMode === 'ai-shots' ? (
+            null
           ) : activeMode === 'social' ? (
             <SocialAdsForm
               generating={generating}
