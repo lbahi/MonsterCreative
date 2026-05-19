@@ -11,6 +11,7 @@ interface AppContextType {
   onboardingComplete: boolean
   completeOnboarding: () => void
   licenseChecking: boolean
+  isLicenseValid: boolean
   activeImageMode: string
   setActiveImageMode: (mode: string) => void
   activeVideoMode: string
@@ -34,6 +35,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [activeVideoMode, setActiveVideoMode] = useState('text-to-video')
   const [mcpEnabled, setMcpEnabled] = useState(false)
   const [licenseChecking, setLicenseChecking] = useState(true)
+  const [isLicenseValid, setIsLicenseValid] = useState(false)
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>('idle')
   const [falCredits, setFalCredits] = useState<number | null>(null)
 
@@ -85,13 +87,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
         if (!result.valid) {
           // License invalid — force onboarding regardless of localStorage
           setOnboardingComplete(false)
-        } else if (localStorage.getItem('mosterads_onboarded') === 'true') {
-          // License valid + previously onboarded — check fal connection
-          refreshConnectionStatus()
+          setIsLicenseValid(false)
+        } else {
+          // License valid! Check fal connection.
+          setIsLicenseValid(true)
+          const status = await refreshConnectionStatus()
+          if (status !== 'required' || localStorage.getItem('mosterads_onboarded') === 'true') {
+            // We have a key (even if currently invalid/offline), or previously bypassed.
+            setOnboardingComplete(true)
+            localStorage.setItem('mosterads_onboarded', 'true')
+          } else {
+            // Missing Fal key completely, need to onboard
+            setOnboardingComplete(false)
+          }
         }
       } catch {
         // Network error — force onboarding so user can re-validate
         setOnboardingComplete(false)
+        setIsLicenseValid(false)
       } finally {
         setLicenseChecking(false)
       }
@@ -110,6 +123,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         onboardingComplete,
         completeOnboarding,
         licenseChecking,
+        isLicenseValid,
         activeImageMode,
         setActiveImageMode,
         activeVideoMode,

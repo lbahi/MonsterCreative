@@ -69,6 +69,9 @@
   "build": {
     "asarUnpack": [
       "node_modules/keytar/**"
-    ]
+    ],
+    "nsis": {
+      "artifactName": "MonsterCreative-Setup-${version}.${ext}"
+    }
   }
 }

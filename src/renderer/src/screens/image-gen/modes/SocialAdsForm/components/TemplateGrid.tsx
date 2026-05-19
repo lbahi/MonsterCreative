@@ -55,10 +55,8 @@ export const TemplateGrid = ({
         style={{
           display: 'flex',
           gap: 8,
-          overflowX: 'auto',
-          paddingBottom: 4,
-          scrollbarWidth: 'none',
-          WebkitOverflowScrolling: 'touch'
+          flexWrap: 'wrap',
+          paddingBottom: 4
         }}
       >
         {categories.map((cat) => (

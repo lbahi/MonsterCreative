@@ -223,13 +223,15 @@ export function SocialAdsForm(props: SocialAdsFormProps): React.ReactElement {
           </select>
         </div>
 
-        <TemplateGrid
-          selectedTemplate={socialAds.selectedTemplate}
-          selectedRatio={socialAds.selectedRatio}
-          selectedResolution={socialAds.selectedResolution}
-          selectedLanguage={socialAds.selectedLanguage}
-          onPreviewTemplate={socialAds.setPreviewTemplate}
-        />
+        <div style={{ minWidth: 0 }}>
+          <TemplateGrid
+            selectedTemplate={socialAds.selectedTemplate}
+            selectedRatio={socialAds.selectedRatio}
+            selectedResolution={socialAds.selectedResolution}
+            selectedLanguage={socialAds.selectedLanguage}
+            onPreviewTemplate={socialAds.setPreviewTemplate}
+          />
+        </div>
       </div>
 
       <PromptPreviewFooter

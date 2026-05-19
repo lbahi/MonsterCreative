@@ -41,7 +41,7 @@ export function DashboardScreen() {
   }, [setRightPanelContent, navigate, stats, loading])
 
   return (
-    <div style={{ padding: '32px 36px', maxWidth: 1000, fontFamily: 'var(--font-body)' }}>
+    <div style={{ padding: '32px 36px', width: '100%', fontFamily: 'var(--font-body)' }}>
       {/* Header */}
       <div style={{ marginBottom: 32 }}>
         <SystemStatus refreshing={refreshing} onRefresh={refresh} formatDate={formatDate} />

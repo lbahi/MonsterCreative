@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Shield, RefreshCw, Key, Mail, Calendar, HelpCircle } from 'lucide-react'
+import { Shield, RefreshCw, Key, Mail, Calendar, HelpCircle, Eye, EyeOff } from 'lucide-react'
 
 export const LicenseSection = () => {
   const [details, setDetails] = useState<{
@@ -9,6 +9,7 @@ export const LicenseSection = () => {
     lastValidated?: string
   } | null>(null)
   const [loading, setLoading] = useState(true)
+  const [showKey, setShowKey] = useState(false)
 
   useEffect(() => {
     async function fetchDetails() {
@@ -49,9 +50,7 @@ export const LicenseSection = () => {
     )
   }
 
-  const maskedKey = details?.key
-    ? `${details.key.substring(0, 8)}...${details.key.substring(details.key.length - 4)}`
-    : 'Not Found'
+
 
   const formattedDate = details?.lastValidated
     ? new Date(Number(details.lastValidated)).toLocaleDateString(undefined, {
@@ -133,12 +132,57 @@ export const LicenseSection = () => {
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <Key size={16} style={{ color: 'rgba(255,255,255,0.3)' }} />
-            <div>
-              <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', display: 'block' }}>License Key</span>
-              <span style={{ fontSize: 13, color: '#FFF', fontFamily: 'var(--font-mono)' }}>{maskedKey}</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 0 }}>
+              <Key size={16} style={{ color: 'rgba(255,255,255,0.3)', flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', display: 'block' }}>License Key</span>
+                <span style={{ 
+                  fontSize: 13, 
+                  color: '#FFF', 
+                  fontFamily: 'var(--font-mono)',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  display: 'block'
+                }}>
+                  {details?.key
+                    ? showKey
+                      ? details.key
+                      : `${details.key.substring(0, 8)}${'•'.repeat(24)}`
+                    : 'Not Found'}
+                </span>
+              </div>
             </div>
+            {details?.key && (
+              <button
+                onClick={() => setShowKey(!showKey)}
+                style={{
+                  width: 28,
+                  height: 28,
+                  background: 'rgba(255,255,255,0.04)',
+                  border: '1px solid var(--ma-border)',
+                  borderRadius: 6,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: 'rgba(255,255,255,0.4)',
+                  flexShrink: 0,
+                  transition: 'all 0.15s'
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.08)'
+                  e.currentTarget.style.color = '#FFF'
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.background = 'rgba(255,255,255,0.04)'
+                  e.currentTarget.style.color = 'rgba(255,255,255,0.4)'
+                }}
+              >
+                {showKey ? <EyeOff size={13} /> : <Eye size={13} />}
+              </button>
+            )}
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

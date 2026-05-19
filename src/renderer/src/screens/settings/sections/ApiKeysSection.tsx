@@ -255,7 +255,11 @@ function ApiKeyCard({
                   apiKey.status === 'connected'
                     ? 'rgba(255,255,255,0.55)'
                     : 'rgba(255,255,255,0.2)',
-                letterSpacing: '0.5px'
+                letterSpacing: '0.5px',
+                display: 'block',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
               }}
             >
               {apiKey.status === 'connected'

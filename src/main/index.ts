@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, ipcMain, dialog } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, dialog, session } from 'electron'
 import { join } from 'path'
 import { autoUpdater } from 'electron-updater'
 import log from 'electron-log'
@@ -43,7 +43,8 @@ function createWindow(): void {
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: false,
-      webSecurity: false
+      webSecurity: false,
+      webviewTag: true
     }
   })
 
@@ -73,8 +74,7 @@ function createWindow(): void {
       provider: 'github',
       owner: 'lbahi',
       repo: 'MonsterCreative',
-      private: true,
-      token: process.env.GITHUB_TOKEN || ''
+      private: false
     })
 
     autoUpdater.logger = log
@@ -133,6 +133,45 @@ app.disableHardwareAcceleration()
 app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
+
+  // Fix YouTube embed in production: configure both default and webview sessions
+  const ytFilter = { urls: ['*://*.youtube.com/*', '*://*.youtube-nocookie.com/*'] }
+  const CHROME_UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36'
+
+  // Helper: apply YouTube header fixes to a session
+  function configureYouTubeSession(ses: Electron.Session): void {
+    ses.setUserAgent(CHROME_UA)
+    // Spoof outgoing Referer/Origin only for document loads, not for media streams/AJAX
+    ses.webRequest.onBeforeSendHeaders(ytFilter, (details, callback) => {
+      if (details.resourceType === 'mainFrame' || details.resourceType === 'subFrame') {
+        details.requestHeaders['Origin'] = 'https://monstercreative.lbahi.digital'
+        details.requestHeaders['Referer'] = 'https://monstercreative.lbahi.digital/'
+      }
+      details.requestHeaders['User-Agent'] = CHROME_UA
+      callback({ cancel: false, requestHeaders: details.requestHeaders })
+    })
+    // Strip restrictive response headers
+    ses.webRequest.onHeadersReceived(ytFilter, (details, callback) => {
+      const headers = { ...details.responseHeaders }
+      delete headers['x-frame-options']
+      delete headers['X-Frame-Options']
+      if (headers['content-security-policy']) {
+        headers['content-security-policy'] = headers['content-security-policy'].map(
+          (csp) => csp.replace(/frame-ancestors[^;]*(;|$)/gi, '')
+        )
+      }
+      if (headers['Content-Security-Policy']) {
+        headers['Content-Security-Policy'] = headers['Content-Security-Policy'].map(
+          (csp) => csp.replace(/frame-ancestors[^;]*(;|$)/gi, '')
+        )
+      }
+      callback({ responseHeaders: headers })
+    })
+  }
+
+  // Apply to default session (for iframes) and the 'youtube' partition (for webview)
+  configureYouTubeSession(session.defaultSession)
+  configureYouTubeSession(session.fromPartition('youtube'))
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.

@@ -17,7 +17,7 @@ asarUnpack:
 win:
   executableName: monster-creative
 nsis:
-  artifactName: ${name}-${version}-setup.${ext}
+  artifactName: MonsterCreative-Setup-${version}.${ext}
   shortcutName: ${productName}
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
@@ -45,4 +45,4 @@ publish:
   provider: github
   owner: lbahi
   repo: MonsterCreative
-  private: true
+  private: false

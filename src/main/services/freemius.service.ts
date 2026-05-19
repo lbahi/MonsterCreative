@@ -7,6 +7,8 @@ import { FREEMIUS_CONFIG, IS_SANDBOX } from '../config/freemius.config'
 
 const SERVICE_NAME = 'MonsterCreative'
 const APP_URL = 'https://monstercreative.lbahi.digital'
+const API_BASE_ROOT = FREEMIUS_CONFIG.API_BASE.replace(/\/v1$/, '')
+
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -56,6 +58,97 @@ async function getOrCreateDeviceUid(): Promise<string> {
   await keytar.setPassword(SERVICE_NAME, 'device-uid', uid)
   log.info('[Freemius] Generated new device UID:', uid)
   return uid
+}
+
+// ── Helpers: FS Request Signing & Info Retrieval ──────────────────────────────
+
+function generateFsSignature(
+  secretKey: string,
+  method: string,
+  path: string,
+  dateStr: string
+): string {
+  const contentMd5 = ''
+  const contentType = ''
+  const stringToSign = `${method}\n${contentMd5}\n${contentType}\n${dateStr}\n${path}`
+
+  const hmac = crypto.createHmac('sha256', secretKey)
+  hmac.update(stringToSign)
+  const hashHex = hmac.digest('hex')
+
+  return Buffer.from(hashHex)
+    .toString('base64')
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '')
+}
+
+async function fetchUserEmailAndQuota(
+  userId: string,
+  userPublicKey: string,
+  userSecretKey: string,
+  licenseKey: string
+): Promise<{ email?: string; quota?: string }> {
+  try {
+    const dateStr = new Date().toUTCString()
+
+    // 1. Fetch user details for email
+    const userPath = `/v1/users/${userId}.json`
+    const userSig = generateFsSignature(userSecretKey, 'GET', userPath, dateStr)
+    const userUrl = `${API_BASE_ROOT}${userPath}`
+
+    log.info(`[Freemius] Fetching user email from: ${userUrl}`)
+    const userRes = await fetch(userUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `FS ${userId}:${userPublicKey}:${userSig}`,
+        'Date': dateStr
+      }
+    })
+
+    let email: string | undefined
+    if (userRes.status === 200) {
+      const userData = await userRes.json()
+      email = userData.email
+      log.info(`[Freemius] Successfully retrieved email: ${email}`)
+    } else {
+      log.error(`[Freemius] Failed to fetch user details, status: ${userRes.status}`)
+    }
+
+    // 2. Fetch license details for quota
+    const licensesPath = `/v1/users/${userId}/plugins/${FREEMIUS_CONFIG.PRODUCT_ID}/licenses.json`
+    const licensesSig = generateFsSignature(userSecretKey, 'GET', licensesPath, dateStr)
+    const licensesUrl = `${API_BASE_ROOT}${licensesPath}`
+
+    log.info(`[Freemius] Fetching user licenses from: ${licensesUrl}`)
+    const licensesRes = await fetch(licensesUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `FS ${userId}:${userPublicKey}:${licensesSig}`,
+        'Date': dateStr
+      }
+    })
+
+    let quota: string | undefined
+    if (licensesRes.status === 200) {
+      const licensesData = await licensesRes.json()
+      const licenses = licensesData.licenses || []
+      const activeLicense = licenses.find((l: any) => l.secret_key === licenseKey)
+      if (activeLicense) {
+        quota = activeLicense.quota === null ? 'Unlimited' : String(activeLicense.quota)
+        log.info(`[Freemius] Successfully retrieved quota: ${quota}`)
+      } else {
+        log.warn('[Freemius] Active license key not found in user licenses list')
+      }
+    } else {
+      log.error(`[Freemius] Failed to fetch licenses, status: ${licensesRes.status}`)
+    }
+
+    return { email, quota }
+  } catch (err: any) {
+    log.error('[Freemius] Error fetching user email/quota:', err.message)
+    return {}
+  }
 }
 
 // ── Service class ─────────────────────────────────────────────────────────────
@@ -123,12 +216,30 @@ export class FreemiusService {
         await keytar.setPassword(SERVICE_NAME, 'license-key', licenseKey)
         await keytar.setPassword(SERVICE_NAME, 'device-uid', uid)
         await keytar.setPassword(SERVICE_NAME, 'install-id', String(data.install_id))
-        await keytar.setPassword(SERVICE_NAME, 'install-api-token', data.install_api_token ?? '')
+        await keytar.setPassword(SERVICE_NAME, 'install-api-token', data.install_api_token ?? data.install_secret_key ?? '')
         await keytar.setPassword(SERVICE_NAME, 'install-secret-key', data.install_secret_key ?? '')
         await keytar.setPassword(SERVICE_NAME, 'user-id', String(data.user_id ?? ''))
+        await keytar.setPassword(SERVICE_NAME, 'user-secret-key', String(data.user_secret_key ?? ''))
+        await keytar.setPassword(SERVICE_NAME, 'user-public-key', String(data.user_public_key ?? ''))
         await keytar.setPassword(SERVICE_NAME, 'license-plan', data.license_plan_name ?? '')
         await keytar.setPassword(SERVICE_NAME, 'last-validated', String(Date.now()))
         await keytar.setPassword(SERVICE_NAME, 'app-version', app.getVersion())
+
+        // Fetch email and quota using the user's signed API keys
+        if (data.user_id && data.user_public_key && data.user_secret_key) {
+          const { email, quota } = await fetchUserEmailAndQuota(
+            String(data.user_id),
+            data.user_public_key,
+            data.user_secret_key,
+            licenseKey
+          )
+          if (email) {
+            await keytar.setPassword(SERVICE_NAME, 'purchaser-email', email)
+          }
+          if (quota) {
+            await keytar.setPassword(SERVICE_NAME, 'license-quota', quota)
+          }
+        }
 
         log.info(`[Freemius] Activation successful: install_id=${data.install_id}, plan=${data.license_plan_name}`)
         log.info('[Freemius] keytar save successful for all fields')
@@ -154,10 +265,14 @@ export class FreemiusService {
   async validate(): Promise<ValidateResult> {
     try {
       const installId = await keytar.getPassword(SERVICE_NAME, 'install-id')
-      const installApiToken = await keytar.getPassword(SERVICE_NAME, 'install-api-token')
       const lastValidatedStr = await keytar.getPassword(SERVICE_NAME, 'last-validated')
 
-      if (!installId || !installApiToken) {
+      const userId = await keytar.getPassword(SERVICE_NAME, 'user-id')
+      const userPublicKey = await keytar.getPassword(SERVICE_NAME, 'user-public-key')
+      const userSecretKey = await keytar.getPassword(SERVICE_NAME, 'user-secret-key')
+      const licenseKey = await keytar.getPassword(SERVICE_NAME, 'license-key')
+
+      if (!installId || !userId || !userPublicKey || !userSecretKey || !licenseKey) {
         return { valid: false, reason: 'not_activated' }
       }
 
@@ -166,29 +281,79 @@ export class FreemiusService {
       const daysSince = (Date.now() - lastValidated) / 86400000
       if (daysSince < FREEMIUS_CONFIG.REVALIDATION_DAYS) {
         log.info(`[Freemius] Skipping revalidation (${daysSince.toFixed(1)} days since last check)`)
+
+        // Self-healing: If activated but email or quota is missing, fetch them in the background
+        const email = await keytar.getPassword(SERVICE_NAME, 'purchaser-email')
+        const quota = await keytar.getPassword(SERVICE_NAME, 'license-quota')
+        if (!email || !quota) {
+          log.info('[Freemius] Skipping full validation but email/quota is missing. Triggering background fetch...')
+          fetchUserEmailAndQuota(userId, userPublicKey, userSecretKey, licenseKey).then(async (fetched) => {
+            if (fetched.email) await keytar.setPassword(SERVICE_NAME, 'purchaser-email', fetched.email)
+            if (fetched.quota) await keytar.setPassword(SERVICE_NAME, 'license-quota', fetched.quota)
+            log.info('[Freemius] Self-healing background fetch completed successfully')
+          }).catch(err => {
+            log.error('[Freemius] Background self-healing fetch failed:', err.message)
+          })
+        }
+
         return { valid: true }
       }
 
-      const url = `${FREEMIUS_CONFIG.API_BASE}/products/${FREEMIUS_CONFIG.PRODUCT_ID}/installs/${installId}.json`
-      log.info('[Freemius] Validating install:', url)
+      const dateStr = new Date().toUTCString()
+      const path = `/v1/users/${userId}/plugins/${FREEMIUS_CONFIG.PRODUCT_ID}/licenses.json`
+      const sig = generateFsSignature(userSecretKey, 'GET', path, dateStr)
+      const url = `${API_BASE_ROOT}${path}`
 
-      const { data } = await safeFetch(url, {
+      log.info('[Freemius] Validating licenses via user endpoint:', url)
+      const res = await fetch(url, {
         method: 'GET',
-        headers: { 'Authorization': `Bearer ${installApiToken}` }
+        headers: {
+          'Authorization': `FS ${userId}:${userPublicKey}:${sig}`,
+          'Date': dateStr
+        }
       })
 
-      if (data.error) {
-        log.error('[Freemius] Validation failed — clearing license:', data.error)
+      if (res.status !== 200) {
+        log.error(`[Freemius] Validation failed with status: ${res.status} — clearing license`)
         await this.clearLicense()
-        return { valid: false, reason: data.error.code ?? 'revoked' }
+        return { valid: false, reason: 'revoked' }
       }
 
-      if (data.id) {
-        await keytar.setPassword(SERVICE_NAME, 'last-validated', String(Date.now()))
-        log.info('[Freemius] Validation successful, install active')
-        return { valid: true }
+      const licensesData = await res.json()
+      const licenses = licensesData.licenses || []
+      const activeLicense = licenses.find((l: any) => l.secret_key === licenseKey)
+
+      if (!activeLicense) {
+        log.error('[Freemius] Validation failed: license key not found in user licenses — clearing license')
+        await this.clearLicense()
+        return { valid: false, reason: 'revoked' }
       }
 
+      // Update validation metadata
+      await keytar.setPassword(SERVICE_NAME, 'last-validated', String(Date.now()))
+
+      const quotaStr = activeLicense.quota === null ? 'Unlimited' : String(activeLicense.quota)
+      await keytar.setPassword(SERVICE_NAME, 'license-quota', quotaStr)
+
+      // Also proactively update email if available
+      const userPath = `/v1/users/${userId}.json`
+      const userSig = generateFsSignature(userSecretKey, 'GET', userPath, dateStr)
+      const userUrl = `${API_BASE_ROOT}${userPath}`
+      const userRes = await fetch(userUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `FS ${userId}:${userPublicKey}:${userSig}`,
+          'Date': dateStr
+        }
+      })
+      if (userRes.status === 200) {
+        const userData = await userRes.json()
+        if (userData.email) {
+          await keytar.setPassword(SERVICE_NAME, 'purchaser-email', userData.email)
+        }
+      }
+
+      log.info('[Freemius] Validation successful, install active')
       return { valid: true }
 
     } catch (err: any) {
@@ -202,19 +367,30 @@ export class FreemiusService {
   async deactivate(): Promise<void> {
     try {
       const installId = await keytar.getPassword(SERVICE_NAME, 'install-id')
-      const installApiToken = await keytar.getPassword(SERVICE_NAME, 'install-api-token')
       const licenseKey = await keytar.getPassword(SERVICE_NAME, 'license-key')
+      const uid = await getOrCreateDeviceUid()
 
-      if (installId && installApiToken) {
-        const url = `${FREEMIUS_CONFIG.API_BASE}/products/${FREEMIUS_CONFIG.PRODUCT_ID}/installs/${installId}.json?license_key=${encodeURIComponent(licenseKey ?? '')}`
-        log.info('[Freemius] Deactivating install:', url)
+      if (installId && licenseKey) {
+        const url = `${FREEMIUS_CONFIG.API_BASE}/products/${FREEMIUS_CONFIG.PRODUCT_ID}/licenses/deactivate.json`
+        log.info('[Freemius] Deactivating license:', url)
+
+        const body = {
+          uid,
+          install_id: Number(installId),
+          license_key: licenseKey
+        }
+
+        log.info('[Freemius] Request body (key masked):', JSON.stringify({ ...body, license_key: '***' }))
 
         await safeFetch(url, {
-          method: 'DELETE',
-          headers: { 'Authorization': `Bearer ${installApiToken}` }
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
         })
 
         log.info('[Freemius] Deactivation API call completed')
+      } else {
+        log.warn('[Freemius] Missing install ID or license key, skipping API deactivation call but proceeding to clear locally')
       }
     } catch (err: any) {
       log.error('[Freemius] Deactivation API call failed (continuing with local clear):', err.message)
@@ -244,11 +420,31 @@ export class FreemiusService {
   // ── Get Details (for Settings → License tab) ──────────────────────────────────
 
   async getDetails() {
-    const email = await keytar.getPassword(SERVICE_NAME, 'purchaser-email')
+    let email = await keytar.getPassword(SERVICE_NAME, 'purchaser-email')
     const key = await keytar.getPassword(SERVICE_NAME, 'license-key')
-    const quota = await keytar.getPassword(SERVICE_NAME, 'license-quota')
+    let quota = await keytar.getPassword(SERVICE_NAME, 'license-quota')
     const plan = await keytar.getPassword(SERVICE_NAME, 'license-plan')
     const lastValidated = await keytar.getPassword(SERVICE_NAME, 'last-validated')
+
+    // Self-healing check: If the app is activated but email or quota is missing, fetch them inline/background
+    if (key && (!email || !quota)) {
+      log.info('[Freemius] Self-healing check: Activated but email or quota is missing. Fetching now...')
+      const userId = await keytar.getPassword(SERVICE_NAME, 'user-id')
+      const userPublicKey = await keytar.getPassword(SERVICE_NAME, 'user-public-key')
+      const userSecretKey = await keytar.getPassword(SERVICE_NAME, 'user-secret-key')
+      if (userId && userPublicKey && userSecretKey) {
+        const fetched = await fetchUserEmailAndQuota(userId, userPublicKey, userSecretKey, key)
+        if (fetched.email) {
+          await keytar.setPassword(SERVICE_NAME, 'purchaser-email', fetched.email)
+          email = fetched.email
+        }
+        if (fetched.quota) {
+          await keytar.setPassword(SERVICE_NAME, 'license-quota', fetched.quota)
+          quota = fetched.quota
+        }
+      }
+    }
+
     return { email, key, quota, plan, lastValidated }
   }
 
@@ -261,6 +457,8 @@ export class FreemiusService {
       'install-api-token',
       'install-secret-key',
       'user-id',
+      'user-secret-key',
+      'user-public-key',
       'license-plan',
       'last-validated',
       'purchaser-email',
