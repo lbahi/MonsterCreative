@@ -477,76 +477,100 @@ export function LeftPanel({
             Select the backdrop aesthetic, mood, and camera setup for your campaign.
           </p>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
             {SHOT_STYLES.map((style) => {
               const isSel = shotStyle === style.id
-              const StyleIcon = style.icon
               return (
-                <button
+                <div
                   key={style.id}
                   onClick={() => setShotStyle(style.id)}
                   style={{
-                    width: '100%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 12,
-                    padding: '10px 14px',
-                    borderRadius: 10,
-                    border: `1px solid ${isSel ? '#6C63FF' : 'rgba(255,255,255,0.06)'}`,
-                    background: isSel ? 'rgba(108, 99, 255, 0.08)' : '#11111A',
-                    transition: 'all 0.2s',
-                    textAlign: 'left',
-                    cursor: 'pointer',
                     position: 'relative',
-                    boxShadow: isSel ? '0 0 10px rgba(108, 99, 255, 0.15)' : 'none'
+                    borderRadius: 10,
+                    overflow: 'hidden',
+                    cursor: 'pointer',
+                    aspectRatio: '3/4',
+                    border: `2px solid ${isSel ? style.color : 'transparent'}`,
+                    boxShadow: isSel ? `0 0 16px ${style.color}33` : 'none',
+                    transition: 'all 0.15s'
                   }}
                 >
+                  {/* Thumbnail Image */}
                   <div
                     style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 6,
-                      background: isSel ? 'rgba(108, 99, 255, 0.15)' : 'rgba(255,255,255,0.03)',
+                      width: '100%',
+                      height: '100%',
+                      background: `linear-gradient(135deg, ${style.color}22, ${style.color}08)`,
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      color: isSel ? '#6C63FF' : 'rgba(255,255,255,0.6)'
+                      justifyContent: 'center'
                     }}
                   >
-                    <StyleIcon size={16} />
+                    <img
+                      src={style.thumbnail}
+                      loading="lazy"
+                      alt={style.title}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        opacity: isSel ? 1 : 0.65,
+                        transition: 'opacity 0.15s'
+                      }}
+                    />
                   </div>
-                  <div style={{ flex: 1 }}>
+
+                  {/* Gradient Overlay & Text Labels */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      background: 'linear-gradient(transparent, rgba(0,0,0,0.88))',
+                      padding: '24px 6px 8px',
+                      textAlign: 'center'
+                    }}
+                  >
                     <div
                       style={{
-                        fontSize: 12,
+                        fontSize: 10,
                         fontWeight: 700,
-                        color: '#FFF',
+                        color: isSel ? style.color : '#FFF',
+                        letterSpacing: '0.5px',
                         fontFamily: "'Outfit', sans-serif"
                       }}
                     >
                       {style.title}
                     </div>
-                    <div style={{ fontSize: 9, color: 'rgba(255,255,255,0.4)', maxWidth: '80%' }}>
+                    <div style={{ fontSize: 8, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
                       {style.subtitle}
                     </div>
                   </div>
-                  {style.badge && (
-                    <span
+
+                  {/* Selected Tick Indicator */}
+                  {isSel && (
+                    <div
                       style={{
-                        fontSize: 7,
-                        fontWeight: 900,
-                        fontFamily: "'JetBrains Mono', monospace",
-                        color: '#22C55E',
-                        background: 'rgba(34, 197, 94, 0.1)',
-                        padding: '2px 6px',
-                        borderRadius: 4
+                        position: 'absolute',
+                        top: 6,
+                        right: 6,
+                        width: 18,
+                        height: 18,
+                        borderRadius: '50%',
+                        background: style.color,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 10,
+                        color: '#FFF',
+                        fontWeight: 700
                       }}
                     >
-                      {style.badge}
-                    </span>
+                      ✓
+                    </div>
                   )}
-                  {isSel && !style.badge && <Check size={14} style={{ color: '#6C63FF' }} />}
-                </button>
+                </div>
               )
             })}
           </div>

@@ -15,6 +15,8 @@ export interface ShotStyle {
   icon: React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>
   badge?: string
   restricted?: boolean
+  thumbnail: string
+  color: string
 }
 
 export interface SkinTone {
@@ -43,43 +45,57 @@ export const SHOT_STYLES: ShotStyle[] = [
     title: 'Studio Shot',
     subtitle: 'Clean white bg, e-commerce ready',
     icon: Camera,
-    badge: 'RECOMMENDED'
+    badge: 'RECOMMENDED',
+    thumbnail: './ShotStyles/studio.png',
+    color: '#6C63FF'
   },
   {
     id: 'lifestyle',
     title: 'Lifestyle Context',
     subtitle: 'Product in real-world setting',
-    icon: Home
+    icon: Home,
+    thumbnail: './ShotStyles/lifestyle.png',
+    color: '#3B82F6'
   },
   {
     id: 'macro',
     title: 'Macro Detail',
     subtitle: 'Extreme close-up, texture focus',
-    icon: Maximize
+    icon: Maximize,
+    thumbnail: './ShotStyles/macro.png',
+    color: '#10B981'
   },
   {
     id: 'flat-lay',
     title: 'Flat Lay',
     subtitle: 'Top-down, styled arrangement',
-    icon: Layers
+    icon: Layers,
+    thumbnail: './ShotStyles/flatlay.png',
+    color: '#EC4899'
   },
   {
     id: 'packaging',
     title: 'Packaging Hero',
     subtitle: 'Full packaging, brand identity',
-    icon: Package
+    icon: Package,
+    thumbnail: './ShotStyles/packaging.png',
+    color: '#F59E0B'
   },
   {
     id: 'cinematic',
     title: 'Cinematic Dark',
     subtitle: 'Dramatic lighting, luxury mood',
-    icon: Flame
+    icon: Flame,
+    thumbnail: './ShotStyles/cinematic.png',
+    color: '#EF4444'
   },
   {
     id: 'auto',
     title: 'Auto / Mixed',
     subtitle: 'Smart studio & lifestyle split',
-    icon: Sparkles
+    icon: Sparkles,
+    thumbnail: './ShotStyles/auto.png',
+    color: '#10B981'
   }
 ]
 
