@@ -272,9 +272,16 @@ app.whenReady().then(() => {
   })
 
   ipcMain.handle('util:downloadFile', async (_, { url, filename }) => {
+    const ext = filename.split('.').pop()?.toLowerCase() || 'png'
+    const isImage = ['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext)
+
+    const filters = isImage
+      ? [{ name: 'Images', extensions: [ext, 'png', 'jpg', 'jpeg', 'webp'] }]
+      : [{ name: 'Videos', extensions: ['mp4', 'webm', 'mov'] }]
+
     const { filePath } = await dialog.showSaveDialog({
       defaultPath: filename,
-      filters: [{ name: 'Videos', extensions: ['mp4'] }]
+      filters
     })
 
     if (!filePath) return { success: false, cancelled: true }

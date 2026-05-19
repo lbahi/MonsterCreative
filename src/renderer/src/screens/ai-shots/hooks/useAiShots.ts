@@ -1,10 +1,11 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { resolveImageInput } from '../../image-gen/utils/resolveImageInput'
 import { SHOT_STYLES } from '../data/templates'
 import { MODEL_TEMPLATES } from '../data/model-templates'
 import { ModelTemplate } from '../components/ModelTypeSelector'
 import { assembleSystemPrompt } from '../prompts'
 import { generateProductShots as runProductShotsService } from '../../../services/productShotsService'
+import { estimateNanoBananaCost } from '../../image-gen/utils/estimateNanoBananaCost'
 
 const ENDPOINT_MAP: Record<string, string> = {
   'Nano Banana': 'fal-ai/nano-banana/edit',
@@ -55,6 +56,19 @@ export const useAiShots = () => {
   const shouldShowStep4 = 
     productType === 'wearable' || 
     (productType === 'beauty' && shotStyle === 'model')
+
+  const estimatedCost = useMemo(() => {
+    if (model === 'GPT Image 2') {
+      return (0.04 * imageCount).toFixed(3)
+    }
+    return estimateNanoBananaCost({
+      model,
+      resolution,
+      numOutputs: imageCount,
+      webSearch: false,
+      thinkingLevel: 'minimal'
+    })
+  }, [model, resolution, imageCount])
 
   const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -244,6 +258,7 @@ export const useAiShots = () => {
     handleDeleteImage,
     shouldShowStep4,
     generateProductShots,
+    estimatedCost,
     modelTemplates: MODEL_TEMPLATES
   }
 }

@@ -1,4 +1,5 @@
-import { Upload, Sparkles, Download, ExternalLink } from 'lucide-react'
+import { useState } from 'react'
+import { Upload, Sparkles, Download, ExternalLink, X, ChevronLeft, ChevronRight } from 'lucide-react'
 
 interface RightPanelProps {
   currentStep: number
@@ -9,8 +10,32 @@ interface RightPanelProps {
   generated: boolean
   generatedImages: string[]
   selectedOutput: number
-  setSelectedOutput: (idx: number) => void
+  setSelectedOutput: (idx: number | ((prev: number) => number)) => void
   shotStyle: string
+  model: string
+  resolution: string
+  aspectRatio: string
+  imageCount: number
+  estimatedCost: string
+  productType: string
+}
+
+function InfoRow({ label, value, mono, green }: { label: string; value: any; mono?: boolean; green?: boolean }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', fontFamily: "'Outfit', sans-serif" }}>{label}</span>
+      <span
+        style={{
+          fontSize: 11,
+          fontWeight: 600,
+          color: green ? '#22C55E' : '#FFF',
+          fontFamily: mono ? "'JetBrains Mono', monospace" : "'Outfit', sans-serif"
+        }}
+      >
+        {value}
+      </span>
+    </div>
+  )
 }
 
 export function RightPanel({
@@ -22,8 +47,15 @@ export function RightPanel({
   generatedImages,
   selectedOutput,
   setSelectedOutput,
-  shotStyle
+  shotStyle,
+  model,
+  resolution,
+  aspectRatio,
+  imageCount,
+  estimatedCost,
+  productType
 }: RightPanelProps) {
+  const [lightboxActive, setLightboxActive] = useState(false)
   const activePreviewImage = uploadedImages[activeImageIndex] || null
 
   const handleDownload = async (url: string, index: number) => {
@@ -122,6 +154,7 @@ export function RightPanel({
         >
           {/* Main Active Image Box */}
           <div
+            onClick={() => setLightboxActive(true)}
             style={{
               position: 'relative',
               width: '100%',
@@ -135,7 +168,8 @@ export function RightPanel({
               justifyContent: 'center',
               overflow: 'hidden',
               padding: 16,
-              boxShadow: '0 20px 40px rgba(0,0,0,0.5)'
+              boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+              cursor: 'zoom-in'
             }}
           >
             <img
@@ -367,6 +401,231 @@ export function RightPanel({
           <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.25)', display: 'block' }}>
             Your product photo preview will appear here
           </span>
+        </div>
+      )}
+
+      {/* Floating Specs & Price Estimator Card */}
+      {!generating && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 24,
+            right: 24,
+            width: 240,
+            background: 'rgba(11, 11, 23, 0.75)',
+            backdropFilter: 'blur(16px)',
+            borderRadius: 12,
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            padding: 16,
+            boxShadow: '0 12px 40px rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+            zIndex: 10,
+            fontFamily: "'Outfit', sans-serif"
+          }}
+        >
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              color: '#6C63FF',
+              letterSpacing: 0.5,
+              textTransform: 'uppercase'
+            }}
+          >
+            Photoshoot Estimate
+          </span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <InfoRow label="Engine" value={model} mono />
+            <InfoRow label="Product Type" value={productType === 'wearable' ? 'Fashion' : 'General'} />
+            <InfoRow label="Aspect Ratio" value={aspectRatio} mono />
+            <InfoRow label="Resolution" value={resolution} />
+            <InfoRow label="Total Photos" value={`${imageCount} images`} />
+            <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />
+            <InfoRow label="Est. Cost" value={`$${estimatedCost}`} mono green />
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen Lightbox Modal with swiping & direct download */}
+      {lightboxActive && generatedImages.length > 0 && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(5, 5, 10, 0.95)',
+            backdropFilter: 'blur(20px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 40
+          }}
+          onClick={() => setLightboxActive(false)}
+        >
+          {/* Close Button */}
+          <button
+            onClick={() => setLightboxActive(false)}
+            style={{
+              position: 'absolute',
+              top: 24,
+              right: 24,
+              background: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: '50%',
+              width: 44,
+              height: 44,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'white',
+              cursor: 'pointer',
+              zIndex: 10000,
+              transition: 'all 0.2s'
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.15)')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+          >
+            <X size={20} />
+          </button>
+
+          {/* Left Arrow */}
+          {generatedImages.length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setSelectedOutput((prev) => (prev === 0 ? generatedImages.length - 1 : prev - 1))
+              }}
+              style={{
+                position: 'absolute',
+                left: 24,
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '50%',
+                width: 48,
+                height: 48,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                cursor: 'pointer',
+                zIndex: 10000,
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.15)')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+            >
+              <ChevronLeft size={24} />
+            </button>
+          )}
+
+          {/* Center Image Container */}
+          <div
+            style={{
+              position: 'relative',
+              maxHeight: '80vh',
+              maxWidth: '80vw',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 20
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img
+              src={generatedImages[selectedOutput]}
+              alt="Fullscreen photoshoot preview"
+              style={{
+                maxHeight: '70vh',
+                maxWidth: '100%',
+                objectFit: 'contain',
+                borderRadius: 14,
+                boxShadow: '0 25px 60px rgba(0,0,0,0.8)',
+                border: '1px solid rgba(255,255,255,0.1)'
+              }}
+            />
+
+            {/* Direct download & view HD links */}
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button
+                onClick={() => handleDownload(generatedImages[selectedOutput], selectedOutput)}
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: 8,
+                  background: '#6C63FF',
+                  border: 'none',
+                  color: '#FFF',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 15px rgba(108,99,255,0.4)',
+                  transition: 'all 0.2s',
+                  fontFamily: "'Outfit', sans-serif"
+                }}
+              >
+                <Download size={14} /> Download Image
+              </button>
+              <a
+                href={generatedImages[selectedOutput]}
+                target="_blank"
+                rel="noreferrer"
+                style={{
+                  padding: '10px 20px',
+                  borderRadius: 8,
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  color: '#FFF',
+                  fontSize: 12,
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  cursor: 'pointer',
+                  textDecoration: 'none',
+                  transition: 'all 0.2s',
+                  fontFamily: "'Outfit', sans-serif"
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.12)')}
+                onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+              >
+                <ExternalLink size={14} /> Open in Browser
+              </a>
+            </div>
+          </div>
+
+          {/* Right Arrow */}
+          {generatedImages.length > 1 && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setSelectedOutput((prev) => (prev === generatedImages.length - 1 ? 0 : prev + 1))
+              }}
+              style={{
+                position: 'absolute',
+                right: 24,
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(255,255,255,0.1)',
+                borderRadius: '50%',
+                width: 48,
+                height: 48,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                cursor: 'pointer',
+                zIndex: 10000,
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.15)')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
+            >
+              <ChevronRight size={24} />
+            </button>
+          )}
         </div>
       )}
     </div>
