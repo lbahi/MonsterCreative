@@ -1,7 +1,17 @@
 import { useNavigate } from 'react-router'
 import { FileText, Image, Video, Music2, ArrowRight } from 'lucide-react'
 
-const QUICK_LAUNCH = [
+type ActionItem = {
+  id: string
+  label: string
+  description: string
+  icon: JSX.Element
+  path: string
+  color: string
+  soon?: boolean
+}
+
+const QUICK_LAUNCH: ActionItem[] = [
   {
     id: 'ad-copy',
     label: 'Ad Copy',
