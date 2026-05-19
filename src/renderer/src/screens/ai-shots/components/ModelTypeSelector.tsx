@@ -40,7 +40,7 @@ export function ModelTypeSelector({
         <User size={12} style={{ verticalAlign: '-1px', marginRight: 4 }} /> SELECT CASTING MODEL
       </label>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
         {modelTemplates.map((tmpl) => {
           const isSelected = selectedModelType?.id === tmpl.id
 
