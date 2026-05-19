@@ -1,3 +1,4 @@
+import React from 'react'
 import { useNavigate } from 'react-router'
 import { FileText, Image, Video, Music2, ArrowRight } from 'lucide-react'
 
@@ -5,7 +6,7 @@ type ActionItem = {
   id: string
   label: string
   description: string
-  icon: JSX.Element
+  icon: React.ReactNode
   path: string
   color: string
   soon?: boolean
