@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Sparkles, ArrowLeft } from 'lucide-react'
 import { useAiShots } from './hooks/useAiShots'
@@ -5,10 +6,39 @@ import { ProgressBar } from './components/ProgressBar'
 import { LeftPanel } from './components/LeftPanel'
 import { RightPanel } from './components/RightPanel'
 import { BottomBar } from './components/BottomBar'
+import { useApp } from '../../contexts/AppContext'
+import { AiShotsSidebarPanel } from './components/SidebarPanel'
 
 export default function AiShotsScreen() {
   const navigate = useNavigate()
   const state = useAiShots()
+  const { setRightPanelContent } = useApp()
+
+  useEffect(() => {
+    setRightPanelContent(
+      <AiShotsSidebarPanel
+        generating={state.generating}
+        generated={state.generated}
+        model={state.model}
+        resolution={state.resolution}
+        aspectRatio={state.aspectRatio}
+        imageCount={state.imageCount}
+        estimatedCost={state.estimatedCost}
+        productType={state.productType}
+      />
+    )
+    return () => setRightPanelContent(null)
+  }, [
+    setRightPanelContent,
+    state.generating,
+    state.generated,
+    state.model,
+    state.resolution,
+    state.aspectRatio,
+    state.imageCount,
+    state.estimatedCost,
+    state.productType
+  ])
 
   return (
     <div

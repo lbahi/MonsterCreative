@@ -12,30 +12,6 @@ interface RightPanelProps {
   selectedOutput: number
   setSelectedOutput: (idx: number | ((prev: number) => number)) => void
   shotStyle: string
-  model: string
-  resolution: string
-  aspectRatio: string
-  imageCount: number
-  estimatedCost: string
-  productType: string
-}
-
-function InfoRow({ label, value, mono, green }: { label: string; value: any; mono?: boolean; green?: boolean }) {
-  return (
-    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <span style={{ fontSize: 11, color: 'rgba(255,255,255,0.45)', fontFamily: "'Outfit', sans-serif" }}>{label}</span>
-      <span
-        style={{
-          fontSize: 11,
-          fontWeight: 600,
-          color: green ? '#22C55E' : '#FFF',
-          fontFamily: mono ? "'JetBrains Mono', monospace" : "'Outfit', sans-serif"
-        }}
-      >
-        {value}
-      </span>
-    </div>
-  )
 }
 
 export function RightPanel({
@@ -47,13 +23,7 @@ export function RightPanel({
   generatedImages,
   selectedOutput,
   setSelectedOutput,
-  shotStyle,
-  model,
-  resolution,
-  aspectRatio,
-  imageCount,
-  estimatedCost,
-  productType
+  shotStyle
 }: RightPanelProps) {
   const [lightboxActive, setLightboxActive] = useState(false)
   const activePreviewImage = uploadedImages[activeImageIndex] || null
@@ -401,50 +371,6 @@ export function RightPanel({
           <span style={{ fontSize: 12, color: 'rgba(255, 255, 255, 0.25)', display: 'block' }}>
             Your product photo preview will appear here
           </span>
-        </div>
-      )}
-
-      {/* Floating Specs & Price Estimator Card */}
-      {!generating && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 24,
-            right: 24,
-            width: 240,
-            background: 'rgba(11, 11, 23, 0.75)',
-            backdropFilter: 'blur(16px)',
-            borderRadius: 12,
-            border: '1px solid rgba(255, 255, 255, 0.08)',
-            padding: 16,
-            boxShadow: '0 12px 40px rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 12,
-            zIndex: 10,
-            fontFamily: "'Outfit', sans-serif"
-          }}
-        >
-          <span
-            style={{
-              fontSize: 10,
-              fontWeight: 700,
-              color: '#6C63FF',
-              letterSpacing: 0.5,
-              textTransform: 'uppercase'
-            }}
-          >
-            Photoshoot Estimate
-          </span>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <InfoRow label="Engine" value={model} mono />
-            <InfoRow label="Product Type" value={productType === 'wearable' ? 'Fashion' : 'General'} />
-            <InfoRow label="Aspect Ratio" value={aspectRatio} mono />
-            <InfoRow label="Resolution" value={resolution} />
-            <InfoRow label="Total Photos" value={`${imageCount} images`} />
-            <div style={{ height: 1, background: 'rgba(255,255,255,0.06)', margin: '4px 0' }} />
-            <InfoRow label="Est. Cost" value={`$${estimatedCost}`} mono green />
-          </div>
         </div>
       )}
 
