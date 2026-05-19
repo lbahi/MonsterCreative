@@ -19,6 +19,14 @@ export function estimateNanoBananaCost({
     return (0.039 * numOutputs).toFixed(3)
   }
 
+  if (model === 'GPT Image 2') {
+    let base = 0.04
+    if (resolution === '0.5K') base = 0.01
+    else if (resolution === '2K') base = 0.08
+    else if (resolution === '4K') base = 0.41
+    return (base * numOutputs).toFixed(3)
+  }
+
   if (model === 'Nano Banana 2') {
     let base = 0.08
     if (resolution === '2K') base *= 1.5

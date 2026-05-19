@@ -58,9 +58,6 @@ export const useAiShots = () => {
     (productType === 'beauty' && shotStyle === 'model')
 
   const estimatedCost = useMemo(() => {
-    if (model === 'GPT Image 2') {
-      return (0.04 * imageCount).toFixed(3)
-    }
     return estimateNanoBananaCost({
       model,
       resolution,
