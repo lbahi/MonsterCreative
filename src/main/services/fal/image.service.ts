@@ -130,7 +130,7 @@ export class ImageService extends FalClient {
         seed: params.seed ? parseInt(params.seed) : undefined,
         enable_safety_checker: true
       }
-    } else if (params.model === 'Nano Banana Pro') {
+    } else if (params.model === 'Nano Banana Pro' || params.model === 'fal-ai/nano-banana-pro/edit') {
       endpoint = 'fal-ai/nano-banana-pro/edit'
       body = {
         prompt: params.prompt,
@@ -144,7 +144,7 @@ export class ImageService extends FalClient {
         enable_web_search: params.enable_web_search || false,
         limit_generations: params.limit_generations ?? true
       }
-    } else if (params.model === 'Nano Banana 2') {
+    } else if (params.model === 'Nano Banana 2' || params.model === 'fal-ai/nano-banana-2/edit') {
       endpoint = 'fal-ai/nano-banana-2/edit'
       body = {
         prompt: params.prompt,
@@ -156,7 +156,7 @@ export class ImageService extends FalClient {
         safety_tolerance: params.safety_tolerance || '4',
         limit_generations: params.limit_generations ?? true
       }
-    } else if (params.model === 'Nano Banana') {
+    } else if (params.model === 'Nano Banana' || params.model === 'fal-ai/nano-banana/edit' || params.model === 'fal-ai/nano-banana/pro/edit') {
       endpoint = 'fal-ai/nano-banana/edit'
       body = {
         prompt: params.prompt,
@@ -168,7 +168,7 @@ export class ImageService extends FalClient {
         safety_tolerance: params.safety_tolerance || '4',
         limit_generations: params.limit_generations ?? true
       }
-    } else if (params.model === 'GPT Image 2') {
+    } else if (params.model === 'GPT Image 2' || params.model === 'openai/gpt-image-2/edit') {
       endpoint = 'openai/gpt-image-2/edit'
 
       // Map standard ratios to GPT Image 2 enums
