@@ -14,11 +14,14 @@ export default function AiShotsScreen() {
     <div
       style={{
         width: '100%',
-        height: '100vh',
+        height: 'calc(100vh - 128px)',
         background: '#07070F',
         display: 'flex',
         flexDirection: 'column',
-        boxSizing: 'border-box'
+        boxSizing: 'border-box',
+        overflow: 'hidden',
+        borderRadius: 16,
+        border: '1px solid rgba(255, 255, 255, 0.07)'
       }}
     >
       {/* Top Header Row */}
