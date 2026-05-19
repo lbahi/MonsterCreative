@@ -181,11 +181,20 @@ export class ImageService extends FalClient {
       else if (ratio === '9:16') gptImageSize = 'portrait_16_9'
       else if (ratio === 'auto') gptImageSize = 'auto'
 
+      let gptQuality = 'high'
+      if (params.resolution === '0.5K') {
+        gptQuality = 'low'
+      } else if (params.resolution === '1K' || params.resolution === '2K') {
+        gptQuality = 'medium'
+      } else if (params.resolution === '4K') {
+        gptQuality = 'high'
+      }
+
       body = {
         prompt: params.prompt,
         image_urls: params.image_urls,
         image_size: gptImageSize,
-        quality: 'high',
+        quality: gptQuality,
         num_images: params.num_images || 1,
         output_format: params.output_format || 'png'
       }
