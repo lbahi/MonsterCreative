@@ -54,13 +54,17 @@ export const RecentActivity = () => {
           <div
             style={{
               padding: '60px 20px',
-              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 12,
               background: 'var(--ma-elevated)',
               borderRadius: 12,
               border: '1px dashed var(--ma-border)'
             }}
           >
-            <Sparkles size={20} style={{ color: 'var(--ma-accent)', marginBottom: 10 }} />
+            <Sparkles size={24} style={{ color: 'var(--ma-accent)' }} />
             <p style={{ color: 'var(--ma-text-muted)', margin: 0, fontSize: 14 }}>
               No generations yet. Use Quick Launch above to start creating.
             </p>

@@ -23,17 +23,16 @@ const QUICK_LAUNCH = [
     label: 'Video Gen',
     description: 'Produce video ads from text or images',
     icon: <Video size={20} />,
-    path: '/video-gen/text',
+    path: '/video-gen',
     color: '#EC4899'
   },
   {
     id: 'audio-lab',
     label: 'Audio Lab',
-    description: 'Coming soon — voiceovers & music beds',
+    description: 'Create voiceovers & music beds',
     icon: <Music2 size={20} />,
     path: '/audio-lab',
-    color: '#F59E0B',
-    soon: true
+    color: '#F59E0B'
   }
 ]
 
