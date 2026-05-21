@@ -1,14 +1,14 @@
-import { NB_TEMPLATES } from '../constants';
+import { NB_TEMPLATES } from '../constants'
 
 type BuildNanoBananaPromptArgs = {
-  model: string;
-  prompt: string;
-  style: string;
-  resolution: string;
-  aspectRatio: string;
-  numImages: number;
-  outputFormat: string;
-};
+  model: string
+  prompt: string
+  style: string
+  resolution: string
+  aspectRatio: string
+  numImages: number
+  outputFormat: string
+}
 
 export function buildNanoBananaPrompt({
   model,
@@ -17,9 +17,9 @@ export function buildNanoBananaPrompt({
   resolution,
   aspectRatio,
   numImages,
-  outputFormat,
+  outputFormat
 }: BuildNanoBananaPromptArgs) {
-  const template = NB_TEMPLATES[model as keyof typeof NB_TEMPLATES] || NB_TEMPLATES['Nano Banana 2'];
+  const template = NB_TEMPLATES[model as keyof typeof NB_TEMPLATES] || NB_TEMPLATES['Nano Banana 2']
 
   return template
     .replace('{{USER_PROMPT}}', prompt)
@@ -28,6 +28,9 @@ export function buildNanoBananaPrompt({
     .replace('{{ASPECT_RATIO}}', aspectRatio)
     .replace('{{NUM_IMAGES}}', numImages.toString())
     .replace('{{OUTPUT_FORMAT}}', outputFormat)
-    .replace('{{QUALITY_HINT}}', resolution === '4K' ? 'Ultra HD' : resolution === '2K' ? 'High Detail' : 'Standard')
-    .replace('{{STRICTNESS}}', 'strict');
+    .replace(
+      '{{QUALITY_HINT}}',
+      resolution === '4K' ? 'Ultra HD' : resolution === '2K' ? 'High Detail' : 'Standard'
+    )
+    .replace('{{STRICTNESS}}', 'strict')
 }

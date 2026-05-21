@@ -1,75 +1,76 @@
-import { useEffect, useState, useCallback } from 'react';
-import { useApp } from '../../../contexts/AppContext';
+import { useEffect, useState, useCallback } from 'react'
+import { useApp } from '../../../contexts/AppContext'
+import { BillingResponse } from '../types'
 
-interface DashStats {
-  totalGenerations: number;
-  mtdSpend: number;
-  credits: number | null;
-  creditsRestricted: boolean;
-  timeSavedH: number;
-  avgCostPerGen: number;
+export interface DashStats {
+  totalGenerations: number
+  mtdSpend: number
+  credits: number | null
+  creditsRestricted: boolean
+  timeSavedH: number
+  avgCostPerGen: number
 }
 
 function getMtdStart(): string {
-  const d = new Date();
-  d.setDate(1);
-  d.setHours(0, 0, 0, 0);
-  return d.toISOString();
+  const d = new Date()
+  d.setDate(1)
+  d.setHours(0, 0, 0, 0)
+  return d.toISOString()
 }
 
 export const useDashboard = () => {
-  const { setRightPanelContent } = useApp();
-  const [stats, setStats] = useState<DashStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const { setRightPanelContent } = useApp()
+  const [stats, setStats] = useState<DashStats | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
 
   const fetchData = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
+    if (isRefresh) setRefreshing(true)
+    else setLoading(true)
 
     try {
-      const mtdStart = getMtdStart();
+      const mtdStart = getMtdStart()
 
       const [usageRes, billingRes] = await Promise.all([
-        (window as any).api.fal.getUsage('day', mtdStart),
-        (window as any).api.fal.getBilling(),
-      ]);
+        window.api.fal.getUsage('day', mtdStart),
+        window.api.fal.getBilling()
+      ])
 
-      let totalGenerations = 0;
-      let mtdSpend = 0;
+      let totalGenerations = 0
+      let mtdSpend = 0
 
-      if (!('error' in usageRes)) {
-        if (usageRes.summary && usageRes.summary.length > 0) {
-          for (const row of usageRes.summary) {
-            totalGenerations += row.quantity ?? 0;
-            mtdSpend += row.cost ?? 0;
+      if (usageRes && typeof usageRes === 'object' && !('error' in usageRes)) {
+        const usage = usageRes as any
+        if (usage.summary && usage.summary.length > 0) {
+          for (const row of usage.summary) {
+            totalGenerations += row.quantity ?? 0
+            mtdSpend += row.cost ?? 0
           }
-        } else if (usageRes.time_series) {
-          for (const bucket of usageRes.time_series) {
+        } else if (usage.time_series) {
+          for (const bucket of usage.time_series) {
             for (const result of bucket.results) {
-              totalGenerations += result.quantity ?? 0;
-              mtdSpend += result.cost ?? 0;
+              totalGenerations += result.quantity ?? 0
+              mtdSpend += result.cost ?? 0
             }
           }
         }
       }
 
-      let credits: number | null = null;
-      let creditsRestricted = false;
+      let credits: number | null = null
+      let creditsRestricted = false
 
-      if (!('error' in billingRes)) {
-        if ((billingRes as any).billing_restricted) {
-          creditsRestricted = true;
-        } else if (billingRes.credits?.current_balance !== undefined) {
-          credits = billingRes.credits.current_balance;
-        } else if (typeof billingRes.current_balance === 'number') {
-          credits = billingRes.current_balance;
-        } else if (typeof billingRes.credits === 'number') {
-          credits = billingRes.credits;
-        } else if (billingRes.balance !== undefined) {
-          credits = billingRes.balance;
+      if (!('error' in (billingRes as object))) {
+        const b = billingRes as BillingResponse
+        if (b.billing_restricted) {
+          creditsRestricted = true
+        } else if (b.credits?.current_balance !== undefined) {
+          credits = b.credits.current_balance
+        } else if (typeof b.current_balance === 'number') {
+          credits = b.current_balance
+        } else if (b.balance !== undefined) {
+          credits = b.balance
         } else {
-          credits = 0;
+          credits = 0
         }
       }
 
@@ -79,22 +80,22 @@ export const useDashboard = () => {
         credits,
         creditsRestricted,
         timeSavedH: Math.round(totalGenerations * 0.15 * 10) / 10, // Round to 1 decimal
-        avgCostPerGen: totalGenerations > 0 ? mtdSpend / totalGenerations : 0,
-      });
-    } catch (err) {
-      console.error('Dash fetch error:', err);
+        avgCostPerGen: totalGenerations > 0 ? mtdSpend / totalGenerations : 0
+      })
+    } catch (err: unknown) {
+      console.error('Dash fetch error:', err instanceof Error ? err.message : String(err))
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      setLoading(false)
+      setRefreshing(false)
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
-    fetchData();
+    fetchData()
     // Auto-refresh every 2 minutes
-    const timer = setInterval(() => fetchData(true), 120000);
-    return () => clearInterval(timer);
-  }, []);
+    const timer = setInterval(() => fetchData(true), 120000)
+    return () => clearInterval(timer)
+  }, [])
 
   return {
     stats,
@@ -102,5 +103,5 @@ export const useDashboard = () => {
     refreshing,
     refresh: () => fetchData(true),
     setRightPanelContent
-  };
-};
+  }
+}

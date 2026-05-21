@@ -1,7 +1,7 @@
 {
   "name": "monster-creative",
   "productName": "MonsterCreative",
-  "version": "1.0.5",
+  "version": "1.0.11",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
   "author": "example.com",
@@ -20,7 +20,8 @@
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "electron-vite build && electron-builder --mac",
-    "build:linux": "electron-vite build && electron-builder --linux"
+    "build:linux": "electron-vite build && electron-builder --linux",
+    "compress-templates": "node scripts/compress-templates.js"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
@@ -65,5 +66,13 @@
     "tailwindcss": "^4.2.2",
     "typescript": "^5.9.3",
     "vite": "^7.2.6"
+  },
+  "build": {
+    "asarUnpack": [
+      "node_modules/keytar/**"
+    ],
+    "nsis": {
+      "artifactName": "MonsterCreative-Setup-${version}.${ext}"
+    }
   }
 }

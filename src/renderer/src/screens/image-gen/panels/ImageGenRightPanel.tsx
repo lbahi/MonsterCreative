@@ -1,23 +1,23 @@
-import { Check, Download, Video } from 'lucide-react';
-import { useNavigate } from 'react-router';
+import { Check, Download, Video } from 'lucide-react'
+import { useNavigate } from 'react-router'
 
-import { ImageWithFallback } from '../../../components/figma/ImageWithFallback';
-import { StepChecklist } from '../../../components/ui/StepChecklist';
-import { InfoRow } from '../shared/InfoRow';
+import { ImageWithFallback } from '../../../components/figma/ImageWithFallback'
+import { StepChecklist } from '../../../components/ui/StepChecklist'
+import { InfoRow } from '../shared/InfoRow'
 
 type ImageGenRightPanelProps = {
-  generating: boolean;
-  generated: boolean;
-  steps: any[];
-  onStepsComplete: () => void;
-  selectedOutput: number;
-  setSelectedOutput: (value: number) => void;
-  outputs: string[];
-  model: string;
-  ratio: string;
-  style: string;
-  numImages: number;
-};
+  generating: boolean
+  generated: boolean
+  steps: any[]
+  onStepsComplete: () => void
+  selectedOutput: number
+  setSelectedOutput: (value: number) => void
+  outputs: string[]
+  model: string
+  ratio: string
+  style: string
+  numImages: number
+}
 
 export function ImageGenRightPanel({
   generating,
@@ -30,14 +30,24 @@ export function ImageGenRightPanel({
   model,
   ratio,
   style,
-  numImages,
+  numImages
 }: ImageGenRightPanelProps) {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   return (
     <div style={{ fontFamily: 'var(--font-body)' }}>
       <div style={{ padding: '20px 20px 16px', borderBottom: '1px solid var(--ma-border)' }}>
-        <h3 style={{ fontFamily: 'var(--font-display)', fontSize: 14, fontWeight: 600, color: '#FFF', margin: 0 }}>Image Panel</h3>
+        <h3
+          style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: 14,
+            fontWeight: 600,
+            color: '#FFF',
+            margin: 0
+          }}
+        >
+          Image Panel
+        </h3>
         <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.3)', margin: '4px 0 0' }}>
           Model: <span style={{ fontFamily: 'var(--font-mono)' }}>{model}</span>
         </p>
@@ -56,7 +66,7 @@ export function ImageGenRightPanel({
                   background: 'rgba(108,99,255,0.08)',
                   border: '1px solid rgba(108,99,255,0.15)',
                   animation: 'pulse 1.5s ease-in-out infinite',
-                  animationDelay: `${index * 0.2}s`,
+                  animationDelay: `${index * 0.2}s`
                 }}
               />
             ))}
@@ -90,7 +100,7 @@ export function ImageGenRightPanel({
               display: 'flex',
               alignItems: 'center',
               gap: 8,
-              marginBottom: 20,
+              marginBottom: 20
             }}
           >
             <Check size={14} style={{ color: 'var(--ma-green)' }} />
@@ -105,7 +115,14 @@ export function ImageGenRightPanel({
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 6, marginBottom: 16 }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(4, 1fr)',
+              gap: 6,
+              marginBottom: 16
+            }}
+          >
             {outputs.map((src, index) => (
               <div
                 key={index}
@@ -116,10 +133,14 @@ export function ImageGenRightPanel({
                   cursor: 'pointer',
                   aspectRatio: '1/1',
                   border: `2px solid ${selectedOutput === index ? 'var(--ma-accent)' : 'transparent'}`,
-                  transition: 'all 0.15s',
+                  transition: 'all 0.15s'
                 }}
               >
-                <ImageWithFallback src={src} alt={`Thumb ${index}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                <ImageWithFallback
+                  src={src}
+                  alt={`Thumb ${index}`}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+                />
               </div>
             ))}
           </div>
@@ -127,7 +148,7 @@ export function ImageGenRightPanel({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             <button
               onClick={() => {
-                navigate('/video-gen', { state: { sourceImage: outputs[selectedOutput] } });
+                navigate('/video-gen', { state: { sourceImage: outputs[selectedOutput] } })
               }}
               style={{
                 width: '100%',
@@ -164,7 +185,7 @@ export function ImageGenRightPanel({
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 6,
-                fontFamily: 'var(--font-body)',
+                fontFamily: 'var(--font-body)'
               }}
             >
               <Download size={14} /> Download Selected
@@ -183,7 +204,7 @@ export function ImageGenRightPanel({
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 6,
-                fontFamily: 'var(--font-body)',
+                fontFamily: 'var(--font-body)'
               }}
             >
               <Download size={14} /> Download All (ZIP)
@@ -197,5 +218,5 @@ export function ImageGenRightPanel({
         </div>
       )}
     </div>
-  );
+  )
 }

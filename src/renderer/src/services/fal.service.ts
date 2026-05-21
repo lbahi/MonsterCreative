@@ -37,29 +37,36 @@ export class FalService {
    * Polls the fal.ai queue until status is COMPLETED or FAILED.
    * Matches the C# PollAsync logic exactly.
    */
-  private async pollStatus(requestId: string, endpoint: string, maxAttempts = 60): Promise<any> {
+  private async pollStatus(
+    requestId: string,
+    endpoint: string,
+    maxAttempts = 60
+  ): Promise<unknown> {
     const auth = await this.getAuthHeader()
     const statusUrl = `${this.baseUrl}/${endpoint}/requests/${requestId}/status`
     const resultUrl = `${this.baseUrl}/${endpoint}/requests/${requestId}`
 
     for (let i = 0; i < maxAttempts; i++) {
-      await new Promise(resolve => setTimeout(resolve, 2000))
+      await new Promise((resolve) => setTimeout(resolve, 2000))
 
       const statusRes = await fetch(statusUrl, {
         method: 'GET',
-        headers: { 'Authorization': auth }
+        headers: { Authorization: auth }
       })
 
       if (!statusRes.ok) throw new Error(`Polling failed: ${statusRes.statusText}`)
 
-      const statusData = await statusRes.json()
+      const statusData = (await statusRes.json()) as {
+        status: string
+        error?: string
+      }
 
       switch (statusData.status) {
         case 'COMPLETED': {
           // Fetch the full result from the result endpoint (matching C# pattern)
           const resultRes = await fetch(resultUrl, {
             method: 'GET',
-            headers: { 'Authorization': auth }
+            headers: { Authorization: auth }
           })
           if (!resultRes.ok) throw new Error(`Result fetch failed: ${resultRes.statusText}`)
           return await resultRes.json()
@@ -83,7 +90,10 @@ export class FalService {
    */
   private extractJsonArray(text: string): string {
     // Strip markdown code fences
-    let cleaned = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()
+    const cleaned = text
+      .replace(/```json\s*/g, '')
+      .replace(/```\s*/g, '')
+      .trim()
 
     const firstBracket = cleaned.indexOf('[')
     const lastBracket = cleaned.lastIndexOf(']')
@@ -102,7 +112,7 @@ export class FalService {
     return cleaned
   }
 
-  async generateImage(prompt: string, model: string = 'flux/pro-1.1'): Promise<FalResponse> {
+  async generateImage(prompt: string, model = 'flux/pro-1.1'): Promise<FalResponse> {
     const auth = await this.getAuthHeader()
     const endpoint = `fal-ai/${model}`
     const queueUrl = `${this.baseUrl}/${endpoint}`
@@ -110,7 +120,7 @@ export class FalService {
     const response = await fetch(queueUrl, {
       method: 'POST',
       headers: {
-        'Authorization': auth,
+        Authorization: auth,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -126,37 +136,40 @@ export class FalService {
 
     if (!response.ok) throw new Error(`Request failed: ${response.statusText}`)
 
-    const queueData = await response.json() as FalResponse
-    return this.pollStatus(queueData.request_id, endpoint)
+    const queueData = (await response.json()) as FalResponse
+    return (await this.pollStatus(queueData.request_id, endpoint)) as FalResponse
   }
 
   /**
    * Nano Banana 2 Specialized Handler
    */
   async nanoBananaEdit(params: {
-    model: string,
-    prompt: string,
-    image_urls: string[],
-    resolution?: string,
-    aspect_ratio?: string,
-    num_images?: number,
-    seed?: string,
-    output_format?: string,
-    safety_tolerance?: string,
-    thinking_level?: string,
-    enable_web_search?: boolean,
+    model: string
+    prompt: string
+    image_urls: string[]
+    resolution?: string
+    aspect_ratio?: string
+    num_images?: number
+    seed?: string
+    output_format?: string
+    safety_tolerance?: string
+    thinking_level?: string
+    enable_web_search?: boolean
     limit_generations?: boolean
   }): Promise<FalResponse> {
-    return await window.api.fal.nanoBananaEdit(params);
+    return (await window.api.fal.nanoBananaEdit(params)) as FalResponse
   }
 
   /**
    * Sends a prompt to an LLM via fal.ai's generateCopy bridge.
    */
-  async generateCopy(promptOrMessages: string | any[], modelId: string = 'google/gemini-3-pro'): Promise<string> {
-    const response = await window.api.fal.generateCopy(promptOrMessages, modelId);
-    if (response.error) throw new Error(response.error);
-    return response.data ?? '';
+  async generateCopy(
+    promptOrMessages: string | unknown[],
+    modelId = 'google/gemini-3-pro'
+  ): Promise<string> {
+    const response = await window.api.fal.generateCopy(promptOrMessages, modelId)
+    if (response.error) throw new Error(response.error)
+    return response.data ?? ''
   }
 
   /**
@@ -170,10 +183,11 @@ export class FalService {
       const parsed = JSON.parse(jsonString)
       const variants: CopyVariant[] = Array.isArray(parsed) ? parsed : [parsed]
       return variants
-    } catch (e: any) {
-      console.error('Failed to parse LLM JSON response:', e.message)
+    } catch (e: unknown) {
+      const err = e as Error
+      console.error('Failed to parse LLM JSON response:', err.message)
       console.error('Raw output:', rawOutput)
-      throw new Error(`Failed to parse LLM response: ${e.message}`)
+      throw new Error(`Failed to parse LLM response: ${err.message}`)
     }
   }
 
@@ -188,10 +202,10 @@ export class FalService {
       const response = await fetch('https://fal.media/files/upload', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
+          Authorization: `Bearer ${apiKey}`,
           'X-Fal-File-Name': file.name,
           'Content-Type': file.type,
-          'Accept': 'application/json'
+          Accept: 'application/json'
         },
         body: file
       })
@@ -201,15 +215,15 @@ export class FalService {
         return { error: `CDN upload failed (${response.status}): ${errBody}` }
       }
 
-      const data = await response.json()
+      const data = (await response.json()) as { access_url?: string }
       let accessUrl = data.access_url
       if (accessUrl) {
         accessUrl = accessUrl.replace(/ /g, '%20')
       }
 
       return { url: accessUrl }
-    } catch (err: any) {
-      return { error: `Image upload failed: ${err.message}` }
+    } catch (err: unknown) {
+      return { error: `Image upload failed: ${(err as Error).message}` }
     }
   }
 
@@ -219,7 +233,10 @@ export class FalService {
     try {
       const apiKey = await window.api.keystore.getFalKey()
       if (!apiKey) {
-        const ipcRes = await window.api.fal.uploadImageFromDataUrl(dataUrl)
+        const ipcRes = (await window.api.fal.uploadImageFromDataUrl(dataUrl)) as {
+          url?: string
+          error?: string
+        }
         return ipcRes
       }
 
@@ -243,11 +260,14 @@ export class FalService {
         return browserUpload
       }
       browserError = browserUpload.error ?? 'unknown browser upload error'
-    } catch (err: any) {
-      browserError = err?.message ?? 'unknown browser upload exception'
+    } catch (err: unknown) {
+      browserError = (err as Error)?.message ?? 'unknown browser upload exception'
     }
 
-    const ipcUpload = await window.api.fal.uploadImageFromDataUrl(dataUrl)
+    const ipcUpload = (await window.api.fal.uploadImageFromDataUrl(dataUrl)) as {
+      url?: string
+      error?: string
+    }
     if (!ipcUpload.error || !browserError) {
       return ipcUpload
     }
@@ -259,37 +279,37 @@ export class FalService {
 
   /** Smart Reframe bridge — routes to fal-ai/image-editing/reframe via IPC */
   async reframeImage(params: {
-    image_url: string;
-    aspect_ratio: string;
-    output_format?: string;
+    image_url: string
+    aspect_ratio: string
+    output_format?: string
   }): Promise<{ images: Array<{ url: string }> }> {
-    return await window.api.fal.reframeImage(params);
+    return (await window.api.fal.reframeImage(params)) as { images: Array<{ url: string }> }
   }
 
   /** Kontext Edit bridge — routes to fal-ai/kontext via IPC */
   async kontextEdit(params: {
-    image_url: string;
-    prompt: string;
-    width?: number;
-    height?: number;
-    aspect_ratio?: string;
-    output_format?: string;
+    image_url: string
+    prompt: string
+    width?: number
+    height?: number
+    aspect_ratio?: string
+    output_format?: string
   }): Promise<{ images: Array<{ url: string }> }> {
-    return await window.api.fal.kontextEdit(params);
+    return (await window.api.fal.kontextEdit(params)) as { images: Array<{ url: string }> }
   }
 
   /** Generation bridge — routes to video generation via IPC */
   async generateVideo(params: {
-    model: string;
-    prompt: string;
-    image_url: string;
-    duration: number | string;
-    aspect_ratio: string;
-    resolution?: string;
-    audio: boolean;
-    end_image_url?: string;
-  }): Promise<FalResponse | any> {
-    return await window.api.fal.generateVideo(params);
+    model: string
+    prompt: string
+    image_url: string
+    duration: number | string
+    aspect_ratio: string
+    resolution?: string
+    audio: boolean
+    end_image_url?: string
+  }): Promise<FalResponse> {
+    return (await window.api.fal.generateVideo(params)) as FalResponse
   }
 }
 

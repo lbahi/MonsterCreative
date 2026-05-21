@@ -1,4 +1,4 @@
-import { Image } from 'lucide-react';
+import { Image } from 'lucide-react'
 
 export function ImageGenHeader() {
   return (
@@ -13,14 +13,22 @@ export function ImageGenHeader() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: 'var(--ma-accent)',
+          color: 'var(--ma-accent)'
         }}
       >
         <Image size={16} />
       </div>
-      <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700, color: '#FFF', margin: 0 }}>
+      <h1
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 22,
+          fontWeight: 700,
+          color: '#FFF',
+          margin: 0
+        }}
+      >
         Image Generator
       </h1>
     </div>
-  );
+  )
 }

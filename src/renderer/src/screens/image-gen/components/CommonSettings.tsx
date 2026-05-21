@@ -1,28 +1,40 @@
-import { RefreshCw, Wand2 } from 'lucide-react';
-import { CommonSettings as SharedCommonSettings } from '../shared/CommonSettings';
+import { RefreshCw, Wand2 } from 'lucide-react'
+import { CommonSettings as SharedCommonSettings } from '../shared/CommonSettings'
 
 interface CommonSettingsProps {
-  style: string;
-  setStyle: (v: string) => void;
-  ratio: string;
-  setRatio: (v: string) => void;
-  model: string;
-  setModel: (v: string) => void;
-  numImages: number;
-  setNumImages: (v: number) => void;
-  modelPrices: Record<string, number>;
-  handleGenerate: () => void;
-  generating: boolean;
-  getGeneratingText: () => string;
-  getGenerateButtonText: () => string;
-  totalCost: string;
+  style: string
+  setStyle: (v: string) => void
+  ratio: string
+  setRatio: (v: string) => void
+  model: string
+  setModel: (v: string) => void
+  numImages: number
+  setNumImages: (v: number) => void
+  modelPrices: Record<string, number>
+  handleGenerate: () => void
+  generating: boolean
+  getGeneratingText: () => string
+  getGenerateButtonText: () => string
+  totalCost: string
 }
 
 export function CommonSettings(props: CommonSettingsProps) {
   const {
-    style, setStyle, ratio, setRatio, model, setModel, numImages, setNumImages, modelPrices,
-    handleGenerate, generating, getGeneratingText, getGenerateButtonText, totalCost
-  } = props;
+    style,
+    setStyle,
+    ratio,
+    setRatio,
+    model,
+    setModel,
+    numImages,
+    setNumImages,
+    modelPrices,
+    handleGenerate,
+    generating,
+    getGeneratingText,
+    getGenerateButtonText,
+    totalCost
+  } = props
 
   return (
     <>
@@ -57,12 +69,13 @@ export function CommonSettings(props: CommonSettingsProps) {
           gap: 8,
           boxShadow: generating ? 'none' : '0 0 28px rgba(108,99,255,0.4)',
           transition: 'all 0.2s',
-          fontFamily: 'var(--font-body)',
+          fontFamily: 'var(--font-body)'
         }}
       >
         {generating ? (
           <>
-            <RefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }} /> {getGeneratingText()}
+            <RefreshCw size={16} style={{ animation: 'spin 1s linear infinite' }} />{' '}
+            {getGeneratingText()}
           </>
         ) : (
           <>
@@ -77,12 +90,12 @@ export function CommonSettings(props: CommonSettingsProps) {
             color: 'rgba(255,255,255,0.7)',
             background: 'rgba(0,0,0,0.2)',
             padding: '2px 8px',
-            borderRadius: 10,
+            borderRadius: 10
           }}
         >
           ~${totalCost}
         </span>
       </button>
     </>
-  );
+  )
 }

@@ -291,6 +291,7 @@ The `ImageGenScreen` replaces rigid XAML logic with flexible `.tsx` forms:
 - ✅ Modularized core screens (Dashboard, AdCopy, ImageGen, VideoGen) into a strict 4-layer architecture (Index, Tabs, Components, Hooks) to ensure maintainability and file size compliance.
 - ✅ Dismantled massive components (e.g., `SocialAdsForm` from 1,150 lines to 98 lines) by safely extracting constants to `data/`, logic to `hooks/`, and view sections to `components/`.
 - ✅ Implemented high-performance AI Video generation pipeline (Kling focus) with real-time polling and cost estimation.
+- ✅ Migrated license system from Gumroad to Freemius with full activate/validate/deactivate IPC handlers
 - ✅ Resolved native `Illegal constructor` React crashes caused by missing Lucide icon imports defaulting to Web APIs.
 
 ---

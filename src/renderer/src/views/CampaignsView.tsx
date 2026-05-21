@@ -1,12 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { 
-  Plus, 
-  Search, 
-  Filter, 
-  MoreVertical, 
-  Target,
-  Calendar
-} from 'lucide-react'
+import { Plus, Search, Filter, MoreVertical, Target, Calendar } from 'lucide-react'
 
 interface Campaign {
   id: number
@@ -21,25 +14,50 @@ const CampaignsView: React.FC = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
 
   useEffect(() => {
-    const fetchCampaigns = async () => {
+    const fetchCampaigns = async (): Promise<void> => {
       try {
         const data = await window.api.database.getAllCampaigns()
         // Mocking some data if DB is empty for initial walkthrough
         if (data.length === 0) {
-            setCampaigns([
-                { id: 1, name: 'Summer Growth 2024', created_at: '2024-06-12', status: 'Live', platform: 'Meta', budget: '$12,000' },
-                { id: 2, name: 'Winter Collection Launch', created_at: '2024-01-05', status: 'Paused', platform: 'Google', budget: '$8,500' },
-                { id: 3, name: 'Brand Awareness Q1', created_at: '2024-03-01', status: 'Completed', platform: 'Meta', budget: '$25,000' }
-            ])
+          setCampaigns([
+            {
+              id: 1,
+              name: 'Summer Growth 2024',
+              created_at: '2024-06-12',
+              status: 'Live',
+              platform: 'Meta',
+              budget: '$12,000'
+            },
+            {
+              id: 2,
+              name: 'Winter Collection Launch',
+              created_at: '2024-01-05',
+              status: 'Paused',
+              platform: 'Google',
+              budget: '$8,500'
+            },
+            {
+              id: 3,
+              name: 'Brand Awareness Q1',
+              created_at: '2024-03-01',
+              status: 'Completed',
+              platform: 'Meta',
+              budget: '$25,000'
+            }
+          ])
         } else {
-            setCampaigns(data.map((c: any) => ({
+          setCampaigns(
+            (data as Array<{ id: number; name: string; created_at: string; platforms: string }>).map(
+              (c) => ({
                 id: c.id,
                 name: c.name,
                 created_at: c.created_at,
                 status: 'Live', // Simplification
                 platform: c.platforms,
                 budget: '$0'
-            })))
+              })
+            )
+          )
         }
       } catch (err) {
         console.error(err)
@@ -47,7 +65,7 @@ const CampaignsView: React.FC = () => {
         // loading state removed
       }
     }
-    fetchCampaigns()
+    fetchCampaigns().catch(console.error)
   }, [])
 
   return (
@@ -56,7 +74,9 @@ const CampaignsView: React.FC = () => {
       <div className="flex items-end justify-between">
         <div>
           <h2 className="text-4xl font-black text-soft-cloud tracking-tight">Campaigns</h2>
-          <p className="text-sm text-subtle-silver mt-1 font-medium">{campaigns.length} campaigns total across all platforms.</p>
+          <p className="text-sm text-subtle-silver mt-1 font-medium">
+            {campaigns.length} campaigns total across all platforms.
+          </p>
         </div>
         <button className="btn-primary px-8 py-3.5 flex items-center gap-2 group shadow-xl shadow-ocean-cerulean/10">
           <Plus size={20} className="group-hover:rotate-90 transition-transform duration-300" />
@@ -68,23 +88,28 @@ const CampaignsView: React.FC = () => {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2 bg-charcoal-surface/40 p-1.5 rounded-xl border border-white/5">
           {['All', 'Live', 'Paused', 'Draft', 'Completed'].map((s, i) => (
-            <button 
+            <button
               key={s}
               className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${
-                i === 0 ? 'bg-ocean-cerulean text-abyss-black' : 'text-subtle-silver hover:bg-white/5'
+                i === 0
+                  ? 'bg-ocean-cerulean text-abyss-black'
+                  : 'text-subtle-silver hover:bg-white/5'
               }`}
             >
               {s}
             </button>
           ))}
         </div>
-        
+
         <div className="flex items-center gap-4">
           <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-subtle-silver group-focus-within:text-ocean-cerulean transition-colors" size={16} />
-            <input 
-              className="premium-input pl-10 pr-4 py-2 text-sm w-64" 
-              placeholder="Search campaigns..." 
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-subtle-silver group-focus-within:text-ocean-cerulean transition-colors"
+              size={16}
+            />
+            <input
+              className="premium-input pl-10 pr-4 py-2 text-sm w-64"
+              placeholder="Search campaigns..."
             />
           </div>
           <button className="flex items-center gap-2 bg-charcoal-surface px-4 py-2 rounded-xl text-xs font-bold text-subtle-silver hover:text-soft-cloud border border-white/5 transition-all">
@@ -99,27 +124,47 @@ const CampaignsView: React.FC = () => {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-white/5">
-              <th className="px-6 py-5 text-[10px] uppercase tracking-widest text-subtle-silver font-black">Campaign</th>
-              <th className="px-6 py-5 text-[10px] uppercase tracking-widest text-subtle-silver font-black">Status</th>
-              <th className="px-6 py-5 text-[10px] uppercase tracking-widest text-subtle-silver font-black">Platform</th>
-              <th className="px-6 py-5 text-[10px] uppercase tracking-widest text-subtle-silver font-black">Budget</th>
-              <th className="px-6 py-5 text-[10px] uppercase tracking-widest text-subtle-silver font-black">Created</th>
-              <th className="px-6 py-5 text-[10px] uppercase tracking-widest text-subtle-silver font-black text-right">Actions</th>
+              <th className="px-6 py-5 text-[10px] uppercase tracking-widest text-subtle-silver font-black">
+                Campaign
+              </th>
+              <th className="px-6 py-5 text-[10px] uppercase tracking-widest text-subtle-silver font-black">
+                Status
+              </th>
+              <th className="px-6 py-5 text-[10px] uppercase tracking-widest text-subtle-silver font-black">
+                Platform
+              </th>
+              <th className="px-6 py-5 text-[10px] uppercase tracking-widest text-subtle-silver font-black">
+                Budget
+              </th>
+              <th className="px-6 py-5 text-[10px] uppercase tracking-widest text-subtle-silver font-black">
+                Created
+              </th>
+              <th className="px-6 py-5 text-[10px] uppercase tracking-widest text-subtle-silver font-black text-right">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/5">
             {campaigns.map((camp) => (
               <tr key={camp.id} className="hover:bg-white/5 transition-colors group cursor-pointer">
                 <td className="px-6 py-6">
-                  <span className="text-sm font-black text-soft-cloud block group-hover:text-ocean-cerulean transition-colors">{camp.name}</span>
-                  <span className="text-[10px] text-subtle-silver font-medium uppercase tracking-tighter mt-0.5">ID: CAM-{camp.id}-S</span>
+                  <span className="text-sm font-black text-soft-cloud block group-hover:text-ocean-cerulean transition-colors">
+                    {camp.name}
+                  </span>
+                  <span className="text-[10px] text-subtle-silver font-medium uppercase tracking-tighter mt-0.5">
+                    ID: CAM-{camp.id}-S
+                  </span>
                 </td>
                 <td className="px-6 py-6">
-                  <span className={`text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-tighter ${
-                    camp.status === 'Live' ? 'bg-warm-sunset/10 text-warm-sunset' : 
-                    camp.status === 'Completed' ? 'bg-ocean-cerulean/10 text-ocean-cerulean' : 
-                    'bg-white/5 text-subtle-silver'
-                  }`}>
+                  <span
+                    className={`text-[9px] font-black px-3 py-1 rounded-full uppercase tracking-tighter ${
+                      camp.status === 'Live'
+                        ? 'bg-warm-sunset/10 text-warm-sunset'
+                        : camp.status === 'Completed'
+                          ? 'bg-ocean-cerulean/10 text-ocean-cerulean'
+                          : 'bg-white/5 text-subtle-silver'
+                    }`}
+                  >
                     {camp.status}
                   </span>
                 </td>

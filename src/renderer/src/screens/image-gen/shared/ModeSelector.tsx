@@ -1,18 +1,20 @@
-import type { ModeOption } from '../types';
+import type { ModeOption } from '../types'
 
 type ModeSelectorProps = {
-  modes: ModeOption[];
-  activeMode: string;
-  onSelect: (mode: ModeOption) => void;
-};
+  modes: ModeOption[]
+  activeMode: string
+  onSelect: (mode: ModeOption) => void
+}
 
 export function ModeSelector({ modes, activeMode, onSelect }: ModeSelectorProps) {
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, marginBottom: 24 }}>
+    <div
+      style={{ display: 'grid', gridTemplateColumns: `repeat(${modes.length}, 1fr)`, gap: 10, marginBottom: 24 }}
+    >
       {modes.map((mode) => {
-        const Icon = mode.icon;
-        const isActive = activeMode === mode.id;
-        const locked = mode.comingSoon === true;
+        const Icon = mode.icon
+        const isActive = activeMode === mode.id
+        const locked = mode.comingSoon === true
 
         return (
           <div key={mode.id} style={{ position: 'relative' }}>
@@ -22,7 +24,11 @@ export function ModeSelector({ modes, activeMode, onSelect }: ModeSelectorProps)
               style={{
                 width: '100%',
                 padding: '12px 14px',
-                background: isActive ? `${mode.color}12` : locked ? 'rgba(255,255,255,0.02)' : 'var(--ma-elevated)',
+                background: isActive
+                  ? `${mode.color}12`
+                  : locked
+                    ? 'rgba(255,255,255,0.02)'
+                    : 'var(--ma-elevated)',
                 border: `1px solid ${isActive ? mode.color + '55' : locked ? 'rgba(255,255,255,0.06)' : 'var(--ma-border)'}`,
                 borderRadius: 10,
                 cursor: locked ? 'not-allowed' : 'pointer',
@@ -30,7 +36,7 @@ export function ModeSelector({ modes, activeMode, onSelect }: ModeSelectorProps)
                 transition: 'all 0.2s',
                 boxShadow: isActive ? `0 0 20px ${mode.color}15` : 'none',
                 opacity: locked ? 0.45 : 1,
-                filter: locked ? 'grayscale(0.6)' : 'none',
+                filter: locked ? 'grayscale(0.6)' : 'none'
               }}
             >
               <div
@@ -44,7 +50,7 @@ export function ModeSelector({ modes, activeMode, onSelect }: ModeSelectorProps)
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: isActive ? mode.color : 'rgba(255,255,255,0.35)',
-                  marginBottom: 10,
+                  marginBottom: 10
                 }}
               >
                 <Icon size={16} />
@@ -55,40 +61,49 @@ export function ModeSelector({ modes, activeMode, onSelect }: ModeSelectorProps)
                   fontWeight: 600,
                   margin: '0 0 3px',
                   color: isActive ? '#FFF' : 'rgba(255,255,255,0.5)',
-                  fontFamily: 'var(--font-display)',
+                  fontFamily: 'var(--font-display)'
                 }}
               >
                 {mode.label}
               </p>
-              <p style={{ fontSize: 10, color: 'rgba(255,255,255,0.28)', margin: 0, lineHeight: 1.4 }}>
+              <p
+                style={{
+                  fontSize: 10,
+                  color: 'rgba(255,255,255,0.28)',
+                  margin: 0,
+                  lineHeight: 1.4
+                }}
+              >
                 {mode.description}
               </p>
             </button>
 
             {/* Coming Soon badge — positioned over the card */}
             {locked && (
-              <div style={{
-                position: 'absolute',
-                top: 10,
-                right: 10,
-                background: 'rgba(255,255,255,0.08)',
-                border: '1px solid rgba(255,255,255,0.14)',
-                borderRadius: 6,
-                padding: '2px 8px',
-                fontSize: 9,
-                fontWeight: 700,
-                color: 'rgba(255,255,255,0.45)',
-                letterSpacing: '0.6px',
-                textTransform: 'uppercase',
-                pointerEvents: 'none',
-                fontFamily: 'var(--font-body)',
-              }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 10,
+                  right: 10,
+                  background: 'rgba(255,255,255,0.08)',
+                  border: '1px solid rgba(255,255,255,0.14)',
+                  borderRadius: 6,
+                  padding: '2px 8px',
+                  fontSize: 9,
+                  fontWeight: 700,
+                  color: 'rgba(255,255,255,0.45)',
+                  letterSpacing: '0.6px',
+                  textTransform: 'uppercase',
+                  pointerEvents: 'none',
+                  fontFamily: 'var(--font-body)'
+                }}
+              >
                 Coming Soon
               </div>
             )}
           </div>
-        );
+        )
       })}
     </div>
-  );
+  )
 }

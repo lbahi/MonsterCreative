@@ -1,47 +1,72 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Download, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react'
+import { Download, X, ChevronLeft, ChevronRight } from 'lucide-react'
 
-import { ImageWithFallback } from '../../../components/figma/ImageWithFallback';
+import { ImageWithFallback } from '../../../components/figma/ImageWithFallback'
 
 type OutputGridProps = {
-  outputs: string[];
-  selectedOutput: number;
-  setSelectedOutput: (value: number) => void;
-  naturalRatio?: boolean;
-};
+  outputs: string[]
+  selectedOutput: number
+  setSelectedOutput: (value: number) => void
+  naturalRatio?: boolean
+}
 
-export function OutputGrid({ outputs, selectedOutput, setSelectedOutput, naturalRatio = false }: OutputGridProps) {
-  const [lightboxOpen, setLightboxOpen] = useState(false);
+export function OutputGrid({
+  outputs,
+  selectedOutput,
+  setSelectedOutput,
+  naturalRatio = false
+}: OutputGridProps) {
+  const [lightboxOpen, setLightboxOpen] = useState(false)
 
-  const handleNext = useCallback((e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    if (selectedOutput < outputs.length - 1) {
-      setSelectedOutput(selectedOutput + 1);
-    }
-  }, [selectedOutput, outputs.length, setSelectedOutput]);
+  const handleNext = useCallback(
+    (e?: React.MouseEvent) => {
+      e?.stopPropagation()
+      if (selectedOutput < outputs.length - 1) {
+        setSelectedOutput(selectedOutput + 1)
+      }
+    },
+    [selectedOutput, outputs.length, setSelectedOutput]
+  )
 
-  const handlePrev = useCallback((e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    if (selectedOutput > 0) {
-      setSelectedOutput(selectedOutput - 1);
-    }
-  }, [selectedOutput, setSelectedOutput]);
+  const handlePrev = useCallback(
+    (e?: React.MouseEvent) => {
+      e?.stopPropagation()
+      if (selectedOutput > 0) {
+        setSelectedOutput(selectedOutput - 1)
+      }
+    },
+    [selectedOutput, setSelectedOutput]
+  )
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!lightboxOpen) return;
-      if (e.key === 'Escape') setLightboxOpen(false);
-      if (e.key === 'ArrowRight') handleNext();
-      if (e.key === 'ArrowLeft') handlePrev();
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [lightboxOpen, handleNext, handlePrev]);
+      if (!lightboxOpen) return
+      if (e.key === 'Escape') setLightboxOpen(false)
+      if (e.key === 'ArrowRight') handleNext()
+      if (e.key === 'ArrowLeft') handlePrev()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [lightboxOpen, handleNext, handlePrev])
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-        <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.8px' }}>
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: 12
+        }}
+      >
+        <span
+          style={{
+            fontSize: 12,
+            color: 'rgba(255,255,255,0.4)',
+            textTransform: 'uppercase',
+            letterSpacing: '0.8px'
+          }}
+        >
           {outputs.length} Outputs
         </span>
         <button
@@ -56,7 +81,7 @@ export function OutputGrid({ outputs, selectedOutput, setSelectedOutput, natural
             cursor: 'pointer',
             color: 'rgba(255,255,255,0.5)',
             fontSize: 11,
-            fontFamily: 'var(--font-body)',
+            fontFamily: 'var(--font-body)'
           }}
         >
           <Download size={12} /> Download All
@@ -67,8 +92,8 @@ export function OutputGrid({ outputs, selectedOutput, setSelectedOutput, natural
           <div
             key={index}
             onClick={() => {
-              setSelectedOutput(index);
-              setLightboxOpen(true);
+              setSelectedOutput(index)
+              setLightboxOpen(true)
             }}
             style={{
               borderRadius: 10,
@@ -77,10 +102,14 @@ export function OutputGrid({ outputs, selectedOutput, setSelectedOutput, natural
               cursor: 'zoom-in',
               transition: 'all 0.15s',
               boxShadow: selectedOutput === index ? '0 0 20px rgba(108,99,255,0.3)' : 'none',
-              aspectRatio: naturalRatio ? undefined : '1/1',
+              aspectRatio: naturalRatio ? undefined : '1/1'
             }}
           >
-            <ImageWithFallback src={src} alt={`Output ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            <ImageWithFallback
+              src={src}
+              alt={`Output ${index + 1}`}
+              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            />
           </div>
         ))}
       </div>
@@ -96,7 +125,7 @@ export function OutputGrid({ outputs, selectedOutput, setSelectedOutput, natural
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            cursor: 'zoom-out',
+            cursor: 'zoom-out'
           }}
         >
           {/* Close Button */}
@@ -117,7 +146,7 @@ export function OutputGrid({ outputs, selectedOutput, setSelectedOutput, natural
               color: 'white',
               cursor: 'pointer',
               zIndex: 10000,
-              transition: 'background 0.2s',
+              transition: 'background 0.2s'
             }}
             onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.2)')}
             onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
@@ -143,7 +172,7 @@ export function OutputGrid({ outputs, selectedOutput, setSelectedOutput, natural
                 color: 'white',
                 cursor: 'pointer',
                 zIndex: 10000,
-                transition: 'background 0.2s',
+                transition: 'background 0.2s'
               }}
               onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.2)')}
               onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
@@ -170,7 +199,7 @@ export function OutputGrid({ outputs, selectedOutput, setSelectedOutput, natural
                 color: 'white',
                 cursor: 'pointer',
                 zIndex: 10000,
-                transition: 'background 0.2s',
+                transition: 'background 0.2s'
               }}
               onMouseEnter={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.2)')}
               onMouseLeave={(e) => (e.currentTarget.style.background = 'rgba(255,255,255,0.1)')}
@@ -180,9 +209,16 @@ export function OutputGrid({ outputs, selectedOutput, setSelectedOutput, natural
           )}
 
           {/* Image Container */}
-          <div 
-            onClick={(e) => e.stopPropagation()} 
-            style={{ position: 'relative', maxWidth: '85vw', maxHeight: '90vh', display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: 'relative',
+              maxWidth: '85vw',
+              maxHeight: '90vh',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center'
+            }}
           >
             <img
               src={outputs[selectedOutput]}
@@ -192,36 +228,58 @@ export function OutputGrid({ outputs, selectedOutput, setSelectedOutput, natural
                 maxWidth: '100%',
                 objectFit: 'contain',
                 borderRadius: 16,
-                boxShadow: '0 30px 60px rgba(0,0,0,0.6)',
+                boxShadow: '0 30px 60px rgba(0,0,0,0.6)'
               }}
             />
             {/* Pagination / Download inside Lightbox */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', marginTop: 24 }}>
-              <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, fontFamily: 'var(--font-mono)' }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                width: '100%',
+                marginTop: 24
+              }}
+            >
+              <span
+                style={{
+                  color: 'rgba(255,255,255,0.6)',
+                  fontSize: 13,
+                  fontFamily: 'var(--font-mono)'
+                }}
+              >
                 {selectedOutput + 1} / {outputs.length}
               </span>
               <button
                 onClick={async () => {
                   try {
-                    const url = outputs[selectedOutput];
-                    const res = await fetch(url);
-                    const blob = await res.blob();
-                    const blobUrl = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = blobUrl;
-                    a.download = `MonsterCreative-Gen-${Date.now()}.png`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(blobUrl);
+                    const url = outputs[selectedOutput]
+                    const res = await fetch(url)
+                    const blob = await res.blob()
+                    const blobUrl = URL.createObjectURL(blob)
+                    const a = document.createElement('a')
+                    a.href = blobUrl
+                    a.download = `MonsterCreative-Gen-${Date.now()}.png`
+                    document.body.appendChild(a)
+                    a.click()
+                    document.body.removeChild(a)
+                    URL.revokeObjectURL(blobUrl)
                   } catch (err) {
-                    window.api.external.open(outputs[selectedOutput]);
+                    window.api.external.open(outputs[selectedOutput])
                   }
                 }}
                 style={{
-                  display: 'flex', alignItems: 'center', gap: 6,
-                  background: 'var(--ma-accent)', border: 'none', borderRadius: 8,
-                  padding: '8px 16px', color: 'white', fontSize: 13, cursor: 'pointer', fontFamily: 'var(--font-body)'
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  background: 'var(--ma-accent)',
+                  border: 'none',
+                  borderRadius: 8,
+                  padding: '8px 16px',
+                  color: 'white',
+                  fontSize: 13,
+                  cursor: 'pointer',
+                  fontFamily: 'var(--font-body)'
                 }}
               >
                 <Download size={14} /> Download Image
@@ -231,5 +289,5 @@ export function OutputGrid({ outputs, selectedOutput, setSelectedOutput, natural
         </div>
       )}
     </div>
-  );
+  )
 }

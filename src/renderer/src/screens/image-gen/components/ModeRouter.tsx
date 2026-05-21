@@ -1,49 +1,74 @@
-import { MODES } from '../constants';
-import { LandingForm } from '../modes/LandingForm';
-import { NanoBananaLayout } from '../modes/NanoBananaLayout';
-import { ResizeForm } from '../modes/ResizeForm';
-import { VtonForm } from '../modes/VtonForm/index';
-import { SocialAdsForm } from '../modes/SocialAdsForm/index';
-import { CommonSettings } from './CommonSettings';
-import { ImageGenHeader } from '../shared/ImageGenHeader';
-import { ModeSelector } from '../shared/ModeSelector';
-import { OutputGrid } from '../shared/OutputGrid';
-import type { ActiveImageGenMode } from '../types';
-import { useImageGen } from '../hooks/useImageGen';
+import { MODES } from '../constants'
+import { LandingForm } from '../modes/LandingForm'
+import { NanoBananaLayout } from '../modes/NanoBananaLayout'
+import { ResizeForm } from '../modes/ResizeForm'
+import { VtonForm } from '../modes/VtonForm/index'
+import { SocialAdsForm } from '../modes/SocialAdsForm/index'
+import { CommonSettings } from './CommonSettings'
+import { ImageGenHeader } from '../shared/ImageGenHeader'
+import { ModeSelector } from '../shared/ModeSelector'
+import { OutputGrid } from '../shared/OutputGrid'
+import type { ActiveImageGenMode } from '../types'
+import { useImageGen } from '../hooks/useImageGen'
 
 interface ModeRouterProps extends ReturnType<typeof useImageGen> {
-  activeMode: ActiveImageGenMode;
+  activeMode: ActiveImageGenMode
 }
 
 export function ModeRouter(props: ModeRouterProps) {
   const {
     activeMode,
-    prompt, setPrompt,
-    style, setStyle,
-    ratio, setRatio,
-    model, setModel,
-    numImages, setNumImages,
-    nbReferenceImage, setNbReferenceImage,
-    nbAssetImages, setNbAssetImages,
-    nbAdvancedOpen, setNbAdvancedOpen,
-    nbRatio, setNbRatio,
-    nbResolution, setNbResolution,
-    nbOutputFormat, setNbOutputFormat,
-    nbNumOutputs, setNbNumOutputs,
-    nbSeed, setNbSeed,
-    nbSafety, setNbSafety,
-    nbWebSearch, setNbWebSearch,
-    nbThinkingLevel, setNbThinkingLevel,
-    nbModel, setNbModel,
-    nbLimitGen, setNbLimitGen,
-    generating, setGenerating,
-    generated, setGenerated,
-    selectedOutput, setSelectedOutput,
+    prompt,
+    setPrompt,
+    style,
+    setStyle,
+    ratio,
+    setRatio,
+    model,
+    setModel,
+    numImages,
+    setNumImages,
+    nbReferenceImage,
+    setNbReferenceImage,
+    nbAssetImages,
+    setNbAssetImages,
+    nbAdvancedOpen,
+    setNbAdvancedOpen,
+    nbRatio,
+    setNbRatio,
+    nbResolution,
+    setNbResolution,
+    nbOutputFormat,
+    setNbOutputFormat,
+    nbNumOutputs,
+    setNbNumOutputs,
+    nbSeed,
+    setNbSeed,
+    nbSafety,
+    setNbSafety,
+    nbWebSearch,
+    setNbWebSearch,
+    nbThinkingLevel,
+    setNbThinkingLevel,
+    nbModel,
+    setNbModel,
+    nbLimitGen,
+    setNbLimitGen,
+    generating,
+    setGenerating,
+    generated,
+    setGenerated,
+    selectedOutput,
+    setSelectedOutput,
     setGeneratedImages,
-    resizeFile, setResizeFile,
-    resizeSelectedFormats, setResizeSelectedFormats,
-    resizeModel, setResizeModel,
-    resizeCustomDimensions, setResizeCustomDimensions,
+    resizeFile,
+    setResizeFile,
+    resizeSelectedFormats,
+    setResizeSelectedFormats,
+    resizeModel,
+    setResizeModel,
+    resizeCustomDimensions,
+    setResizeCustomDimensions,
     handleModeChange,
     handleGenerate,
     getGenerateButtonText,
@@ -52,14 +77,14 @@ export function ModeRouter(props: ModeRouterProps) {
     resizeTotalCost,
     modelPrices,
     outputs
-  } = props;
+  } = props
 
   return (
     <div style={{ padding: '32px 36px', fontFamily: 'var(--font-body)' }}>
       <ImageGenHeader />
       <ModeSelector modes={MODES} activeMode={activeMode} onSelect={handleModeChange} />
 
-      <div style={{ display: (activeMode === 'resize' || activeMode === 'social' || activeMode === 'vton') ? 'block' : 'grid', gridTemplateColumns: '1fr 320px', gap: 20, alignItems: 'start' }}>
+      <div style={{ width: '100%' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {activeMode === 'generate' ? (
             <NanoBananaLayout
@@ -95,7 +120,7 @@ export function ModeRouter(props: ModeRouterProps) {
               setNbModel={setNbModel}
             />
           ) : activeMode === 'vton' ? (
-            <VtonForm 
+            <VtonForm
               generating={generating}
               setGenerating={setGenerating}
               setGeneratedImages={setGeneratedImages}
@@ -111,6 +136,8 @@ export function ModeRouter(props: ModeRouterProps) {
               aspectRatio={nbRatio}
               setAspectRatio={setNbRatio}
             />
+          ) : activeMode === 'ai-shots' ? (
+            null
           ) : activeMode === 'social' ? (
             <SocialAdsForm
               generating={generating}
@@ -179,5 +206,5 @@ export function ModeRouter(props: ModeRouterProps) {
 
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
-  );
+  )
 }

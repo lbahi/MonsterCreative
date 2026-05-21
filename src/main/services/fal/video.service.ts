@@ -1,6 +1,15 @@
 import { FalClient } from './base'
 import { VideoGenerationRequest, VideoGenerationResult } from './types'
 
+interface FalVideoOutput {
+  video?: { url: string; file_name?: string; file_size?: number }
+  output?: { video?: { url: string; file_name?: string; file_size?: number } }
+  data?: { video?: { url: string; file_name?: string; file_size?: number } }
+  url?: string
+  file_name?: string
+  file_size?: number
+}
+
 export class VideoService extends FalClient {
   /**
    * Universal Video Generation Handler
@@ -20,15 +29,17 @@ export class VideoService extends FalClient {
     const payload = this.buildVideoPayload(request)
     console.log(`[VideoService:generateVideo] Payload prepared for ${modelId}`)
 
-    const toVideoResult = (data: any): VideoGenerationResult | null => {
-      const video = data?.video ?? data?.output?.video ?? data?.data?.video
-      const url = video?.url ?? data?.url
+
+    const toVideoResult = (data: unknown): VideoGenerationResult | null => {
+      const d = data as FalVideoOutput
+      const video = d?.video ?? d?.output?.video ?? d?.data?.video
+      const url = video?.url ?? d?.url
       if (!url) return null
 
       return {
         url,
-        fileName: video?.file_name ?? data?.file_name ?? 'output.mp4',
-        fileSize: video?.file_size ?? data?.file_size ?? 0,
+        fileName: video?.file_name ?? d?.file_name ?? 'output.mp4',
+        fileSize: video?.file_size ?? d?.file_size ?? 0
       }
     }
 
@@ -37,10 +48,10 @@ export class VideoService extends FalClient {
       const runRes = await fetch(directRunEndpoint, {
         method: 'POST',
         headers: {
-          'Authorization': `Key ${apiKey}`,
-          'Content-Type': 'application/json',
+          Authorization: `Key ${apiKey}`,
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload)
       })
 
       if (runRes.ok) {
@@ -52,17 +63,20 @@ export class VideoService extends FalClient {
         }
       }
     } catch (err) {
-      console.warn(`[VideoService:generateVideo] Direct run failed for ${modelId}, falling back to queue.`, err)
+      console.warn(
+        `[VideoService:generateVideo] Direct run failed for ${modelId}, falling back to queue.`,
+        err
+      )
     }
 
     // --- EXECUTION: FALLBACK PATH (Queue + Polling) ---
     const queueSubmit = await fetch(queueEndpoint, {
       method: 'POST',
       headers: {
-        'Authorization': `Key ${apiKey}`,
-        'Content-Type': 'application/json',
+        Authorization: `Key ${apiKey}`,
+        'Content-Type': 'application/json'
       },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payload)
     })
 
     if (!queueSubmit.ok) {
@@ -76,11 +90,11 @@ export class VideoService extends FalClient {
 
     const statusUrls = [
       `${queueEndpoint}/requests/${request_id}/status`,
-      `${genericQueueBase}/requests/${request_id}/status`,
+      `${genericQueueBase}/requests/${request_id}/status`
     ]
     const resultUrls = [
       `${queueEndpoint}/requests/${request_id}`,
-      `${genericQueueBase}/requests/${request_id}`,
+      `${genericQueueBase}/requests/${request_id}`
     ]
 
     // Unified Poller
@@ -92,13 +106,13 @@ export class VideoService extends FalClient {
       // Check status
       for (const sUrl of statusUrls) {
         try {
-          const sRes = await fetch(sUrl, { headers: { 'Authorization': auth } })
+          const sRes = await fetch(sUrl, { headers: { Authorization: auth } })
           if (sRes.ok) {
             const sData = await sRes.json()
             if (sData.status === 'COMPLETED') {
               // Try to get result
               for (const rUrl of resultUrls) {
-                const rRes = await fetch(rUrl, { headers: { 'Authorization': auth } })
+                const rRes = await fetch(rUrl, { headers: { Authorization: auth } })
                 if (rRes.ok) {
                   const rData = await rRes.json()
                   const parsed = toVideoResult(rData)
@@ -107,10 +121,12 @@ export class VideoService extends FalClient {
               }
             }
           }
-        } catch (e) { /* ignore individual poll failure */ }
+        } catch (e) {
+          /* ignore individual poll failure */
+        }
       }
 
-      await new Promise(r => setTimeout(r, 5000))
+      await new Promise((r) => setTimeout(r, 5000))
       attempts++
     }
 
@@ -122,11 +138,11 @@ export class VideoService extends FalClient {
    */
   private buildVideoPayload(request: VideoGenerationRequest): Record<string, unknown> {
     const { modelId } = request
-    
-    const base: Record<string, any> = {
+
+    const base: Record<string, unknown> = {
       prompt: request.prompt,
       resolution: request.resolution,
-      duration: request.duration,
+      duration: request.duration
     }
 
     // Aspect Ratio mapping
@@ -152,12 +168,12 @@ export class VideoService extends FalClient {
 
     // Kling Mapping (Primary)
     if (modelId.includes('kling')) {
-      const klingPayload: Record<string, any> = {
+      const klingPayload: Record<string, unknown> = {
         ...base,
         // Passing the numeric duration directly to allow for precision
-        duration: request.duration, 
+        duration: request.duration,
         start_image_url: request.imageUrl,
-        generate_audio: request.audio,
+        generate_audio: request.audio
       }
       if (request.endImageUrl) {
         klingPayload.end_image_url = request.endImageUrl
@@ -169,7 +185,7 @@ export class VideoService extends FalClient {
     return {
       ...base,
       image_url: request.imageUrl,
-      generate_audio: request.audio,
+      generate_audio: request.audio
     }
   }
 }

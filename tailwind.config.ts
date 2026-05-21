@@ -19,24 +19,24 @@ const config: Config = {
         'emerald-growth': '#4CAF50', // Success
         'electric-purple': '#9C27B0', // Scarcity
         'rational-sky': '#2196F3', // Logic
-        'warning-amber': '#FFC107', // Surprise
+        'warning-amber': '#FFC107' // Surprise
       },
       fontFamily: {
         sans: ['Inter', 'Segoe UI Variable', 'system-ui', 'sans-serif'],
-        display: ['Inter', 'sans-serif'],
+        display: ['Inter', 'sans-serif']
       },
       borderRadius: {
         DEFAULT: '0.5rem',
         lg: '1rem',
-        xl: '1.5rem',
+        xl: '1.5rem'
       },
       boxShadow: {
         'premium-glow': '0 0 20px rgba(173, 198, 255, 0.1)',
-        'accent-glow': '0 0 30px rgba(75, 142, 255, 0.15)',
-      },
-    },
+        'accent-glow': '0 0 30px rgba(75, 142, 255, 0.15)'
+      }
+    }
   },
-  plugins: [],
+  plugins: []
 }
 
 export default config

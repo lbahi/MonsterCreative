@@ -1,53 +1,69 @@
-const fs = require('fs');
-const path = require('path');
-const sharp = require('sharp');
+const sharp = require('sharp')
+const fs = require('fs')
+const path = require('path')
 
-const TEMPLATES_DIR = path.join(__dirname, '..', 'src', 'renderer', 'public', 'OutputSocialAds');
+const publicDir = path.join(__dirname, '..', 'src', 'renderer', 'public')
+
+const targetDirs = [
+  { path: path.join(publicDir, 'OutputSocialAds'), filter: (f) => f.match(/^t\d+\.png$/) },
+  { path: path.join(publicDir, 'VtonModels'), filter: (f) => f.endsWith('.png') },
+  { path: path.join(publicDir, 'VtonVibes'), filter: (f) => f.endsWith('.png') }
+]
 
 async function compressTemplates() {
-  if (!fs.existsSync(TEMPLATES_DIR)) {
-    console.error(`Directory not found: ${TEMPLATES_DIR}`);
-    return;
-  }
+  let beforeTotal = 0
+  let afterTotal = 0
+  let processedCount = 0
 
-  const files = fs.readdirSync(TEMPLATES_DIR);
-  const templateFiles = files.filter(f => f.startsWith('t') && f.endsWith('.png'));
+  for (const dirConfig of targetDirs) {
+    if (!fs.existsSync(dirConfig.path)) continue
 
-  console.log(`Found ${templateFiles.length} template images to compress.`);
+    const files = fs.readdirSync(dirConfig.path)
+    const templateFiles = files.filter(dirConfig.filter)
 
-  let totalBeforeSize = 0;
-  let totalAfterSize = 0;
-  let processedCount = 0;
+    console.log(
+      `\n🚀 Found ${templateFiles.length} templates in ${path.basename(dirConfig.path)}...`
+    )
 
-  for (const file of templateFiles) {
-    const inputPath = path.join(TEMPLATES_DIR, file);
-    const parsedPath = path.parse(file);
-    const outputPath = path.join(TEMPLATES_DIR, `${parsedPath.name}.thumb.webp`);
+    for (const file of templateFiles) {
+      // Skip if it's already a thumbnail or doesn't need thumbnailing
+      if (file.includes('.thumb.')) continue
 
-    const statBefore = fs.statSync(inputPath);
-    totalBeforeSize += statBefore.size;
+      const inputPath = path.join(dirConfig.path, file)
+      const outputName = file.replace('.png', '.thumb.webp')
+      const outputPath = path.join(dirConfig.path, outputName)
 
-    try {
-      await sharp(inputPath)
-        .resize({ width: 400, withoutEnlargement: true })
-        .webp({ quality: 80 })
-        .toFile(outputPath);
+      // Skip if thumb already exists and is newer than source? No, just overwrite to be safe.
+      const stats = fs.statSync(inputPath)
+      beforeTotal += stats.size
 
-      const statAfter = fs.statSync(outputPath);
-      totalAfterSize += statAfter.size;
-      processedCount++;
-      
-      process.stdout.write('.');
-    } catch (err) {
-      console.error(`\nError processing ${file}: ${err.message}`);
+      try {
+        await sharp(inputPath)
+          .resize(400) // Width 400px, auto height
+          .webp({ quality: 80 })
+          .toFile(outputPath)
+
+        const outStats = fs.statSync(outputPath)
+        afterTotal += outStats.size
+        processedCount++
+
+        console.log(
+          `✅ Compressed ${file} -> ${outputName} (${(outStats.size / 1024).toFixed(1)} KB)`
+        )
+      } catch (err) {
+        console.error(`❌ Error processing ${file}:`, err)
+      }
     }
   }
 
-  console.log('\n\n--- Compression Report ---');
-  console.log(`Processed: ${processedCount} images`);
-  console.log(`Before size: ${(totalBeforeSize / 1024 / 1024).toFixed(2)} MB`);
-  console.log(`After size: ${(totalAfterSize / 1024 / 1024).toFixed(2)} MB`);
-  console.log(`Savings: ${((1 - (totalAfterSize / totalBeforeSize)) * 100).toFixed(1)}% space saved`);
+  console.log('\n--- COMPRESSION REPORT ---')
+  console.log(`Total Files Processed: ${processedCount}`)
+  console.log(`Before (Total PNG): ${(beforeTotal / (1024 * 1024)).toFixed(2)} MB`)
+  console.log(`After (Total WebP Thumbnails): ${(afterTotal / (1024 * 1024)).toFixed(2)} MB`)
+
+  if (beforeTotal > 0) {
+    console.log(`Reduction: ${(((beforeTotal - afterTotal) / beforeTotal) * 100).toFixed(1)}%`)
+  }
 }
 
-compressTemplates().catch(console.error);
+compressTemplates()
