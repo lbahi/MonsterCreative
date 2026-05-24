@@ -8,6 +8,7 @@ import { VideoGenScreen } from './screens/video-gen'
 import { ApiCostsScreen } from './screens/ApiCostsScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 import { AiShotsScreen } from './screens/ai-shots'
+import { AdMakerScreen } from './screens/AdMakerScreen'
 
 export const router = createHashRouter([
   {
@@ -32,6 +33,7 @@ export const router = createHashRouter([
       // Video Generator sub-routes
       { path: 'video-gen', element: <Navigate to="/video-gen/fashion" replace /> },
       { path: 'video-gen/fashion', Component: VideoGenScreen },
+      { path: 'video-gen/ad-maker', Component: AdMakerScreen },
       // API Costs + Settings
       { path: 'api-costs', Component: ApiCostsScreen },
       { path: 'settings', Component: SettingsScreen }

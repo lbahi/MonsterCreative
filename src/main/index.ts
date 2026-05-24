@@ -189,6 +189,9 @@ app.whenReady().then(() => {
   )
   ipcMain.handle('db:saveImage', (_, img) => dbService.saveImage(img))
   ipcMain.handle('db:saveCopyVariant', (_, v) => dbService.saveCopyVariant(v))
+  ipcMain.handle('db:getAdProject', (_, id) => dbService.getAdProject(id))
+  ipcMain.handle('db:getAllAdProjects', () => dbService.getAllAdProjects())
+  ipcMain.handle('db:saveAdProject', (_, project) => dbService.saveAdProject(project))
   // ipcMain.handle('db:saveVideo', (_, vid) => dbService.saveVideo(vid))
 
   // IPC Handlers: Keystore

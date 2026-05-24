@@ -75,6 +75,12 @@ const navItems = [
         label: 'AI Fashion',
         path: '/video-gen/fashion',
         icon: <Wand2 size={14} />
+      },
+      {
+        id: 'vid-admaker',
+        label: 'Ad Maker',
+        path: '/video-gen/ad-maker',
+        icon: <Sparkles size={14} />
       }
     ]
   },

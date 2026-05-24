@@ -11,6 +11,9 @@ declare global {
         createCampaign: (name: string, platforms: string) => Promise<number>
         saveImage: (img: any) => Promise<number>
         saveCopyVariant: (v: any) => Promise<number>
+        getAdProject: (id: string) => Promise<any>
+        getAllAdProjects: () => Promise<any[]>
+        saveAdProject: (project: any) => Promise<void>
       }
       keystore: {
         setFalKey: (key: string) => Promise<void>

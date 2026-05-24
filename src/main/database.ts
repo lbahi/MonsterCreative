@@ -153,6 +153,29 @@ export class DatabaseService {
           sample_path TEXT,
           created_at TEXT NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS ad_projects (
+          id TEXT PRIMARY KEY,
+          status TEXT NOT NULL,
+          source_images TEXT,
+          reference_sheet_url TEXT,
+          product_name TEXT,
+          brand_name TEXT,
+          platform TEXT,
+          aspect_ratio TEXT,
+          duration INTEGER,
+          vibe TEXT,
+          creative_direction TEXT,
+          storyboard_visual_prompt TEXT,
+          seedance_video_prompt TEXT,
+          seedance_negative_prompt TEXT,
+          voiceover_script TEXT,
+          music_prompt TEXT,
+          storyboard_image_url TEXT,
+          final_video_url TEXT,
+          created_at TEXT NOT NULL,
+          updated_at TEXT NOT NULL
+        );
       `)
     } catch (err: unknown) {
       console.error('Database core init failed:', err instanceof Error ? err.message : String(err))
@@ -312,6 +335,108 @@ export class DatabaseService {
 
   deleteCustomVoice(id: number): Database.RunResult {
     return this.db.prepare('DELETE FROM custom_voices WHERE id = ?').run(id)
+  }
+
+  // --- Ad Maker Projects ---
+  getAdProject(id: string): any {
+    const row = this.db.prepare('SELECT * FROM ad_projects WHERE id = ?').get(id) as any
+    if (!row) return null
+    return this.parseAdProjectRow(row)
+  }
+
+  getAllAdProjects(): any[] {
+    const rows = this.db.prepare('SELECT * FROM ad_projects ORDER BY updated_at DESC').all()
+    return rows.map((r) => this.parseAdProjectRow(r))
+  }
+
+  saveAdProject(project: any): void {
+    const stmt = this.db.prepare(`
+      INSERT INTO ad_projects (
+        id, status, source_images, reference_sheet_url,
+        product_name, brand_name, platform, aspect_ratio, duration, vibe, creative_direction,
+        storyboard_visual_prompt, seedance_video_prompt, seedance_negative_prompt,
+        voiceover_script, music_prompt, storyboard_image_url, final_video_url,
+        created_at, updated_at
+      ) VALUES (
+        ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?,
+        ?, ?, ?, ?,
+        ?, ?
+      )
+      ON CONFLICT(id) DO UPDATE SET
+        status = excluded.status,
+        source_images = excluded.source_images,
+        reference_sheet_url = excluded.reference_sheet_url,
+        product_name = excluded.product_name,
+        brand_name = excluded.brand_name,
+        platform = excluded.platform,
+        aspect_ratio = excluded.aspect_ratio,
+        duration = excluded.duration,
+        vibe = excluded.vibe,
+        creative_direction = excluded.creative_direction,
+        storyboard_visual_prompt = excluded.storyboard_visual_prompt,
+        seedance_video_prompt = excluded.seedance_video_prompt,
+        seedance_negative_prompt = excluded.seedance_negative_prompt,
+        voiceover_script = excluded.voiceover_script,
+        music_prompt = excluded.music_prompt,
+        storyboard_image_url = excluded.storyboard_image_url,
+        final_video_url = excluded.final_video_url,
+        updated_at = excluded.updated_at
+    `)
+
+    const now = new Date().toISOString()
+    stmt.run(
+      project.id,
+      project.status,
+      JSON.stringify(project.source_images || []),
+      project.reference_sheet_url || null,
+      project.metadata?.product_name || null,
+      project.metadata?.brand_name || null,
+      project.metadata?.platform || null,
+      project.metadata?.aspect_ratio || null,
+      project.metadata?.duration || 10,
+      project.metadata?.vibe || null,
+      project.metadata?.creative_direction || null,
+      project.outputs?.storyboard_visual_prompt || null,
+      project.outputs?.seedance_video_prompt || null,
+      project.outputs?.seedance_negative_prompt || null,
+      project.outputs?.voiceover_script || null,
+      project.outputs?.music_prompt || null,
+      project.outputs?.storyboard_image_url || null,
+      project.outputs?.final_video_url || null,
+      project.created_at || now,
+      now
+    )
+  }
+
+  private parseAdProjectRow(row: any): any {
+    return {
+      id: row.id,
+      status: row.status,
+      source_images: JSON.parse(row.source_images || '[]'),
+      reference_sheet_url: row.reference_sheet_url,
+      metadata: {
+        product_name: row.product_name,
+        brand_name: row.brand_name,
+        platform: row.platform,
+        aspect_ratio: row.aspect_ratio,
+        duration: row.duration,
+        vibe: row.vibe,
+        creative_direction: row.creative_direction
+      },
+      outputs: {
+        storyboard_visual_prompt: row.storyboard_visual_prompt,
+        seedance_video_prompt: row.seedance_video_prompt,
+        seedance_negative_prompt: row.seedance_negative_prompt,
+        voiceover_script: row.voiceover_script,
+        music_prompt: row.music_prompt,
+        storyboard_image_url: row.storyboard_image_url,
+        final_video_url: row.final_video_url
+      },
+      created_at: row.created_at,
+      updated_at: row.updated_at
+    }
   }
 }
 

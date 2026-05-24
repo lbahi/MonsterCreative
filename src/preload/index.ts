@@ -11,7 +11,10 @@ const api = {
       ipcRenderer.invoke('db:createCampaign', name, platforms),
     saveImage: (img: unknown) => ipcRenderer.invoke('db:saveImage', img),
     saveCopyVariant: (v: unknown) => ipcRenderer.invoke('db:saveCopyVariant', v),
-    saveVideo: (vid: unknown) => ipcRenderer.invoke('db:saveVideo', vid)
+    saveVideo: (vid: unknown) => ipcRenderer.invoke('db:saveVideo', vid),
+    getAdProject: (id: string) => ipcRenderer.invoke('db:getAdProject', id),
+    getAllAdProjects: () => ipcRenderer.invoke('db:getAllAdProjects'),
+    saveAdProject: (project: unknown) => ipcRenderer.invoke('db:saveAdProject', project)
   },
   keystore: {
     setFalKey: (key: string) => ipcRenderer.invoke('key:setFalKey', key),

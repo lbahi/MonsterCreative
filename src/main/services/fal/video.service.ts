@@ -181,6 +181,20 @@ export class VideoService extends FalClient {
       return klingPayload
     }
 
+    // Seedance 2.0 Mapping
+    if (modelId.includes('seedance-2.0')) {
+      const seedancePayload: Record<string, unknown> = {
+        ...base,
+        duration: request.duration ? String(request.duration) : 'auto',
+        image_url: request.imageUrl,
+        generate_audio: request.audio
+      }
+      if (request.endImageUrl) {
+        seedancePayload.end_image_url = request.endImageUrl
+      }
+      return seedancePayload
+    }
+
     // Default Fallback (handles most other models like Hailuo, Minimax)
     return {
       ...base,
