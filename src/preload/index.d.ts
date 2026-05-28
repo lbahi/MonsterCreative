@@ -8,12 +8,16 @@ declare global {
         getSettings: () => Promise<any>
         updateSettings: (settings: any) => Promise<any>
         getAllCampaigns: () => Promise<any[]>
-        createCampaign: (name: string, platforms: string) => Promise<number>
+        createCampaign: (name: string, platforms: string[]) => Promise<number>
         saveImage: (img: any) => Promise<number>
         saveCopyVariant: (v: any) => Promise<number>
         getAdProject: (id: string) => Promise<any>
         getAllAdProjects: () => Promise<any[]>
         saveAdProject: (project: any) => Promise<void>
+        // Legacy support for old API
+        saveAdMakerSession: (session: any) => Promise<number | string>
+        getAdMakerSession: (id: number | string) => Promise<any>
+        getAllAdMakerSessions: () => Promise<any[]>
       }
       keystore: {
         setFalKey: (key: string) => Promise<void>
@@ -43,12 +47,20 @@ declare global {
           modelId: string
         ) => Promise<{ data?: string; error?: string }>
         uploadImageFromDataUrl: (dataUrl: string) => Promise<{ url?: string; error?: string }>
-        nanoBananaEdit: (params: any) => Promise<any>
+        nanoBananaEdit: (params: any) => Promise<{ images?: Array<{ url: string }>; error?: string }>;
+        gptImage2Edit: (params: {
+          prompt: string
+          image_urls: string[]
+          image_size?: string
+          quality?: string
+          num_images?: number
+          output_format?: string
+        }) => Promise<{ images?: Array<{ url: string }>; error?: string }>;
         reframeImage: (params: {
           image_url: string
           aspect_ratio: string
           output_format?: string
-        }) => Promise<any>
+        }) => Promise<any>;
         kontextEdit: (params: {
           image_url: string
           prompt: string
@@ -57,10 +69,33 @@ declare global {
           height?: number
           output_format?: string
           num_images?: number
-        }) => Promise<any>
+        }) => Promise<any>;
+        generateVideo: (params: any) => Promise<{ images?: Array<{ url: string }>; image?: { url: string }; url?: string; error?: string }>;
+      }
+      video: {
+        generate: (request: any) => Promise<any>
       }
       external: {
         open: (url: string) => Promise<void>
+      }
+      utils: {
+        downloadFile: (params: { url: string; filename: string }) => Promise<{ success: boolean; path?: string; cancelled?: boolean; error?: string }>
+      }
+      social: {
+        saveAdImage: (params: { imageUrl: string; filename: string }) => Promise<{ success: boolean; path?: string; localUrl?: string; error?: string }>
+        openOutputFolder: () => Promise<void>
+      }
+      audio: {
+        generateSpeech: (params: any) => Promise<any>
+        speechToSpeech: (params: any) => Promise<any>
+        cloneVoice: (params: any) => Promise<any>
+        generateClonedSpeech: (params: any) => Promise<any>
+        saveCustomVoice: (params: any) => Promise<any>
+        getAllCustomVoices: () => Promise<any>
+        deleteCustomVoice: (id: number) => Promise<any>
+        playAudio: (filePath: string) => Promise<any>
+        saveAudio: (filePath: string, destPath: string) => Promise<any>
+        generateMusic: (prompt: string, durationMs?: number) => Promise<any>
       }
       license: {
         activate: (

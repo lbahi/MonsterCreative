@@ -14,7 +14,11 @@ const api = {
     saveVideo: (vid: unknown) => ipcRenderer.invoke('db:saveVideo', vid),
     getAdProject: (id: string) => ipcRenderer.invoke('db:getAdProject', id),
     getAllAdProjects: () => ipcRenderer.invoke('db:getAllAdProjects'),
-    saveAdProject: (project: unknown) => ipcRenderer.invoke('db:saveAdProject', project)
+    saveAdProject: (project: unknown) => ipcRenderer.invoke('db:saveAdProject', project),
+    // Legacy methods mapped to new API
+    saveAdMakerSession: (session: unknown) => ipcRenderer.invoke('db:saveAdProject', session),
+    getAdMakerSession: (id: number | string) => ipcRenderer.invoke('db:getAdProject', String(id)),
+    getAllAdMakerSessions: () => ipcRenderer.invoke('db:getAllAdProjects')
   },
   keystore: {
     setFalKey: (key: string) => ipcRenderer.invoke('key:setFalKey', key),
@@ -42,6 +46,7 @@ const api = {
     uploadImageFromDataUrl: (dataUrl: string) =>
       ipcRenderer.invoke('fal:uploadImageFromDataUrl', dataUrl),
     nanoBananaEdit: (params: unknown) => ipcRenderer.invoke('fal:nanoBananaEdit', params),
+    gptImage2Edit: (params: unknown) => ipcRenderer.invoke('fal:gptImage2Edit', params),
     reframeImage: (params: unknown) => ipcRenderer.invoke('fal:reframeImage', params),
     kontextEdit: (params: unknown) => ipcRenderer.invoke('fal:kontextEdit', params),
     generateVideo: (params: unknown) => ipcRenderer.invoke('fal:generateVideo', params)
@@ -72,7 +77,9 @@ const api = {
     deleteCustomVoice: (id: number) => ipcRenderer.invoke('audio:deleteCustomVoice', id),
     playAudio: (filePath: string) => ipcRenderer.invoke('audio:playAudio', filePath),
     saveAudio: (filePath: string, destPath: string) =>
-      ipcRenderer.invoke('audio:saveAudio', filePath, destPath)
+      ipcRenderer.invoke('audio:saveAudio', filePath, destPath),
+    generateMusic: (prompt: string, durationMs?: number) =>
+      ipcRenderer.invoke('audio:generateMusic', prompt, durationMs)
   },
   license: {
     activate: (key: string) => ipcRenderer.invoke('license:activate', key),
@@ -82,6 +89,7 @@ const api = {
     getDetails: () => ipcRenderer.invoke('license:getDetails')
   },
   update: {
+    check: () => ipcRenderer.invoke('update:check'),
     onAvailable: (cb: (event: any, ...args: any[]) => void) =>
       ipcRenderer.on('update:available', cb),
     onDownloaded: (cb: (event: any, ...args: any[]) => void) =>

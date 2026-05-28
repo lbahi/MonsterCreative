@@ -8,7 +8,7 @@ import { VideoGenScreen } from './screens/video-gen'
 import { ApiCostsScreen } from './screens/ApiCostsScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 import { AiShotsScreen } from './screens/ai-shots'
-import { AdMakerScreen } from './screens/AdMakerScreen'
+import { AdMakerScreen } from './screens/ads-maker'
 
 export const router = createHashRouter([
   {

@@ -56,6 +56,7 @@ interface Window {
         modelId: string
         prompt: string
         imageUrl: string
+        referenceImageUrl?: string
         endImageUrl?: string
         aspectRatio?: string
         resolution: string
@@ -120,6 +121,7 @@ interface Window {
       getLicenseStatus: () => Promise<{ hasKey: boolean; key?: string; instanceId?: string }>
     }
     update: {
+      check: () => Promise<boolean>
       onAvailable: (cb: () => void) => void
       onDownloaded: (cb: () => void) => void
       install: () => Promise<void>

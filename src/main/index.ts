@@ -122,6 +122,16 @@ function createWindow(): void {
   ipcMain.handle('update:install', () => {
     autoUpdater.quitAndInstall()
   })
+
+  ipcMain.handle('update:check', async () => {
+    try {
+      const result = await autoUpdater.checkForUpdates()
+      return result !== null
+    } catch (err) {
+      log.error('Manual update check failed:', err)
+      return false
+    }
+  })
 }
 
 // Support for YouTube embeds and silencing dxcompiler.dll warnings
@@ -245,6 +255,7 @@ app.whenReady().then(() => {
     imageService.uploadImageFromDataUrl(dataUrl)
   )
   ipcMain.handle('fal:nanoBananaEdit', (_, params) => imageService.nanoBananaEdit(params))
+  ipcMain.handle('fal:gptImage2Edit', (_, params) => imageService.gptImage2Edit(params))
   ipcMain.handle('fal:reframeImage', (_, params) => imageService.reframeImage(params))
   ipcMain.handle('fal:kontextEdit', (_, params) => imageService.kontextEdit(params))
   ipcMain.handle('fal:generateVideo', (_, params) => videoService.generateVideo(params))
@@ -442,6 +453,15 @@ app.whenReady().then(() => {
     try {
       await copyFile(filePath, destPath)
       return { success: true }
+    } catch (error: unknown) {
+      return { success: false, error: error instanceof Error ? error.message : String(error) }
+    }
+  })
+
+  ipcMain.handle('audio:generateMusic', async (_, prompt, durationMs) => {
+    try {
+      const result = await audioService.generateMusic(prompt, durationMs)
+      return { success: true, data: result }
     } catch (error: unknown) {
       return { success: false, error: error instanceof Error ? error.message : String(error) }
     }

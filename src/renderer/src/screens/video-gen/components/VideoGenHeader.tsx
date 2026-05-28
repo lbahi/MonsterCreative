@@ -61,37 +61,44 @@ export function VideoGenHeader({
           border: '1px solid var(--ma-border)'
         }}
       >
-        {([
-          { key: 'templates', label: 'Templates', icon: <Sparkles size={14} /> },
-          { key: 'manual', label: 'Manual', icon: <Settings2 size={14} /> }
-        ] as { key: ActiveVideoGenMode; label: string; icon: React.ReactNode }[]).map(
-          ({ key, label, icon }) => {
-            const isActive = activeMode === key
-            return (
-              <button
-                key={key}
-                onClick={() => onModeChange(key)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '6px 16px',
-                  borderRadius: 16,
-                  border: 'none',
-                  background: isActive ? 'var(--ma-accent)' : 'transparent',
-                  color: isActive ? '#FFF' : 'rgba(255,255,255,0.5)',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  boxShadow: 'none'
-                }}
-              >
-                {icon} {label}
-              </button>
-            )
-          }
-        )}
+        <button
+          onClick={() => onModeChange('templates')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '6px 16px',
+            borderRadius: 16,
+            border: 'none',
+            background: activeMode === 'templates' ? 'var(--ma-accent)' : 'transparent',
+            color: activeMode === 'templates' ? '#FFF' : 'rgba(255,255,255,0.5)',
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+        >
+          <Sparkles size={14} /> Templates
+        </button>
+        <button
+          onClick={() => onModeChange('manual')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '6px 16px',
+            borderRadius: 16,
+            border: 'none',
+            background: activeMode === 'manual' ? 'var(--ma-accent)' : 'transparent',
+            color: activeMode === 'manual' ? '#FFF' : 'rgba(255,255,255,0.5)',
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+        >
+          <Settings2 size={14} /> Manual
+        </button>
       </div>
     </div>
   )

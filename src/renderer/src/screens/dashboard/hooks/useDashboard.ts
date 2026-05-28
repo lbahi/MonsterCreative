@@ -92,9 +92,6 @@ export const useDashboard = () => {
 
   useEffect(() => {
     fetchData()
-    // Auto-refresh every 2 minutes
-    const timer = setInterval(() => fetchData(true), 120000)
-    return () => clearInterval(timer)
   }, [])
 
   return {

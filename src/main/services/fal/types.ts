@@ -35,6 +35,7 @@ export interface VideoGenerationRequest {
   modelId: string
   prompt: string
   imageUrl: string
+  referenceImageUrl?: string
   endImageUrl?: string
   aspectRatio?: string
   resolution: string

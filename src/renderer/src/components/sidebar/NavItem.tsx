@@ -7,8 +7,8 @@ interface NavItemProps {
     label: string
     icon: React.ReactNode
     path?: string
-    children?: { id: string; label: string; path: string; icon: React.ReactNode }[]
-    badge?: string
+    children?: { id: string; label: string; path: string; icon: React.ReactNode; badge?: { text: string; bg: string; color: string } }[]
+    badge?: { text: string; bg: string; color: string }
   }
   collapsed: boolean
   isActive: (path?: string) => boolean
@@ -71,13 +71,17 @@ export const NavItem = ({
               <span
                 style={{
                   fontSize: 9,
-                  background: 'var(--ma-accent)',
-                  color: 'white',
+                  fontFamily: 'JetBrains Mono',
+                  fontWeight: 700,
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.5px',
+                  background: item.badge.bg || 'var(--ma-accent)',
+                  color: item.badge.color || 'white',
                   padding: '2px 6px',
-                  borderRadius: 10
+                  borderRadius: 4
                 }}
               >
-                {item.badge}
+                {item.badge.text}
               </span>
             )}
           </>

@@ -123,4 +123,33 @@ export class AudioService extends FalClient {
 
     return { url }
   }
+
+  async generateMusic(prompt: string, durationMs?: number): Promise<AudioResult> {
+    const key = await this.getApiKey()
+    const response = await fetch('https://fal.run/fal-ai/elevenlabs/music', {
+      method: 'POST',
+      headers: {
+        Authorization: `Key ${key}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        prompt: prompt,
+        music_length_ms: durationMs ?? 10000
+      })
+    })
+
+    if (!response.ok) {
+      let errorMsg = response.statusText
+      try {
+        const error = await response.json()
+        errorMsg = error.message || error.detail || response.statusText
+      } catch (_e) {}
+      throw new Error(`Fal API Error: ${errorMsg}`)
+    }
+
+    const data = (await response.json()) as FalAudioOutput
+    return {
+      url: data.audio?.url || data.url || ''
+    }
+  }
 }

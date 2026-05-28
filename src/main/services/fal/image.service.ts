@@ -1,4 +1,5 @@
 import { FalClient } from './base'
+import log from 'electron-log'
 
 interface FalUploadResponse {
   access_url?: string
@@ -30,6 +31,11 @@ export class ImageService extends FalClient {
    */
   async uploadImageFromDataUrl(dataUrl: string): Promise<{ url?: string; error?: string }> {
     try {
+      // Validate input
+      if (!dataUrl || typeof dataUrl !== 'string') {
+        return { error: 'Invalid dataUrl: must be a non-empty string' }
+      }
+
       const apiKey = await this.getApiKey()
 
       // Parse the data URL: data:<mime>;base64,<data>
@@ -259,6 +265,99 @@ export class ImageService extends FalClient {
       )
     }
     return { images: [{ url }] }
+  }
+
+  /**
+   * GPT Image 2 — openai/gpt-image-2/edit
+   * Advanced image generation and editing using GPT Image 2 via fal.ai
+   */
+  async gptImage2Edit(params: {
+    prompt: string
+    image_urls: string[]
+    image_size?: string
+    quality?: string
+    num_images?: number
+    output_format?: string
+  }): Promise<{ images?: Array<{ url: string }>; error?: string }> {
+    console.log('[Main] gptImage2Edit called')
+    console.log('[Main] model: openai/gpt-image-2/edit')
+    console.log('[Main] image_urls:', params.image_urls)
+    console.log('[Main] quality:', params.quality)
+    console.log('[Main] image_size:', params.image_size)
+    console.log('[Main] prompt preview:', params.prompt?.substring(0, 100))
+
+    try {
+      const apiKey = await this.getApiKey()
+      if (!apiKey) return { error: 'No Fal.ai API key configured' }
+
+      const body: Record<string, unknown> = {
+        prompt: params.prompt,
+        image_urls: params.image_urls,
+        n: params.num_images ?? 1
+      }
+
+      if (params.image_size) body.image_size = params.image_size
+      if (params.quality) body.quality = params.quality
+      if (params.output_format) body.output_format = params.output_format
+
+      console.log('[Main] Sending body:', JSON.stringify(body).slice(0, 500))
+
+      const response = await fetch('https://fal.run/openai/gpt-image-2/edit', {
+        method: 'POST',
+        headers: {
+          Authorization: `Key ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      })
+
+      if (!response.ok) {
+        const errText = await response.text()
+        log.error('=== STORYBOARD GENERATION FAILED (HTTP) ===')
+        log.error('referenceSheetUrl value:', params.image_urls?.[0])
+        log.error('referenceSheetUrl type:', typeof params.image_urls?.[0])
+        log.error('storyboardQuality:', params.quality)
+        log.error('image_size:', params.image_size)
+        log.error('storyboardPrompt length:', params.prompt?.length)
+        log.error('storyboardPrompt preview:', params.prompt?.substring(0, 200))
+        log.error('HTTP status:', response.status)
+        log.error('HTTP error text:', errText)
+        console.error('[Main] fal IPC error:', errText)
+        console.error('[Main] fal IPC status:', response.status)
+        throw new Error(`Generation request failed (${response.status}): ${errText}`)
+      }
+
+      const data = await response.json()
+      console.log('[gptImage2Edit] raw response:', JSON.stringify(data).slice(0, 400))
+
+      // Normalize response - API returns { images: [{ url: string }] }
+      const images = data?.images ?? data?.data?.images ?? null
+      if (!images || !images[0]?.url) {
+        log.error('=== STORYBOARD GENERATION FAILED (No URL) ===')
+        log.error('referenceSheetUrl value:', params.image_urls?.[0])
+        log.error('referenceSheetUrl type:', typeof params.image_urls?.[0])
+        log.error('storyboardQuality:', params.quality)
+        log.error('aspectRatio:', params.image_size)
+        log.error('storyboardPrompt length:', params.prompt?.length)
+        log.error('storyboardPrompt preview:', params.prompt?.substring(0, 200))
+        log.error('Response data:', JSON.stringify(data))
+        throw new Error('No image URL in response')
+      }
+
+      return { images }
+    } catch (err: unknown) {
+      log.error('=== STORYBOARD GENERATION FAILED (Exception) ===')
+      log.error('referenceSheetUrl value:', params.image_urls?.[0])
+      log.error('referenceSheetUrl type:', typeof params.image_urls?.[0])
+      log.error('storyboardQuality:', params.quality)
+      log.error('image_size:', params.image_size)
+      log.error('storyboardPrompt length:', params.prompt?.length)
+      log.error('storyboardPrompt preview:', params.prompt?.substring(0, 200))
+      log.error('Full error:', JSON.stringify(err, Object.getOwnPropertyNames(err as object), 2))
+      console.error('[Main] gptImage2Edit error:', (err as Error).message)
+      console.error('[Main] gptImage2Edit full error:', JSON.stringify(err, Object.getOwnPropertyNames(err as object)))
+      return { error: (err as Error).message }
+    }
   }
 
   /**

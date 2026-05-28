@@ -45,7 +45,6 @@ export function VideoGenScreen(): React.ReactElement {
 
     return () => setRightPanelContent(null)
   }, [
-    activeMode,
     generating,
     generatedVideoUrl,
     modelId,

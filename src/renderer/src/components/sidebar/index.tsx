@@ -80,7 +80,8 @@ const navItems = [
         id: 'vid-admaker',
         label: 'Ad Maker',
         path: '/video-gen/ad-maker',
-        icon: <Sparkles size={14} />
+        icon: <span style={{ fontSize: '14px' }}>🎬</span>,
+        badge: { text: 'NEW', bg: 'rgba(236, 72, 153, 0.2)', color: '#EC4899' }
       }
     ]
   },

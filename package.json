@@ -1,7 +1,7 @@
 {
   "name": "monster-creative",
   "productName": "MonsterCreative",
-  "version": "1.0.11",
+  "version": "1.0.13",
   "description": "An Electron application with React and TypeScript",
   "main": "./out/main/index.js",
   "author": "example.com",
@@ -20,8 +20,7 @@
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "electron-vite build && electron-builder --mac",
-    "build:linux": "electron-vite build && electron-builder --linux",
-    "compress-templates": "node scripts/compress-templates.js"
+    "build:linux": "electron-vite build && electron-builder --linux"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",

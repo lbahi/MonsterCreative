@@ -183,14 +183,22 @@ export class VideoService extends FalClient {
 
     // Seedance 2.0 Mapping
     if (modelId.includes('seedance-2.0')) {
+      const isImageToVideo = modelId.includes('image-to-video')
       const seedancePayload: Record<string, unknown> = {
-        ...base,
+        prompt: request.prompt,
         duration: request.duration ? String(request.duration) : 'auto',
-        image_url: request.imageUrl,
+        resolution: request.resolution,
+        aspect_ratio: request.aspectRatio ?? 'auto',
         generate_audio: request.audio
       }
-      if (request.endImageUrl) {
-        seedancePayload.end_image_url = request.endImageUrl
+      if (isImageToVideo) {
+        seedancePayload.image_url = request.imageUrl
+      } else {
+        const imageUrls = [request.imageUrl]
+        if (request.referenceImageUrl) {
+          imageUrls.push(request.referenceImageUrl)
+        }
+        seedancePayload.image_urls = imageUrls
       }
       return seedancePayload
     }

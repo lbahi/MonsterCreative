@@ -65,6 +65,8 @@ export class DatabaseService {
   constructor() {
     const userDataPath = app.getPath('userData')
     const dbPath = path.join(userDataPath, 'monstercreative.db')
+    console.log('[DB] userData path:', userDataPath)
+    console.log('[DB] DB file path:', dbPath)
 
     // Ensure directory exists
     if (!fs.existsSync(userDataPath)) {
@@ -72,6 +74,10 @@ export class DatabaseService {
     }
 
     this.db = new Database(dbPath)
+    console.log('[DB] Database opened successfully')
+    // Force WAL mode off to ensure immediate disk writes
+    this.db.pragma('journal_mode = DELETE')
+    this.db.pragma('synchronous = FULL')
     this.init()
   }
 
@@ -157,6 +163,7 @@ export class DatabaseService {
         CREATE TABLE IF NOT EXISTS ad_projects (
           id TEXT PRIMARY KEY,
           status TEXT NOT NULL,
+          phase INTEGER DEFAULT 1,
           source_images TEXT,
           reference_sheet_url TEXT,
           product_name TEXT,
@@ -173,12 +180,23 @@ export class DatabaseService {
           music_prompt TEXT,
           storyboard_image_url TEXT,
           final_video_url TEXT,
+          voiceover_audio_url TEXT,
+          music_audio_url TEXT,
           created_at TEXT NOT NULL,
           updated_at TEXT NOT NULL
         );
       `)
     } catch (err: unknown) {
-      console.error('Database core init failed:', err instanceof Error ? err.message : String(err))
+      console.error('[DB] CRITICAL: Database core init failed:', err instanceof Error ? err.message : String(err))
+      throw err
+    }
+
+    // Verify tables were created
+    try {
+      const tables = this.db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as any[]
+      console.log('[DB] Tables created:', tables.map((t: any) => t.name).join(', '))
+    } catch (e) {
+      console.error('[DB] Failed to verify tables:', e)
     }
 
     // --- MIGRATIONS ---
@@ -187,7 +205,26 @@ export class DatabaseService {
       'ALTER TABLE generated_videos ADD COLUMN url TEXT;',
       'ALTER TABLE generated_videos ADD COLUMN file_name TEXT;',
       'ALTER TABLE generated_videos ADD COLUMN file_size INTEGER;',
-      'ALTER TABLE generated_videos ADD COLUMN created_at TEXT;'
+      'ALTER TABLE generated_videos ADD COLUMN created_at TEXT;',
+      // Ad projects migrations
+      'ALTER TABLE ad_projects ADD COLUMN reference_sheet_url TEXT;',
+      'ALTER TABLE ad_projects ADD COLUMN phase INTEGER DEFAULT 1;',
+      'ALTER TABLE ad_projects ADD COLUMN product_name TEXT;',
+      'ALTER TABLE ad_projects ADD COLUMN brand_name TEXT;',
+      'ALTER TABLE ad_projects ADD COLUMN platform TEXT;',
+      'ALTER TABLE ad_projects ADD COLUMN aspect_ratio TEXT;',
+      'ALTER TABLE ad_projects ADD COLUMN duration TEXT;',
+      'ALTER TABLE ad_projects ADD COLUMN vibe TEXT;',
+      'ALTER TABLE ad_projects ADD COLUMN creative_direction TEXT;',
+      'ALTER TABLE ad_projects ADD COLUMN storyboard_visual_prompt TEXT;',
+      'ALTER TABLE ad_projects ADD COLUMN seedance_video_prompt TEXT;',
+      'ALTER TABLE ad_projects ADD COLUMN seedance_negative_prompt TEXT;',
+      'ALTER TABLE ad_projects ADD COLUMN voiceover_script TEXT;',
+      'ALTER TABLE ad_projects ADD COLUMN music_prompt TEXT;',
+      'ALTER TABLE ad_projects ADD COLUMN storyboard_image_url TEXT;',
+      'ALTER TABLE ad_projects ADD COLUMN final_video_url TEXT;',
+      'ALTER TABLE ad_projects ADD COLUMN voiceover_audio_url TEXT;',
+      'ALTER TABLE ad_projects ADD COLUMN music_audio_url TEXT;'
     ]
 
     for (const sql of migrations) {
@@ -199,6 +236,14 @@ export class DatabaseService {
           console.error('Migration failed:', sql, err.message)
         }
       }
+    }
+
+    // Log ad_projects table schema
+    try {
+      const tableInfo = this.db.prepare("PRAGMA table_info(ad_projects)").all() as any[]
+      console.log('[DB] ad_projects columns:', tableInfo.map(c => c.name).join(', '))
+    } catch (e) {
+      console.error('[DB] Failed to get table info:', e)
     }
   }
 
@@ -340,8 +385,11 @@ export class DatabaseService {
   // --- Ad Maker Projects ---
   getAdProject(id: string): any {
     const row = this.db.prepare('SELECT * FROM ad_projects WHERE id = ?').get(id) as any
+    console.log('[DB] getAdProject raw row:', row);
     if (!row) return null
-    return this.parseAdProjectRow(row)
+    const parsed = this.parseAdProjectRow(row)
+    console.log('[DB] getAdProject parsed reference_sheet_url:', parsed.reference_sheet_url);
+    return parsed
   }
 
   getAllAdProjects(): any[] {
@@ -350,38 +398,43 @@ export class DatabaseService {
   }
 
   saveAdProject(project: any): void {
+    console.log('[DB] saveAdProject - ID:', project.id);
+    console.log('[DB] saveAdProject - reference_sheet_url:', project.reference_sheet_url);
     const stmt = this.db.prepare(`
       INSERT INTO ad_projects (
-        id, status, source_images, reference_sheet_url,
+        id, status, phase, source_images, reference_sheet_url,
         product_name, brand_name, platform, aspect_ratio, duration, vibe, creative_direction,
         storyboard_visual_prompt, seedance_video_prompt, seedance_negative_prompt,
         voiceover_script, music_prompt, storyboard_image_url, final_video_url,
-        created_at, updated_at
+        voiceover_audio_url, music_audio_url, created_at, updated_at
       ) VALUES (
-        ?, ?, ?, ?,
-        ?, ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?,
+        ?, ?, ?, ?, ?, ?,
         ?, ?, ?,
         ?, ?, ?, ?,
-        ?, ?
+        ?, ?, ?, ?
       )
       ON CONFLICT(id) DO UPDATE SET
         status = excluded.status,
+        phase = excluded.phase,
         source_images = excluded.source_images,
-        reference_sheet_url = excluded.reference_sheet_url,
-        product_name = excluded.product_name,
-        brand_name = excluded.brand_name,
-        platform = excluded.platform,
-        aspect_ratio = excluded.aspect_ratio,
+        reference_sheet_url = COALESCE(excluded.reference_sheet_url, ad_projects.reference_sheet_url),
+        product_name = COALESCE(excluded.product_name, ad_projects.product_name),
+        brand_name = COALESCE(excluded.brand_name, ad_projects.brand_name),
+        platform = COALESCE(excluded.platform, ad_projects.platform),
+        aspect_ratio = COALESCE(excluded.aspect_ratio, ad_projects.aspect_ratio),
         duration = excluded.duration,
-        vibe = excluded.vibe,
-        creative_direction = excluded.creative_direction,
-        storyboard_visual_prompt = excluded.storyboard_visual_prompt,
-        seedance_video_prompt = excluded.seedance_video_prompt,
-        seedance_negative_prompt = excluded.seedance_negative_prompt,
-        voiceover_script = excluded.voiceover_script,
-        music_prompt = excluded.music_prompt,
-        storyboard_image_url = excluded.storyboard_image_url,
-        final_video_url = excluded.final_video_url,
+        vibe = COALESCE(excluded.vibe, ad_projects.vibe),
+        creative_direction = COALESCE(excluded.creative_direction, ad_projects.creative_direction),
+        storyboard_visual_prompt = COALESCE(excluded.storyboard_visual_prompt, ad_projects.storyboard_visual_prompt),
+        seedance_video_prompt = COALESCE(excluded.seedance_video_prompt, ad_projects.seedance_video_prompt),
+        seedance_negative_prompt = COALESCE(excluded.seedance_negative_prompt, ad_projects.seedance_negative_prompt),
+        voiceover_script = COALESCE(excluded.voiceover_script, ad_projects.voiceover_script),
+        music_prompt = COALESCE(excluded.music_prompt, ad_projects.music_prompt),
+        storyboard_image_url = COALESCE(excluded.storyboard_image_url, ad_projects.storyboard_image_url),
+        final_video_url = COALESCE(excluded.final_video_url, ad_projects.final_video_url),
+        voiceover_audio_url = COALESCE(excluded.voiceover_audio_url, ad_projects.voiceover_audio_url),
+        music_audio_url = COALESCE(excluded.music_audio_url, ad_projects.music_audio_url),
         updated_at = excluded.updated_at
     `)
 
@@ -389,6 +442,7 @@ export class DatabaseService {
     stmt.run(
       project.id,
       project.status,
+      project.phase || 1,
       JSON.stringify(project.source_images || []),
       project.reference_sheet_url || null,
       project.metadata?.product_name || null,
@@ -405,15 +459,20 @@ export class DatabaseService {
       project.outputs?.music_prompt || null,
       project.outputs?.storyboard_image_url || null,
       project.outputs?.final_video_url || null,
+      project.outputs?.voiceover_audio_url || null,
+      project.outputs?.music_audio_url || null,
       project.created_at || now,
       now
     )
   }
 
   private parseAdProjectRow(row: any): any {
+    console.log('[DB] parseAdProjectRow - ALL row keys:', Object.keys(row));
+    console.log('[DB] parseAdProjectRow - raw reference_sheet_url:', row.reference_sheet_url);
     return {
       id: row.id,
       status: row.status,
+      phase: row.phase || 1,
       source_images: JSON.parse(row.source_images || '[]'),
       reference_sheet_url: row.reference_sheet_url,
       metadata: {
@@ -432,7 +491,9 @@ export class DatabaseService {
         voiceover_script: row.voiceover_script,
         music_prompt: row.music_prompt,
         storyboard_image_url: row.storyboard_image_url,
-        final_video_url: row.final_video_url
+        final_video_url: row.final_video_url,
+        voiceover_audio_url: row.voiceover_audio_url,
+        music_audio_url: row.music_audio_url
       },
       created_at: row.created_at,
       updated_at: row.updated_at

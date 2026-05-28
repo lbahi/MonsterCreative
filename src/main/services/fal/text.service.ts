@@ -89,7 +89,15 @@ export class TextService extends FalClient {
 
       const data = (await response.json()) as any
       // Standard OpenAI response format
-      const text = data?.choices?.[0]?.message?.content ?? ''
+      // Some models (e.g. Gemini thinking) may put content in reasoning_content
+      const choice = data?.choices?.[0]
+      const text = choice?.message?.content
+        || choice?.message?.reasoning_content
+        || ''
+      console.log('[TextService] chatCompletion model:', modelId, 'finish_reason:', choice?.finish_reason, 'content_length:', text?.length)
+      if (!text) {
+        console.error('[TextService] Empty content. Full response:', JSON.stringify(data).substring(0, 500))
+      }
       return { data: text }
     } catch (err: unknown) {
       return { error: `Network error: ${(err as Error).message}` }

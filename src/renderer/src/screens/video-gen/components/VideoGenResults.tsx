@@ -101,7 +101,7 @@ export function VideoGenResults({ videoGen }: VideoGenResultsProps): React.React
         />
       )}
 
-      {!generating && !result && !error && activeMode === 'manual' && <ManualTab {...videoGen} />}
+      {!generating && !result && !error && activeMode === 'manual' && <ManualTab />}
     </div>
   )
 }
