@@ -18,7 +18,15 @@ const api = {
     // Legacy methods mapped to new API
     saveAdMakerSession: (session: unknown) => ipcRenderer.invoke('db:saveAdProject', session),
     getAdMakerSession: (id: number | string) => ipcRenderer.invoke('db:getAdProject', String(id)),
-    getAllAdMakerSessions: () => ipcRenderer.invoke('db:getAllAdProjects')
+    getAllAdMakerSessions: () => ipcRenderer.invoke('db:getAllAdProjects'),
+    getAllGeneratedImages: () => ipcRenderer.invoke('db:getAllGeneratedImages'),
+    getAllGeneratedVideos: () => ipcRenderer.invoke('db:getAllGeneratedVideos'),
+    getAllCopyVariants: () => ipcRenderer.invoke('db:getAllCopyVariants'),
+    deleteGeneratedImage: (id: number) => ipcRenderer.invoke('db:deleteGeneratedImage', id),
+    deleteGeneratedVideo: (id: number) => ipcRenderer.invoke('db:deleteGeneratedVideo', id),
+    deleteCopyVariant: (id: number) => ipcRenderer.invoke('db:deleteCopyVariant', id),
+    toggleFavorite: (type: string, id: number | string, isFavorite: boolean) => ipcRenderer.invoke('db:toggleFavorite', type, id, isFavorite),
+    updateTags: (type: string, id: number | string, tags: string) => ipcRenderer.invoke('db:updateTags', type, id, tags)
   },
   keystore: {
     setFalKey: (key: string) => ipcRenderer.invoke('key:setFalKey', key),

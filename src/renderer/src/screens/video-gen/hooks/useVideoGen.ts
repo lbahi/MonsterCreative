@@ -51,7 +51,14 @@ export function useVideoGen(): UseVideoGenReturn {
   const [endImage, setEndImage] = useState<string | null>(null)
   const [generating, setGenerating] = useState(false)
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null)
-  const [prompt, setPrompt] = useState('')
+  const [prompt, setPrompt] = useState(() => {
+    const saved = localStorage.getItem('monster_remix_prompt')
+    if (saved) {
+      localStorage.removeItem('monster_remix_prompt')
+      return saved
+    }
+    return ''
+  })
   const [modelId, setModelId] = useState(VIDEO_MODELS[0].id)
   const [duration, setDuration] = useState<number>(VIDEO_DEFAULTS.duration)
   const [aspectRatio, setAspectRatio] = useState('auto')

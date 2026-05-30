@@ -202,7 +202,17 @@ app.whenReady().then(() => {
   ipcMain.handle('db:getAdProject', (_, id) => dbService.getAdProject(id))
   ipcMain.handle('db:getAllAdProjects', () => dbService.getAllAdProjects())
   ipcMain.handle('db:saveAdProject', (_, project) => dbService.saveAdProject(project))
+  ipcMain.handle('db:getAllGeneratedImages', () => dbService.getAllGeneratedImages())
+  ipcMain.handle('db:getAllGeneratedVideos', () => dbService.getAllGeneratedVideos())
+  ipcMain.handle('db:getAllCopyVariants', () => dbService.getAllCopyVariants())
+  ipcMain.handle('db:deleteGeneratedImage', (_, id) => dbService.deleteGeneratedImage(id))
+  ipcMain.handle('db:deleteGeneratedVideo', (_, id) => dbService.deleteGeneratedVideo(id))
+  ipcMain.handle('db:deleteCopyVariant', (_, id) => dbService.deleteCopyVariant(id))
+  ipcMain.handle('db:toggleFavorite', (_, type, id, isFavorite) => dbService.toggleFavorite(type, id, isFavorite))
+  ipcMain.handle('db:updateTags', (_, type, id, tags) => dbService.updateTags(type, id, tags))
+
   // ipcMain.handle('db:saveVideo', (_, vid) => dbService.saveVideo(vid))
+
 
   // IPC Handlers: Keystore
   ipcMain.handle('key:setFalKey', (_, key) => keystoreService.setFalKey(key))

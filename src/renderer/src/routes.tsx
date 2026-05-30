@@ -9,6 +9,7 @@ import { ApiCostsScreen } from './screens/ApiCostsScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 import { AiShotsScreen } from './screens/ai-shots'
 import { AdMakerScreen } from './screens/ads-maker'
+import { CreationsScreen } from './screens/CreationsScreen'
 
 export const router = createHashRouter([
   {
@@ -16,6 +17,7 @@ export const router = createHashRouter([
     Component: Shell,
     children: [
       { index: true, Component: DashboardScreen },
+      { path: 'creations', Component: CreationsScreen },
       { path: 'ad-copy', Component: AdCopyScreen },
       // Image Generator sub-routes
       { path: 'image-gen', element: <Navigate to="/image-gen/generate" replace /> },
@@ -40,3 +42,4 @@ export const router = createHashRouter([
     ]
   }
 ])
+

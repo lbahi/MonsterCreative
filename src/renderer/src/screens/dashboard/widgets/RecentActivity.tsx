@@ -1,9 +1,11 @@
 import { Sparkles, ChevronRight, ExternalLink } from 'lucide-react'
+import { useNavigate } from 'react-router'
 import { ActivityItem } from '../types'
 
 const RECENT: ActivityItem[] = []
 
 export const RecentActivity = () => {
+  const navigate = useNavigate()
   return (
     <div>
       <div
@@ -26,6 +28,7 @@ export const RecentActivity = () => {
           Recent Generations
         </h2>
         <button
+          onClick={() => navigate('/creations')}
           style={{
             display: 'flex',
             alignItems: 'center',

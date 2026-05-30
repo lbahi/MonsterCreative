@@ -224,7 +224,16 @@ export class DatabaseService {
       'ALTER TABLE ad_projects ADD COLUMN storyboard_image_url TEXT;',
       'ALTER TABLE ad_projects ADD COLUMN final_video_url TEXT;',
       'ALTER TABLE ad_projects ADD COLUMN voiceover_audio_url TEXT;',
-      'ALTER TABLE ad_projects ADD COLUMN music_audio_url TEXT;'
+      'ALTER TABLE ad_projects ADD COLUMN music_audio_url TEXT;',
+      // Favorites & Tagging migrations
+      'ALTER TABLE generated_images ADD COLUMN is_favorite INTEGER DEFAULT 0;',
+      'ALTER TABLE generated_images ADD COLUMN tags TEXT;',
+      'ALTER TABLE generated_videos ADD COLUMN is_favorite INTEGER DEFAULT 0;',
+      'ALTER TABLE generated_videos ADD COLUMN tags TEXT;',
+      'ALTER TABLE copy_variants ADD COLUMN is_favorite INTEGER DEFAULT 0;',
+      'ALTER TABLE copy_variants ADD COLUMN tags TEXT;',
+      'ALTER TABLE custom_voices ADD COLUMN is_favorite INTEGER DEFAULT 0;',
+      'ALTER TABLE custom_voices ADD COLUMN tags TEXT;'
     ]
 
     for (const sql of migrations) {
@@ -354,6 +363,57 @@ export class DatabaseService {
       video.createdAt || new Date().toISOString()
     ).lastInsertRowid
   }
+
+  getAllGeneratedImages(): any[] {
+    return this.db.prepare('SELECT * FROM generated_images ORDER BY created_at DESC').all()
+  }
+
+  getAllGeneratedVideos(): any[] {
+    return this.db.prepare('SELECT * FROM generated_videos ORDER BY created_at DESC').all()
+  }
+
+  getAllCopyVariants(): any[] {
+    return this.db.prepare('SELECT * FROM copy_variants ORDER BY created_at DESC').all()
+  }
+
+  deleteGeneratedImage(id: number): Database.RunResult {
+    return this.db.prepare('DELETE FROM generated_images WHERE id = ?').run(id)
+  }
+
+  deleteGeneratedVideo(id: number): Database.RunResult {
+    return this.db.prepare('DELETE FROM generated_videos WHERE id = ?').run(id)
+  }
+
+  deleteCopyVariant(id: number): Database.RunResult {
+    return this.db.prepare('DELETE FROM copy_variants WHERE id = ?').run(id)
+  }
+
+  toggleFavorite(type: string, id: number | string, isFavorite: boolean): Database.RunResult {
+    const val = isFavorite ? 1 : 0
+    let table = ''
+    if (type === 'Image') table = 'generated_images'
+    else if (type === 'Video') table = 'generated_videos'
+    else if (type === 'Copy') table = 'copy_variants'
+    else if (type === 'Audio') table = 'custom_voices'
+    else if (type === 'Ad Project') table = 'ad_projects'
+
+    if (!table) throw new Error(`Invalid asset type: ${type}`)
+    return this.db.prepare(`UPDATE ${table} SET is_favorite = ? WHERE id = ?`).run(val, id)
+  }
+
+  updateTags(type: string, id: number | string, tags: string): Database.RunResult {
+    let table = ''
+    if (type === 'Image') table = 'generated_images'
+    else if (type === 'Video') table = 'generated_videos'
+    else if (type === 'Copy') table = 'copy_variants'
+    else if (type === 'Audio') table = 'custom_voices'
+    else if (type === 'Ad Project') table = 'ad_projects'
+
+    if (!table) throw new Error(`Invalid asset type: ${type}`)
+    return this.db.prepare(`UPDATE ${table} SET tags = ? WHERE id = ?`).run(tags, id)
+  }
+
+
 
   // --- Custom Voices ---
   saveCustomVoice(voice: {

@@ -21,7 +21,14 @@ export function useImageGen(activeMode: ActiveImageGenMode) {
   const navigate = useNavigate()
   const { modelPrices } = useImageGenPricing()
 
-  const [prompt, setPrompt] = useState('')
+  const [prompt, setPrompt] = useState(() => {
+    const saved = localStorage.getItem('monster_remix_prompt')
+    if (saved) {
+      localStorage.removeItem('monster_remix_prompt')
+      return saved
+    }
+    return ''
+  })
   const [style, setStyle] = useState('Photorealistic')
   const [ratio, setRatio] = useState('1:1')
   const [model, setModel] = useState('FLUX.1 Pro')

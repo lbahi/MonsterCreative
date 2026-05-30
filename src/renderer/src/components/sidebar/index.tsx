@@ -17,17 +17,19 @@ import {
   Wand2,
   Crop,
   Monitor,
-  Sparkles
+  Sparkles,
+  Folder
 } from 'lucide-react'
 import { useApp } from '../../contexts/AppContext'
 import logo from '../../assets/logo.png'
 import { NavItem } from './NavItem'
 import { ProjectDropdown } from './ProjectDropdown'
 import { CollapseButton } from './CollapseButton'
-
+ 
 const navItems = [
   { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={18} />, path: '/' },
   { id: 'ad-copy', label: 'Ad Copy', icon: <FileText size={18} />, path: '/ad-copy' },
+
   {
     id: 'image-gen',
     label: 'Image Gen',
@@ -96,6 +98,7 @@ const navItems = [
 ]
 
 const bottomItems = [
+  { id: 'creations', label: 'Creations', icon: <Folder size={18} />, path: '/creations' },
   { id: 'api-costs', label: 'API Costs', icon: <BarChart3 size={18} />, path: '/api-costs' },
   { id: 'settings', label: 'Settings', icon: <Settings size={18} />, path: '/settings' }
 ]
