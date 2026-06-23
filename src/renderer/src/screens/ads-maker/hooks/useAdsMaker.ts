@@ -120,7 +120,6 @@ export function useAdsMaker() {
   const persistProject = useCallback(async (updated: AdProject) => {
     try {
       console.log('[AdMaker] persistProject - reference_sheet_url:', updated.reference_sheet_url);
-      // @ts-expect-error - saveAdProject is defined in updated preload
       await window.api.database.saveAdProject(updated);
     } catch (err) {
       console.error('[AdMaker] Failed to persist:', err);
@@ -150,7 +149,6 @@ export function useAdsMaker() {
 
   const loadProject = useCallback(async (id: string) => {
     try {
-      // @ts-expect-error - getAdProject is defined in updated preload
       const loaded = await window.api.database.getAdProject(id);
       console.log('[AdMaker] Loaded project:', loaded);
       console.log('[AdMaker] Reference sheet URL:', loaded?.reference_sheet_url);
@@ -168,7 +166,6 @@ export function useAdsMaker() {
 
   const checkUnfinishedJobs = useCallback(async () => {
     try {
-      // @ts-expect-error - getAllAdProjects is defined in updated preload
       const jobs = await window.api.database.getAllAdProjects();
       const unfinished = jobs.find((j: AdProject) => !j.outputs.final_video_url && j.outputs.storyboard_image_url);
       setHasUnfinishedJob(!!unfinished);

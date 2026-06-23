@@ -10,8 +10,8 @@ interface Window {
       saveImage: (img: unknown) => Promise<void>
       saveCopyVariant: (v: unknown) => Promise<void>
       saveVideo: (vid: unknown) => Promise<void>
-      getAdProject: (id: string) => Promise<unknown>
-      getAllAdProjects: () => Promise<unknown[]>
+      getAdProject: (id: string) => Promise<any>
+      getAllAdProjects: () => Promise<any[]>
       saveAdProject: (project: unknown) => Promise<void>
       getAllGeneratedImages: () => Promise<unknown[]>
       getAllGeneratedVideos: () => Promise<unknown[]>
