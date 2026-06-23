@@ -13,6 +13,7 @@ import {
   CheckCircle2
 } from 'lucide-react'
 import { useApp } from '../contexts/AppContext'
+import { EULA_TEXT, PRIVACY_POLICY_TEXT } from './settings/sections/LegalContent'
 
 interface OnboardingModalProps {
   onComplete: () => void
@@ -171,6 +172,8 @@ export function OnboardingModal({ onComplete }: OnboardingModalProps) {
 }
 
 function WelcomePhase({ onGetStarted }: { onGetStarted: () => void }) {
+  const [accepted, setAccepted] = useState(false)
+  const [activeModal, setActiveModal] = useState<'none' | 'eula' | 'privacy'>('none')
 
   return (
     <div
@@ -302,22 +305,61 @@ function WelcomePhase({ onGetStarted }: { onGetStarted: () => void }) {
           Connected to your ad accounts in minutes.
         </p>
 
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>
+            <input
+              type="checkbox"
+              checked={accepted}
+              onChange={(e) => setAccepted(e.target.checked)}
+              style={{
+                width: 16,
+                height: 16,
+                cursor: 'pointer',
+                accentColor: 'var(--ma-accent)'
+              }}
+            />
+            <span>
+              I agree to the{' '}
+              <span
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setActiveModal('eula')
+                }}
+                style={{ color: 'var(--ma-accent-light)', textDecoration: 'underline', fontWeight: 500 }}
+              >
+                EULA
+              </span>{' '}
+              and{' '}
+              <span
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setActiveModal('privacy')
+                }}
+                style={{ color: 'var(--ma-accent-light)', textDecoration: 'underline', fontWeight: 500 }}
+              >
+                Privacy Policy
+              </span>
+            </span>
+          </label>
+        </div>
+
         <div style={{ display: 'flex', justifyContent: 'center' }}>
           <button
-            onClick={onGetStarted}
+            onClick={accepted ? onGetStarted : undefined}
+            disabled={!accepted}
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 8,
               padding: '12px 48px',
-              background: 'var(--ma-accent)',
-              color: 'white',
-              border: 'none',
+              background: accepted ? 'var(--ma-accent)' : 'rgba(255,255,255,0.05)',
+              color: accepted ? 'white' : 'rgba(255,255,255,0.2)',
+              border: accepted ? 'none' : '1px solid var(--ma-border)',
               borderRadius: 10,
-              cursor: 'pointer',
+              cursor: accepted ? 'pointer' : 'not-allowed',
               fontSize: 15,
               fontWeight: 700,
-              boxShadow: '0 0 32px rgba(108,99,255,0.45)',
+              boxShadow: accepted ? '0 0 32px rgba(108,99,255,0.45)' : 'none',
               transition: 'all 0.2s',
               fontFamily: 'var(--font-body)'
             }}
@@ -326,6 +368,58 @@ function WelcomePhase({ onGetStarted }: { onGetStarted: () => void }) {
           </button>
         </div>
       </div>
+
+      {activeModal !== 'none' && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'rgba(7,7,15,0.96)',
+            zIndex: 10,
+            display: 'flex',
+            flexDirection: 'column',
+            padding: 30,
+            fontFamily: 'var(--font-body)'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <h3 style={{ color: '#FFF', fontSize: 18, fontWeight: 700, margin: 0 }}>
+              {activeModal === 'eula' ? 'End User License Agreement' : 'Privacy Policy'}
+            </h3>
+            <button
+              onClick={() => setActiveModal('none')}
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid var(--ma-border)',
+                borderRadius: 8,
+                color: '#FFF',
+                padding: '6px 12px',
+                cursor: 'pointer',
+                fontSize: 12
+              }}
+            >
+              Close
+            </button>
+          </div>
+          <div
+            style={{
+              flex: 1,
+              background: 'var(--ma-surface)',
+              border: '1px solid var(--ma-border)',
+              borderRadius: 8,
+              padding: 20,
+              overflowY: 'auto',
+              whiteSpace: 'pre-wrap',
+              fontSize: 13,
+              color: 'rgba(255,255,255,0.8)',
+              lineHeight: 1.5,
+              textAlign: 'left'
+            }}
+          >
+            {activeModal === 'eula' ? EULA_TEXT : PRIVACY_POLICY_TEXT}
+          </div>
+        </div>
+      )}
     </div>
   )
 }

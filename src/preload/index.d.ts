@@ -18,6 +18,14 @@ declare global {
         saveAdMakerSession: (session: any) => Promise<number | string>
         getAdMakerSession: (id: number | string) => Promise<any>
         getAllAdMakerSessions: () => Promise<any[]>
+        getAllGeneratedImages: () => Promise<any[]>
+        getAllGeneratedVideos: () => Promise<any[]>
+        getAllCopyVariants: () => Promise<any[]>
+        deleteGeneratedImage: (id: number) => Promise<any>
+        deleteGeneratedVideo: (id: number) => Promise<any>
+        deleteCopyVariant: (id: number) => Promise<any>
+        toggleFavorite: (type: string, id: number | string, isFavorite: boolean) => Promise<any>
+        updateTags: (type: string, id: number | string, tags: string) => Promise<any>
       }
       keystore: {
         setFalKey: (key: string) => Promise<void>

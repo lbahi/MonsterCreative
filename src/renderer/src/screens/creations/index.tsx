@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router'
 import {
   Folder,
@@ -9,12 +9,9 @@ import {
   Sparkles,
   Search,
   ArrowUpDown,
-  Download,
   Trash2,
-  Play,
   Eye,
   Star,
-  Tag,
   Copy as CopyIcon,
   Check,
   X,
@@ -78,7 +75,7 @@ export function CreationsScreen() {
 
       setImages(imgsRes || [])
       setVideos(vidsRes || [])
-      setVoices(voicesRes?.data || voicesRes || [])
+      setVoices(Array.isArray(voicesRes) ? voicesRes : (voicesRes && 'data' in voicesRes ? (voicesRes.data as any[]) || [] : []))
       setCopies(copiesRes || [])
       setAdProjects(projectsRes || [])
     } catch (err) {
@@ -596,7 +593,6 @@ export function CreationsScreen() {
             <CreationCard
               key={item.id}
               item={item}
-              hoveredItem={selectedItem}
               isSelected={selectedIds.has(item.id)}
               onToggleSelect={(e) => handleToggleSelect(item.id, e)}
               onToggleFavorite={(e) => handleToggleFavorite(item, e)}
@@ -1051,7 +1047,6 @@ export function CreationsScreen() {
 
 function CreationCard({
   item,
-  hoveredItem,
   isSelected,
   onToggleSelect,
   onToggleFavorite,
@@ -1059,7 +1054,6 @@ function CreationCard({
   onRemix
 }: {
   item: CreationItem
-  hoveredItem: CreationItem | null
   isSelected: boolean
   onToggleSelect: (e: React.MouseEvent) => void
   onToggleFavorite: (e: React.MouseEvent) => void
@@ -1067,7 +1061,6 @@ function CreationCard({
   onRemix: (e: React.MouseEvent) => void
 }) {
   const [hovered, setHovered] = useState(false)
-  const isMedia = item.type === 'Image' || item.type === 'Video' || item.type === 'Ad Project'
 
   const typeColor =
     item.type === 'Image'

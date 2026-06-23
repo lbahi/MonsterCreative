@@ -10,6 +10,17 @@ interface Window {
       saveImage: (img: unknown) => Promise<void>
       saveCopyVariant: (v: unknown) => Promise<void>
       saveVideo: (vid: unknown) => Promise<void>
+      getAdProject: (id: string) => Promise<unknown>
+      getAllAdProjects: () => Promise<unknown[]>
+      saveAdProject: (project: unknown) => Promise<void>
+      getAllGeneratedImages: () => Promise<unknown[]>
+      getAllGeneratedVideos: () => Promise<unknown[]>
+      getAllCopyVariants: () => Promise<unknown[]>
+      deleteGeneratedImage: (id: number) => Promise<void>
+      deleteGeneratedVideo: (id: number) => Promise<void>
+      deleteCopyVariant: (id: number) => Promise<void>
+      toggleFavorite: (type: string, id: number | string, isFavorite: boolean) => Promise<void>
+      updateTags: (type: string, id: number | string, tags: string) => Promise<void>
     }
     keystore: {
       setFalKey: (key: string) => Promise<void>

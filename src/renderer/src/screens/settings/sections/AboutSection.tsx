@@ -1,9 +1,21 @@
-import { ExternalLink, AlertCircle, Globe } from 'lucide-react'
+import { useState } from 'react'
+import { ExternalLink, AlertCircle, Globe, Scale } from 'lucide-react'
 import packageJson from '../../../../../../package.json'
+import { EULA_TEXT, PRIVACY_POLICY_TEXT, OPEN_SOURCE_TEXT } from './LegalContent'
 
 export const AboutSection = () => {
+  const [activeModal, setActiveModal] = useState<'none' | 'eula' | 'privacy' | 'licenses'>('none')
+
+  const handleExternalClick = async (url: string) => {
+    if (window.api.external?.open) {
+      await window.api.external.open(url)
+    } else {
+      window.open(url, '_blank')
+    }
+  }
+
   return (
-    <div>
+    <div style={{ position: 'relative' }}>
       <h2
         style={{
           fontFamily: 'var(--font-display)',
@@ -16,7 +28,7 @@ export const AboutSection = () => {
         About
       </h2>
       <p style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)', margin: '0 0 24px' }}>
-        MonsterCreative application information.
+        MonsterCreative application information and legal compliance details.
       </p>
 
       <div
@@ -81,13 +93,16 @@ export const AboutSection = () => {
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {[
-          { label: 'Documentation', icon: <ExternalLink size={14} /> },
-          { label: 'View Changelog', icon: <ExternalLink size={14} /> },
-          { label: 'Report a Bug', icon: <AlertCircle size={14} /> },
-          { label: 'Privacy Policy', icon: <Globe size={14} /> }
+          { label: 'Documentation', icon: <ExternalLink size={14} />, action: () => handleExternalClick('https://monstercreative.io/docs') },
+          { label: 'View Changelog', icon: <ExternalLink size={14} />, action: () => handleExternalClick('https://monstercreative.io/changelog') },
+          { label: 'Report a Bug', icon: <AlertCircle size={14} />, action: () => handleExternalClick('https://monstercreative.io/support') },
+          { label: 'Terms of Service / EULA', icon: <Scale size={14} />, action: () => setActiveModal('eula') },
+          { label: 'Privacy Policy', icon: <Globe size={14} />, action: () => setActiveModal('privacy') },
+          { label: 'Third-Party Open Source Licenses', icon: <Globe size={14} />, action: () => setActiveModal('licenses') }
         ].map((item) => (
           <button
             key={item.label}
+            onClick={item.action}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -99,7 +114,16 @@ export const AboutSection = () => {
               cursor: 'pointer',
               color: 'rgba(255,255,255,0.5)',
               fontSize: 13,
-              fontFamily: 'var(--font-body)'
+              fontFamily: 'var(--font-body)',
+              transition: 'background 0.2s, color 0.2s'
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.06)'
+              e.currentTarget.style.color = '#FFF'
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.background = 'rgba(255,255,255,0.03)'
+              e.currentTarget.style.color = 'rgba(255,255,255,0.5)'
             }}
           >
             {item.label}
@@ -137,6 +161,90 @@ export const AboutSection = () => {
           <AlertCircle size={14} />
         </button>
       </div>
+
+      {activeModal !== 'none' && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(7,7,15,0.85)',
+            backdropFilter: 'blur(12px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 40,
+            fontFamily: 'var(--font-body)'
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: '100%',
+              maxWidth: 700,
+              maxHeight: '80vh',
+              background: 'var(--ma-elevated)',
+              border: '1px solid var(--ma-border)',
+              borderRadius: 16,
+              display: 'flex',
+              flexDirection: 'column',
+              boxShadow: '0 24px 60px rgba(0,0,0,0.8)',
+              overflow: 'hidden'
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '20px 24px',
+                borderBottom: '1px solid var(--ma-border)'
+              }}
+            >
+              <h3 style={{ color: '#FFF', fontSize: 16, fontWeight: 700, margin: 0 }}>
+                {activeModal === 'eula'
+                  ? 'End User License Agreement'
+                  : activeModal === 'privacy'
+                    ? 'Privacy Policy'
+                    : 'Third-Party Open Source Notices'}
+              </h3>
+              <button
+                onClick={() => setActiveModal('none')}
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  border: '1px solid var(--ma-border)',
+                  borderRadius: 8,
+                  color: '#FFF',
+                  padding: '6px 12px',
+                  cursor: 'pointer',
+                  fontSize: 12
+                }}
+              >
+                Close
+              </button>
+            </div>
+            <div
+              style={{
+                flex: 1,
+                padding: 24,
+                overflowY: 'auto',
+                whiteSpace: 'pre-wrap',
+                fontSize: 13,
+                color: 'rgba(255,255,255,0.8)',
+                lineHeight: 1.5,
+                textAlign: 'left'
+              }}
+            >
+              {activeModal === 'eula'
+                ? EULA_TEXT
+                : activeModal === 'privacy'
+                  ? PRIVACY_POLICY_TEXT
+                  : OPEN_SOURCE_TEXT}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
+
