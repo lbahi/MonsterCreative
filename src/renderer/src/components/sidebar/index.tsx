@@ -73,12 +73,6 @@ const navItems = [
     icon: <Video size={18} />,
     children: [
       {
-        id: 'vid-fashion',
-        label: 'AI Fashion',
-        path: '/video-gen/fashion',
-        icon: <Wand2 size={14} />
-      },
-      {
         id: 'vid-admaker',
         label: 'Ad Maker',
         path: '/video-gen/ad-maker',

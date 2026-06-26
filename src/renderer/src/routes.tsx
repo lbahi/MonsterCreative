@@ -4,7 +4,6 @@ import { DashboardScreen } from './screens/DashboardScreen'
 import { AdCopyScreen } from './screens/AdCopyScreen'
 import { ImageGenScreen } from './screens/image-gen'
 import { AudioLabScreen } from './screens/AudioLabScreen'
-import { VideoGenScreen } from './screens/video-gen'
 import { ApiCostsScreen } from './screens/ApiCostsScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
 import { AiShotsScreen } from './screens/ai-shots'
@@ -33,8 +32,7 @@ export const router = createHashRouter([
       { path: 'audio-lab/clone', Component: AudioLabScreen },
       { path: 'audio-lab/s2s', Component: AudioLabScreen },
       // Video Generator sub-routes
-      { path: 'video-gen', element: <Navigate to="/video-gen/fashion" replace /> },
-      { path: 'video-gen/fashion', Component: VideoGenScreen },
+      { path: 'video-gen', element: <Navigate to="/video-gen/ad-maker" replace /> },
       { path: 'video-gen/ad-maker', Component: AdMakerScreen },
       // API Costs + Settings
       { path: 'api-costs', Component: ApiCostsScreen },

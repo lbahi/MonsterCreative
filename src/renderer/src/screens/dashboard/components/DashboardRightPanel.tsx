@@ -56,7 +56,7 @@ export const DashboardRightPanel = ({ navigate, stats, loading }: DashboardRight
           {[
             { label: 'New Ad Copy', path: '/ad-copy', color: '#6C63FF' },
             { label: 'New Image', path: '/image-gen/generate', color: '#8B5CF6' },
-            { label: 'New Video', path: '/video-gen/text', color: '#EC4899' }
+            { label: 'New Video', path: '/video-gen/ad-maker', color: '#EC4899' }
           ].map((btn) => (
             <button
               key={btn.path}
