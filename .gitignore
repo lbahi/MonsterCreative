@@ -32,3 +32,8 @@ scratch/
 test-*.js
 lint-errors*.txt
 lint-results.json
+
+# Generated / cache files
+.eslintcache
+*.tsbuildinfo
+electron.vite.config.*.mjs
