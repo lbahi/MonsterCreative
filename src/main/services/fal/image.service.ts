@@ -1,5 +1,6 @@
 import { FalClient } from './base'
 import log from 'electron-log'
+import { sanitizeDiagnosticText } from '../../../shared/sentryPrivacy'
 
 interface FalUploadResponse {
   access_url?: string
@@ -73,7 +74,7 @@ export class ImageService extends FalClient {
             if (!response.ok) {
               const errBody = await response.text()
               failures.push(
-                `auth=${auth.startsWith('Bearer') ? 'Bearer' : 'Key'} body=${bodyVariant.label} status=${response.status} body=${errBody.slice(0, 160)}`
+                `auth=${auth.startsWith('Bearer') ? 'Bearer' : 'Key'} body=${bodyVariant.label} status=${response.status} body=${sanitizeDiagnosticText(errBody, 160)}`
               )
               continue
             }
@@ -213,7 +214,9 @@ export class ImageService extends FalClient {
 
     if (!response.ok) {
       const errText = await response.text()
-      throw new Error(`Generation request failed (${response.status}): ${errText}`)
+      throw new Error(
+        `Generation request failed (${response.status}): ${sanitizeDiagnosticText(errText)}`
+      )
     }
 
     return await response.json()
@@ -245,7 +248,7 @@ export class ImageService extends FalClient {
 
     if (!response.ok) {
       const errText = await response.text()
-      throw new Error(`Reframe failed (${response.status}): ${errText}`)
+      throw new Error(`Reframe failed (${response.status}): ${sanitizeDiagnosticText(errText)}`)
     }
 
 
@@ -304,15 +307,16 @@ export class ImageService extends FalClient {
 
       if (!response.ok) {
         const errText = await response.text()
+        const safeErrText = sanitizeDiagnosticText(errText)
         log.error('=== STORYBOARD GENERATION FAILED (HTTP) ===')
         log.error('storyboardQuality:', params.quality)
         log.error('image_size:', params.image_size)
         log.error('storyboardPrompt length:', params.prompt?.length)
         log.error('HTTP status:', response.status)
-        log.error('HTTP error text:', errText)
-        console.error('[Main] fal IPC error:', errText)
+        log.error('HTTP error text:', safeErrText)
+        console.error('[Main] fal IPC error:', safeErrText)
         console.error('[Main] fal IPC status:', response.status)
-        throw new Error(`Generation request failed (${response.status}): ${errText}`)
+        throw new Error(`Generation request failed (${response.status}): ${safeErrText}`)
       }
 
       const data = await response.json()
@@ -374,7 +378,7 @@ export class ImageService extends FalClient {
 
     if (!response.ok) {
       const errText = await response.text()
-      throw new Error(`Kontext edit failed (${response.status}): ${errText}`)
+      throw new Error(`Kontext edit failed (${response.status}): ${sanitizeDiagnosticText(errText)}`)
     }
 
 

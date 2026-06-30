@@ -107,7 +107,6 @@ export function parseGeminiOutputs(response: string): {
     }
 
     // --- Method 2: JSON fallback ---
-    console.log('[AdMaker] Section markers not found, trying JSON fallback');
     const cleaned = raw
       .replace(/^```json\s*/i, '')
       .replace(/^```\s*/i, '')
@@ -119,7 +118,6 @@ export function parseGeminiOutputs(response: string): {
       parsed = JSON.parse(cleaned) as Record<string, unknown>;
     } catch (e) {
       console.error('[AdMaker] JSON parse failed:', e);
-      console.error('[AdMaker] Cleaned response was:', cleaned);
       return null;
     }
 
@@ -153,7 +151,6 @@ export function parseGeminiOutputs(response: string): {
     };
   } catch (err) {
     console.error('[AdMaker] Gemini parse error:', err);
-    console.error('[AdMaker] Raw response was:', response);
     return null;
   }
 }

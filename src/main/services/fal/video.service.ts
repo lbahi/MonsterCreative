@@ -1,5 +1,6 @@
 import { FalClient } from './base'
 import { VideoGenerationRequest, VideoGenerationResult } from './types'
+import { sanitizeDiagnosticText } from '../../../shared/sentryPrivacy'
 
 interface FalVideoOutput {
   video?: { url: string; file_name?: string; file_size?: number }
@@ -81,7 +82,9 @@ export class VideoService extends FalClient {
 
     if (!queueSubmit.ok) {
       const errBody = await queueSubmit.text()
-      throw new Error(`[${modelId}] Submit failed (${queueSubmit.status}): ${errBody}`)
+      throw new Error(
+        `[${modelId}] Submit failed (${queueSubmit.status}): ${sanitizeDiagnosticText(errBody)}`
+      )
     }
 
     const { request_id } = await queueSubmit.json()
@@ -121,7 +124,7 @@ export class VideoService extends FalClient {
               }
             }
           }
-        } catch (e) {
+        } catch {
           /* ignore individual poll failure */
         }
       }

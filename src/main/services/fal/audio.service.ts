@@ -1,5 +1,6 @@
 import { FalClient } from './base'
 import { AudioGenerationRequest, AudioResult } from './types'
+import { sanitizeDiagnosticText } from '../../../shared/sentryPrivacy'
 
 interface FalAudioOutput {
   audio?: { url: string }
@@ -28,8 +29,10 @@ export class AudioService extends FalClient {
       try {
         const error = await response.json()
         errorMsg = error.message || error.detail || response.statusText
-      } catch (_e) {}
-      throw new Error(`Fal API Error: ${errorMsg}`)
+      } catch {
+        // Keep the HTTP status text when the provider response is not JSON.
+      }
+      throw new Error(`Fal API Error: ${sanitizeDiagnosticText(errorMsg)}`)
     }
 
 
@@ -52,7 +55,9 @@ export class AudioService extends FalClient {
 
     if (!response.ok) {
       const error = (await response.json()) as { message?: string }
-      throw new Error(`Fal API Error: ${error.message || response.statusText}`)
+      throw new Error(
+        `Fal API Error: ${sanitizeDiagnosticText(error.message || response.statusText)}`
+      )
     }
 
     const data = (await response.json()) as FalAudioOutput
@@ -82,8 +87,9 @@ export class AudioService extends FalClient {
 
     if (!response.ok) {
       const rawText = await response.text()
-      console.error('[cloneVoice] Fal error response:', rawText)
-      throw new Error(`Fal API Error (${response.status}): ${rawText}`)
+      const safeText = sanitizeDiagnosticText(rawText)
+      console.error('[cloneVoice] Fal error response:', safeText)
+      throw new Error(`Fal API Error (${response.status}): ${safeText}`)
     }
 
     const data = await response.json()
@@ -113,8 +119,9 @@ export class AudioService extends FalClient {
 
     if (!response.ok) {
       const rawText = await response.text()
-      console.error('[generateClonedSpeech] Fal error response:', rawText)
-      throw new Error(`Fal API Error (${response.status}): ${rawText}`)
+      const safeText = sanitizeDiagnosticText(rawText)
+      console.error('[generateClonedSpeech] Fal error response:', safeText)
+      throw new Error(`Fal API Error (${response.status}): ${safeText}`)
     }
 
     const data = await response.json()
@@ -143,8 +150,10 @@ export class AudioService extends FalClient {
       try {
         const error = await response.json()
         errorMsg = error.message || error.detail || response.statusText
-      } catch (_e) {}
-      throw new Error(`Fal API Error: ${errorMsg}`)
+      } catch {
+        // Keep the HTTP status text when the provider response is not JSON.
+      }
+      throw new Error(`Fal API Error: ${sanitizeDiagnosticText(errorMsg)}`)
     }
 
     const data = (await response.json()) as FalAudioOutput

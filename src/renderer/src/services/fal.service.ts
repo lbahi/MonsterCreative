@@ -5,6 +5,7 @@
  */
 
 import * as Sentry from '@sentry/electron/renderer'
+import { sanitizeDiagnosticText, summarizePrompt } from '../../../shared/sentryPrivacy'
 
 
 export interface FalResponse {
@@ -145,7 +146,7 @@ export class FalService {
     } catch (error) {
       Sentry.withScope((scope) => {
         scope.setTag('fal_model', model)
-        scope.setExtra('payload_summary', { prompt: prompt.slice(0, 100) })
+        scope.setExtra('payload_summary', { prompt: summarizePrompt(prompt) })
         Sentry.captureException(error)
       })
       throw error
@@ -174,7 +175,7 @@ export class FalService {
     } catch (error) {
       Sentry.withScope((scope) => {
         scope.setTag('fal_model', params.model)
-        scope.setExtra('payload_summary', { prompt: params.prompt.slice(0, 100) })
+        scope.setExtra('payload_summary', { prompt: summarizePrompt(params) })
         Sentry.captureException(error)
       })
       throw error
@@ -193,12 +194,9 @@ export class FalService {
       if (response.error) throw new Error(response.error)
       return response.data ?? ''
     } catch (error) {
-      const promptStr = typeof promptOrMessages === 'string'
-        ? promptOrMessages
-        : JSON.stringify(promptOrMessages)
       Sentry.withScope((scope) => {
         scope.setTag('fal_model', modelId)
-        scope.setExtra('payload_summary', { prompt: promptStr.slice(0, 100) })
+        scope.setExtra('payload_summary', { prompt: summarizePrompt(promptOrMessages) })
         Sentry.captureException(error)
       })
       throw error
@@ -219,7 +217,6 @@ export class FalService {
     } catch (e: unknown) {
       const err = e as Error
       console.error('Failed to parse LLM JSON response:', err.message)
-      console.error('Raw output:', rawOutput)
       throw new Error(`Failed to parse LLM response: ${err.message}`)
     }
   }
@@ -245,7 +242,7 @@ export class FalService {
 
       if (!response.ok) {
         const errBody = await response.text()
-        return { error: `CDN upload failed (${response.status}): ${errBody}` }
+        return { error: `CDN upload failed (${response.status}): ${sanitizeDiagnosticText(errBody)}` }
       }
 
       const data = (await response.json()) as { access_url?: string }
@@ -321,7 +318,7 @@ export class FalService {
     } catch (error) {
       Sentry.withScope((scope) => {
         scope.setTag('fal_model', 'fal-ai/image-editing/reframe')
-        scope.setExtra('payload_summary', { prompt: `Reframe to ${params.aspect_ratio}` })
+        scope.setExtra('payload_summary', { prompt: summarizePrompt(`Reframe to ${params.aspect_ratio}`) })
         Sentry.captureException(error)
       })
       throw error
@@ -342,7 +339,7 @@ export class FalService {
     } catch (error) {
       Sentry.withScope((scope) => {
         scope.setTag('fal_model', 'fal-ai/kontext')
-        scope.setExtra('payload_summary', { prompt: params.prompt.slice(0, 100) })
+        scope.setExtra('payload_summary', { prompt: summarizePrompt(params) })
         Sentry.captureException(error)
       })
       throw error
@@ -365,7 +362,7 @@ export class FalService {
     } catch (error) {
       Sentry.withScope((scope) => {
         scope.setTag('fal_model', params.model)
-        scope.setExtra('payload_summary', { prompt: params.prompt.slice(0, 100) })
+        scope.setExtra('payload_summary', { prompt: summarizePrompt(params) })
         Sentry.captureException(error)
       })
       throw error

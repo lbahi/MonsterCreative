@@ -36,13 +36,6 @@ export function AdMakerScreen(): React.ReactElement {
     checkUnfinishedJobs();
   }, [checkUnfinishedJobs]);
 
-  // DEBUG: Log project state changes
-  useEffect(() => {
-    console.log('[AdMaker] Project updated - ID:', project.id);
-    console.log('[AdMaker] Project updated - reference_sheet_url:', project.reference_sheet_url);
-    console.log('[AdMaker] Project updated - source_images count:', project.source_images?.length);
-  }, [project.id, project.reference_sheet_url, project.source_images]);
-
   const handleSkipWithStoryboard = (storyboardDataUrl: string) => {
     updateProject({
       outputs: { ...project.outputs, storyboard_image_url: storyboardDataUrl },

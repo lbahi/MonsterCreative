@@ -1,7 +1,16 @@
 import * as Sentry from '@sentry/electron/renderer'
 import { init as reactInit } from '@sentry/react'
+import { sanitizeSentryEvent } from '../../shared/sentryPrivacy'
 
-Sentry.init({}, reactInit)
+Sentry.init(
+  {
+    sendDefaultPii: false,
+    beforeSend(event) {
+      return sanitizeSentryEvent(event)
+    }
+  },
+  reactInit
+)
 
 
 import './assets/main.css'

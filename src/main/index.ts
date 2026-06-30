@@ -1,15 +1,20 @@
 import * as Sentry from '@sentry/electron/main'
 import { app, shell, BrowserWindow, ipcMain, dialog, session } from 'electron'
+import { sanitizeSentryEvent, summarizePrompt } from '../shared/sentryPrivacy'
+
+const sentryEnv = import.meta.env as { VITE_SENTRY_DSN?: string }
+const sentryDsn = sentryEnv.VITE_SENTRY_DSN?.trim()
+const hasConfiguredSentryDsn = Boolean(sentryDsn && sentryDsn !== 'YOUR_SENTRY_DSN_HERE')
 
 Sentry.init({
-  dsn: (import.meta.env as any).VITE_SENTRY_DSN || 'YOUR_SENTRY_DSN_HERE',
+  dsn: hasConfiguredSentryDsn ? sentryDsn : undefined,
+  enabled: hasConfiguredSentryDsn,
   release: `monstercreative@${app.getVersion()}`,
   environment: process.env.NODE_ENV ?? 'production',
+  sendDefaultPii: false,
+  attachScreenshot: false,
   beforeSend(event) {
-    // Strip any event that may contain API key patterns
-    const str = JSON.stringify(event)
-    if (/fal_[a-zA-Z0-9]{32,}/.test(str)) return null
-    return event
+    return sanitizeSentryEvent(event)
   }
 })
 
@@ -39,6 +44,69 @@ const imageService = new ImageService()
 const videoService = new VideoService()
 const audioService = new AudioService()
 
+function isPathInside(childPath: string, parentPath: string): boolean {
+  const child = path.resolve(childPath).toLowerCase()
+  const parent = path.resolve(parentPath).toLowerCase()
+  return child === parent || child.startsWith(parent.endsWith(path.sep) ? parent : `${parent}${path.sep}`)
+}
+
+function getFalModelId(payload: unknown, fallback?: unknown): string | undefined {
+  if (typeof fallback === 'string' && fallback) return fallback
+  if (!payload || typeof payload !== 'object') return undefined
+
+  const record = payload as Record<string, unknown>
+  const model = record.model ?? record.modelId
+  return typeof model === 'string' && model ? model : undefined
+}
+
+function getResultError(result: unknown): string | undefined {
+  if (!result || typeof result !== 'object') return undefined
+  const error = (result as Record<string, unknown>).error
+  return typeof error === 'string' && error ? error : undefined
+}
+
+function captureFalException(
+  error: unknown,
+  operation: string,
+  payload: unknown,
+  fallbackModelId?: unknown
+): void {
+  Sentry.withScope((scope) => {
+    scope.setTag('fal_operation', operation)
+
+    const modelId = getFalModelId(payload, fallbackModelId)
+    if (modelId) {
+      scope.setTag('fal_model', modelId)
+    }
+
+    const promptSummary = summarizePrompt(payload)
+    if (promptSummary) {
+      scope.setExtra('payload_summary', { prompt: promptSummary })
+    }
+
+    Sentry.captureException(error instanceof Error ? error : new Error(String(error)))
+  })
+}
+
+async function captureFalResult<T>(
+  operation: string,
+  payload: unknown,
+  action: () => Promise<T>,
+  fallbackModelId?: unknown
+): Promise<T> {
+  try {
+    const result = await action()
+    const resultError = getResultError(result)
+    if (resultError) {
+      captureFalException(new Error(resultError), operation, payload, fallbackModelId)
+    }
+    return result
+  } catch (error: unknown) {
+    captureFalException(error, operation, payload, fallbackModelId)
+    throw error
+  }
+}
+
 function isSafePath(filePath: string): boolean {
   try {
     const resolvedPath = path.resolve(filePath)
@@ -53,8 +121,7 @@ function isSafePath(filePath: string): boolean {
       app.getAppPath()
     ].map(p => path.resolve(p).toLowerCase())
 
-    const lowerPath = resolvedPath.toLowerCase()
-    const isUnderAllowedRoot = allowedRoots.some(root => lowerPath.startsWith(root))
+    const isUnderAllowedRoot = allowedRoots.some(root => isPathInside(resolvedPath, root))
     if (!isUnderAllowedRoot) {
       return false
     }
@@ -70,7 +137,28 @@ function isSafePath(filePath: string): boolean {
     }
 
     return true
-  } catch (e) {
+  } catch {
+    return false
+  }
+}
+
+function isSafeAudioPlaybackPath(filePath: string): boolean {
+  try {
+    const resolvedPath = path.resolve(filePath)
+    const allowedRoots = [
+      app.getPath('userData'),
+      app.getPath('temp'),
+      app.getAppPath()
+    ]
+
+    const isUnderAllowedRoot = allowedRoots.some(root => isPathInside(resolvedPath, root))
+    if (!isUnderAllowedRoot) {
+      return false
+    }
+
+    const audioExtensions = ['.mp3', '.wav', '.ogg', '.aac', '.m4a', '.flac', '.webm', '.mp4']
+    return audioExtensions.includes(path.extname(resolvedPath).toLowerCase())
+  } catch {
     return false
   }
 }
@@ -93,7 +181,7 @@ function isValidFetchUrl(urlString: string): boolean {
     const hostname = parsed.hostname.toLowerCase()
     const isAllowed = allowedHosts.some(host => hostname === host || hostname.endsWith('.' + host))
     return isAllowed
-  } catch (e) {
+  } catch {
     return false
   }
 }
@@ -316,13 +404,28 @@ app.whenReady().then(() => {
 
   // IPC Handlers: Fal
   ipcMain.handle('fal:generateCopy', (_, promptOrMessages, modelId) =>
-    textService.generateCopy(promptOrMessages, modelId)
+    captureFalResult(
+      'fal:generateCopy',
+      promptOrMessages,
+      () => textService.generateCopy(promptOrMessages, modelId),
+      modelId
+    )
   )
   ipcMain.handle('fal:analyzeImageVision', (_, imageUrl, prompt, systemPrompt, modelId) =>
-    textService.analyzeImageVision(imageUrl, prompt, systemPrompt, modelId)
+    captureFalResult(
+      'fal:analyzeImageVision',
+      { prompt, systemPrompt },
+      () => textService.analyzeImageVision(imageUrl, prompt, systemPrompt, modelId),
+      modelId
+    )
   )
   ipcMain.handle('fal:chatCompletion', (_, messages, modelId) =>
-    textService.chatCompletion(messages, modelId)
+    captureFalResult(
+      'fal:chatCompletion',
+      messages,
+      () => textService.chatCompletion(messages, modelId),
+      modelId
+    )
   )
   ipcMain.handle('fal:getUsage', (_, timeframe, start, end) =>
     billingService.getUsage(timeframe, start, end)
@@ -336,11 +439,21 @@ app.whenReady().then(() => {
   ipcMain.handle('fal:uploadImageFromDataUrl', (_, dataUrl) =>
     imageService.uploadImageFromDataUrl(dataUrl)
   )
-  ipcMain.handle('fal:nanoBananaEdit', (_, params) => imageService.nanoBananaEdit(params))
-  ipcMain.handle('fal:gptImage2Edit', (_, params) => imageService.gptImage2Edit(params))
-  ipcMain.handle('fal:reframeImage', (_, params) => imageService.reframeImage(params))
-  ipcMain.handle('fal:kontextEdit', (_, params) => imageService.kontextEdit(params))
-  ipcMain.handle('fal:generateVideo', (_, params) => videoService.generateVideo(params))
+  ipcMain.handle('fal:nanoBananaEdit', (_, params) =>
+    captureFalResult('fal:nanoBananaEdit', params, () => imageService.nanoBananaEdit(params))
+  )
+  ipcMain.handle('fal:gptImage2Edit', (_, params) =>
+    captureFalResult('fal:gptImage2Edit', params, () => imageService.gptImage2Edit(params))
+  )
+  ipcMain.handle('fal:reframeImage', (_, params) =>
+    captureFalResult('fal:reframeImage', params, () => imageService.reframeImage(params))
+  )
+  ipcMain.handle('fal:kontextEdit', (_, params) =>
+    captureFalResult('fal:kontextEdit', params, () => imageService.kontextEdit(params))
+  )
+  ipcMain.handle('fal:generateVideo', (_, params) =>
+    captureFalResult('fal:generateVideo', params, () => videoService.generateVideo(params))
+  )
 
   ipcMain.handle('video:generate', async (_event, request: VideoGenerationRequest) => {
     try {
@@ -360,6 +473,7 @@ app.whenReady().then(() => {
 
       return { success: true, data: result }
     } catch (error: unknown) {
+      captureFalException(error, 'video:generate', request)
       console.error('[IPC video:generate] Error:', error)
       return { success: false, error: error instanceof Error ? error.message : String(error) }
     }
@@ -390,7 +504,7 @@ app.whenReady().then(() => {
         const destPath = path.resolve(path.join(rendererDir, safeName))
         const resolvedRendererDir = path.resolve(rendererDir)
 
-        if (!destPath.startsWith(resolvedRendererDir)) {
+        if (!isPathInside(destPath, resolvedRendererDir)) {
           throw new Error('Directory traversal attempt detected')
         }
 
@@ -450,6 +564,7 @@ app.whenReady().then(() => {
       const result = await audioService.generateSpeech(params)
       return { success: true, data: result }
     } catch (error: unknown) {
+      captureFalException(error, 'audio:generateSpeech', params, 'fal-ai/elevenlabs/tts/eleven-v3')
       return { success: false, error: error instanceof Error ? error.message : String(error) }
     }
   })
@@ -459,6 +574,7 @@ app.whenReady().then(() => {
       const result = await audioService.speechToSpeech(params)
       return { success: true, data: result }
     } catch (error: unknown) {
+      captureFalException(error, 'audio:speechToSpeech', params, 'fal-ai/elevenlabs/voice-changer')
       return { success: false, error: error instanceof Error ? error.message : String(error) }
     }
   })
@@ -468,6 +584,7 @@ app.whenReady().then(() => {
       const result = await audioService.cloneVoice(params)
       return { success: true, data: result }
     } catch (error: unknown) {
+      captureFalException(error, 'audio:cloneVoice', params, 'fal-ai/qwen-3-tts/clone-voice/1.7b')
       return { success: false, error: error instanceof Error ? error.message : String(error) }
     }
   })
@@ -477,6 +594,7 @@ app.whenReady().then(() => {
       const result = await audioService.generateClonedSpeech(params)
       return { success: true, data: result }
     } catch (error: unknown) {
+      captureFalException(error, 'audio:generateClonedSpeech', params, 'fal-ai/qwen-3-tts/v1')
       return { success: false, error: error instanceof Error ? error.message : String(error) }
     }
   })
@@ -527,7 +645,10 @@ app.whenReady().then(() => {
   ipcMain.handle('audio:deleteCustomVoice', async (_, id: number) => {
     try {
       // Also remove the embedding file from disk
-      const voices = dbService.getAllCustomVoices() as Record<string, any>[]
+      const voices = dbService.getAllCustomVoices() as Array<{
+        id: number
+        embedding_path?: string
+      }>
       const voice = voices.find((v) => v.id === id)
       if (voice?.embedding_path && fs.existsSync(voice.embedding_path)) {
         fs.unlinkSync(voice.embedding_path)
@@ -541,7 +662,7 @@ app.whenReady().then(() => {
 
   ipcMain.handle('audio:playAudio', async (_, filePath) => {
     try {
-      if (!isSafePath(filePath)) {
+      if (!isSafeAudioPlaybackPath(filePath)) {
         throw new Error('Access to the specified path is restricted')
       }
       await shell.openPath(filePath)
@@ -568,6 +689,7 @@ app.whenReady().then(() => {
       const result = await audioService.generateMusic(prompt, durationMs)
       return { success: true, data: result }
     } catch (error: unknown) {
+      captureFalException(error, 'audio:generateMusic', { prompt }, 'fal-ai/elevenlabs/music')
       return { success: false, error: error instanceof Error ? error.message : String(error) }
     }
   })

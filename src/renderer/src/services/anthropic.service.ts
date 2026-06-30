@@ -272,8 +272,6 @@ Output valid JSON only.`
       .replace(/```\s*/g, '')
       .trim()
 
-    console.log('[VTON] Raw Vision LLM Output:', response.data)
-
     const firstBrace = jsonStr.indexOf('{')
     const lastBrace = jsonStr.lastIndexOf('}')
     if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
@@ -282,10 +280,9 @@ Output valid JSON only.`
 
     try {
       const parsed = JSON.parse(jsonStr) as VtonIdeationResponse
-      console.log('[VTON] Parsed Ideation Response:', parsed)
       return parsed
     } catch (err: unknown) {
-      console.error('[VTON] JSON Parse Error:', err, 'Cleaned JSON String:', jsonStr)
+      console.error('[VTON] JSON Parse Error:', err)
       throw new Error(`Failed to parse VTON JSON: ${(err as Error).message}`)
     }
   }

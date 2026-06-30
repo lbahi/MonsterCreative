@@ -1,4 +1,23 @@
 import { FalClient } from './base'
+import { sanitizeDiagnosticText } from '../../../shared/sentryPrivacy'
+
+interface FalQueueResponse {
+  request_id: string
+}
+
+interface FalVisionResult {
+  output?: string
+}
+
+interface FalChatCompletionResponse {
+  choices?: Array<{
+    finish_reason?: string
+    message?: {
+      content?: string
+      reasoning_content?: string
+    }
+  }>
+}
 
 export class TextService extends FalClient {
   /**
@@ -38,16 +57,18 @@ export class TextService extends FalClient {
 
       if (!response.ok) {
         const errBody = await response.text()
-        return { error: `Vision queue submit failed (${response.status}): ${errBody}` }
+        return {
+          error: `Vision queue submit failed (${response.status}): ${sanitizeDiagnosticText(errBody)}`
+        }
       }
 
-      const queueData = (await response.json()) as any
+      const queueData = (await response.json()) as FalQueueResponse
       const result = (await this.pollStatus(
         queueData.request_id,
         'openrouter/router/vision',
         120,
         auth
-      )) as any
+      )) as FalVisionResult
       // The vision endpoint returns { output: string, usage: {...} }
       return { data: result?.output ?? JSON.stringify(result) }
     } catch (err: unknown) {
@@ -84,10 +105,12 @@ export class TextService extends FalClient {
 
       if (!response.ok) {
         const errBody = await response.text()
-        return { error: `Chat completion failed (${response.status}): ${errBody}` }
+        return {
+          error: `Chat completion failed (${response.status}): ${sanitizeDiagnosticText(errBody)}`
+        }
       }
 
-      const data = (await response.json()) as any
+      const data = (await response.json()) as FalChatCompletionResponse
       // Standard OpenAI response format
       // Some models (e.g. Gemini thinking) may put content in reasoning_content
       const choice = data?.choices?.[0]

@@ -83,7 +83,6 @@ export async function generateProductShots({
     }
 
     const raw = response.data!
-    console.log('[AI Shots] Raw Vision LLM Output:', raw)
 
     if (!raw || raw.trim() === '') {
       throw new Error('The AI model blocked this image due to safety filters. Please try another product photo.')
@@ -109,8 +108,6 @@ export async function generateProductShots({
         throw new Error('Failed to analyze product. Please try again.')
       }
     }
-
-    console.log('[AI Shots] Parsed Prompts Array:', prompts)
 
     if (!Array.isArray(prompts) || prompts.length === 0) {
       throw new Error('Failed to analyze product. Please try again.')

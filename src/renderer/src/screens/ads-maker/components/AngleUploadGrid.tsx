@@ -115,7 +115,7 @@ export function AngleUploadGrid({
               opacity: hasImage ? 1 : 0.7,
               display: 'block'
             }}
-            onError={() => console.error('[AngleUploadGrid] Image failed to load:', slot.uploadedPreviewUrl)}
+            onError={() => console.error('[AngleUploadGrid] Image failed to load')}
           />
         </div>
 

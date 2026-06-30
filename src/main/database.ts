@@ -65,8 +65,6 @@ export class DatabaseService {
   constructor() {
     const userDataPath = app.getPath('userData')
     const dbPath = path.join(userDataPath, 'monstercreative.db')
-    console.log('[DB] userData path:', userDataPath)
-    console.log('[DB] DB file path:', dbPath)
 
     // Ensure directory exists
     if (!fs.existsSync(userDataPath)) {
@@ -74,7 +72,6 @@ export class DatabaseService {
     }
 
     this.db = new Database(dbPath)
-    console.log('[DB] Database opened successfully')
     // Force WAL mode off to ensure immediate disk writes
     this.db.pragma('journal_mode = DELETE')
     this.db.pragma('synchronous = FULL')
@@ -193,8 +190,7 @@ export class DatabaseService {
 
     // Verify tables were created
     try {
-      const tables = this.db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all() as any[]
-      console.log('[DB] Tables created:', tables.map((t: any) => t.name).join(', '))
+      this.db.prepare("SELECT name FROM sqlite_master WHERE type='table'").all()
     } catch (e) {
       console.error('[DB] Failed to verify tables:', e)
     }
@@ -249,8 +245,7 @@ export class DatabaseService {
 
     // Log ad_projects table schema
     try {
-      const tableInfo = this.db.prepare("PRAGMA table_info(ad_projects)").all() as any[]
-      console.log('[DB] ad_projects columns:', tableInfo.map(c => c.name).join(', '))
+      this.db.prepare("PRAGMA table_info(ad_projects)").all()
     } catch (e) {
       console.error('[DB] Failed to get table info:', e)
     }
@@ -445,10 +440,8 @@ export class DatabaseService {
   // --- Ad Maker Projects ---
   getAdProject(id: string): any {
     const row = this.db.prepare('SELECT * FROM ad_projects WHERE id = ?').get(id) as any
-    console.log('[DB] getAdProject raw row:', row);
     if (!row) return null
     const parsed = this.parseAdProjectRow(row)
-    console.log('[DB] getAdProject parsed reference_sheet_url:', parsed.reference_sheet_url);
     return parsed
   }
 
@@ -458,8 +451,6 @@ export class DatabaseService {
   }
 
   saveAdProject(project: any): void {
-    console.log('[DB] saveAdProject - ID:', project.id);
-    console.log('[DB] saveAdProject - reference_sheet_url:', project.reference_sheet_url);
     const stmt = this.db.prepare(`
       INSERT INTO ad_projects (
         id, status, phase, source_images, reference_sheet_url,
@@ -527,8 +518,6 @@ export class DatabaseService {
   }
 
   private parseAdProjectRow(row: any): any {
-    console.log('[DB] parseAdProjectRow - ALL row keys:', Object.keys(row));
-    console.log('[DB] parseAdProjectRow - raw reference_sheet_url:', row.reference_sheet_url);
     return {
       id: row.id,
       status: row.status,
