@@ -1,4 +1,5 @@
-import { Outlet, useNavigate } from 'react-router'
+import { Outlet, useNavigate, useLocation } from 'react-router'
+import * as Sentry from '@sentry/electron/renderer'
 import { Sidebar } from './Sidebar'
 import { RightPanel } from './RightPanel'
 import { useApp } from '../contexts/AppContext'
@@ -13,6 +14,12 @@ export function Shell() {
   const [updateAvailable, setUpdateAvailable] = useState(false)
   const { completeOnboarding } = useApp()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  useEffect(() => {
+    Sentry.setTag('screen', location.pathname)
+  }, [location.pathname])
+
 
   useEffect(() => {
     // @ts-ignore

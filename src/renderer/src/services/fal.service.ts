@@ -4,6 +4,9 @@
  * Uses fal.ai queue + openrouter/router for LLM calls
  */
 
+import * as Sentry from '@sentry/electron/renderer'
+
+
 export interface FalResponse {
   request_id: string
   status?: string
@@ -113,31 +116,40 @@ export class FalService {
   }
 
   async generateImage(prompt: string, model = 'flux/pro-1.1'): Promise<FalResponse> {
-    const auth = await this.getAuthHeader()
-    const endpoint = `fal-ai/${model}`
-    const queueUrl = `${this.baseUrl}/${endpoint}`
+    try {
+      const auth = await this.getAuthHeader()
+      const endpoint = `fal-ai/${model}`
+      const queueUrl = `${this.baseUrl}/${endpoint}`
 
-    const response = await fetch(queueUrl, {
-      method: 'POST',
-      headers: {
-        Authorization: auth,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        prompt,
-        image_size: 'square_hd',
-        num_inference_steps: 28,
-        guidance_scale: 3.5,
-        num_images: 1,
-        enable_safety_checker: false,
-        output_format: 'jpeg'
+      const response = await fetch(queueUrl, {
+        method: 'POST',
+        headers: {
+          Authorization: auth,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          prompt,
+          image_size: 'square_hd',
+          num_inference_steps: 28,
+          guidance_scale: 3.5,
+          num_images: 1,
+          enable_safety_checker: false,
+          output_format: 'jpeg'
+        })
       })
-    })
 
-    if (!response.ok) throw new Error(`Request failed: ${response.statusText}`)
+      if (!response.ok) throw new Error(`Request failed: ${response.statusText}`)
 
-    const queueData = (await response.json()) as FalResponse
-    return (await this.pollStatus(queueData.request_id, endpoint)) as FalResponse
+      const queueData = (await response.json()) as FalResponse
+      return (await this.pollStatus(queueData.request_id, endpoint)) as FalResponse
+    } catch (error) {
+      Sentry.withScope((scope) => {
+        scope.setTag('fal_model', model)
+        scope.setExtra('payload_summary', { prompt: prompt.slice(0, 100) })
+        Sentry.captureException(error)
+      })
+      throw error
+    }
   }
 
   /**
@@ -157,7 +169,16 @@ export class FalService {
     enable_web_search?: boolean
     limit_generations?: boolean
   }): Promise<FalResponse> {
-    return (await window.api.fal.nanoBananaEdit(params)) as FalResponse
+    try {
+      return (await window.api.fal.nanoBananaEdit(params)) as FalResponse
+    } catch (error) {
+      Sentry.withScope((scope) => {
+        scope.setTag('fal_model', params.model)
+        scope.setExtra('payload_summary', { prompt: params.prompt.slice(0, 100) })
+        Sentry.captureException(error)
+      })
+      throw error
+    }
   }
 
   /**
@@ -167,9 +188,21 @@ export class FalService {
     promptOrMessages: string | unknown[],
     modelId = 'google/gemini-3-pro'
   ): Promise<string> {
-    const response = await window.api.fal.generateCopy(promptOrMessages, modelId)
-    if (response.error) throw new Error(response.error)
-    return response.data ?? ''
+    try {
+      const response = await window.api.fal.generateCopy(promptOrMessages, modelId)
+      if (response.error) throw new Error(response.error)
+      return response.data ?? ''
+    } catch (error) {
+      const promptStr = typeof promptOrMessages === 'string'
+        ? promptOrMessages
+        : JSON.stringify(promptOrMessages)
+      Sentry.withScope((scope) => {
+        scope.setTag('fal_model', modelId)
+        scope.setExtra('payload_summary', { prompt: promptStr.slice(0, 100) })
+        Sentry.captureException(error)
+      })
+      throw error
+    }
   }
 
   /**
@@ -283,7 +316,16 @@ export class FalService {
     aspect_ratio: string
     output_format?: string
   }): Promise<{ images: Array<{ url: string }> }> {
-    return (await window.api.fal.reframeImage(params)) as { images: Array<{ url: string }> }
+    try {
+      return (await window.api.fal.reframeImage(params)) as { images: Array<{ url: string }> }
+    } catch (error) {
+      Sentry.withScope((scope) => {
+        scope.setTag('fal_model', 'fal-ai/image-editing/reframe')
+        scope.setExtra('payload_summary', { prompt: `Reframe to ${params.aspect_ratio}` })
+        Sentry.captureException(error)
+      })
+      throw error
+    }
   }
 
   /** Kontext Edit bridge — routes to fal-ai/kontext via IPC */
@@ -295,7 +337,16 @@ export class FalService {
     aspect_ratio?: string
     output_format?: string
   }): Promise<{ images: Array<{ url: string }> }> {
-    return (await window.api.fal.kontextEdit(params)) as { images: Array<{ url: string }> }
+    try {
+      return (await window.api.fal.kontextEdit(params)) as { images: Array<{ url: string }> }
+    } catch (error) {
+      Sentry.withScope((scope) => {
+        scope.setTag('fal_model', 'fal-ai/kontext')
+        scope.setExtra('payload_summary', { prompt: params.prompt.slice(0, 100) })
+        Sentry.captureException(error)
+      })
+      throw error
+    }
   }
 
   /** Generation bridge — routes to video generation via IPC */
@@ -309,7 +360,16 @@ export class FalService {
     audio: boolean
     end_image_url?: string
   }): Promise<FalResponse> {
-    return (await window.api.fal.generateVideo(params)) as FalResponse
+    try {
+      return (await window.api.fal.generateVideo(params)) as FalResponse
+    } catch (error) {
+      Sentry.withScope((scope) => {
+        scope.setTag('fal_model', params.model)
+        scope.setExtra('payload_summary', { prompt: params.prompt.slice(0, 100) })
+        Sentry.captureException(error)
+      })
+      throw error
+    }
   }
 }
 
