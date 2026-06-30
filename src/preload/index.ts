@@ -114,7 +114,7 @@ if (process.contextIsolated) {
     contextBridge.exposeInMainWorld('electron', electronAPI)
     contextBridge.exposeInMainWorld('api', api)
   } catch (error) {
-    console.error(error)
+    console.error('Failed to expose preload APIs: Initialization error')
   }
 } else {
   // @ts-ignore (define in dts)

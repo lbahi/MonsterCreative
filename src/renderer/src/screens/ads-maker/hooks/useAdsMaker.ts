@@ -119,7 +119,7 @@ export function useAdsMaker() {
 
   const persistProject = useCallback(async (updated: AdProject) => {
     try {
-      console.log('[AdMaker] persistProject - reference_sheet_url:', updated.reference_sheet_url);
+      console.log('[AdMaker] persistProject');
       await window.api.database.saveAdProject(updated);
     } catch (err) {
       console.error('[AdMaker] Failed to persist:', err);
@@ -150,10 +150,9 @@ export function useAdsMaker() {
   const loadProject = useCallback(async (id: string) => {
     try {
       const loaded = await window.api.database.getAdProject(id);
-      console.log('[AdMaker] Loaded project:', loaded);
-      console.log('[AdMaker] Reference sheet URL:', loaded?.reference_sheet_url);
-      console.log('[AdMaker] Source images count:', loaded?.source_images?.length);
       if (loaded) {
+        console.log('[AdMaker] Loaded project successfully');
+        console.log('[AdMaker] Source images count:', loaded?.source_images?.length);
         setProject(loaded);
         return true;
       }
@@ -193,9 +192,8 @@ export function useAdsMaker() {
       const uploadedUrls: string[] = [];
       for (let i = 0; i < validImages.length; i++) {
         console.log(`[AdsMaker] Uploading image ${i + 1}/${validImages.length}...`);
-        console.log(`[AdsMaker] Image data preview:`, validImages[i]?.substring(0, 50));
         const result = await window.api.fal.uploadImageFromDataUrl(validImages[i]);
-        console.log(`[AdsMaker] Upload result for image ${i + 1}:`, result.error ? `Error: ${result.error}` : `Success: ${result.url?.substring(0, 50)}...`);
+        console.log(`[AdsMaker] Upload result for image ${i + 1}:`, result.error ? `Error` : `Success`);
         if (result.error || !result.url) throw new Error(result.error || 'Upload failed');
         uploadedUrls.push(result.url);
       }
@@ -213,13 +211,10 @@ export function useAdsMaker() {
         num_images: 1,
         output_format: 'jpeg'
       }) as { images?: Array<{ url: string }>; error?: string };
-      console.log('[AdsMaker] GPT Image 2 result:', refResult.error ? `Error: ${refResult.error}` : `Success: ${refResult.images?.[0]?.url?.substring(0, 50)}...`);
-
       const sheetUrl = refResult.images?.[0]?.url;
-      console.log('[AdsMaker] sheetUrl before updateProject:', sheetUrl);
       if (!sheetUrl) throw new Error('Failed to generate reference sheet');
 
-      console.log('[AdsMaker] Calling updateProject with reference_sheet_url:', sheetUrl);
+      console.log('[AdsMaker] Calling updateProject...');
       updateProject({
         source_images: validImages, // Save original data URLs, not temporary Fal URLs
         reference_sheet_url: sheetUrl,
@@ -301,24 +296,12 @@ export function useAdsMaker() {
       if (response.error) throw new Error(`Gemini error: ${response.error}`);
       if (response.data == null || response.data === '') throw new Error('Gemini returned empty response');
 
-      console.log('[AdMaker] Raw Gemini response:', response.data);
-      console.log('[AdMaker] Response type:', typeof response.data);
-      console.log('[AdMaker] Response preview:', typeof response.data === 'string' ? response.data.substring(0, 500) : JSON.stringify(response.data).substring(0, 500));
+      console.log('[AdMaker] Gemini response received');
 
       const parsed = parseGeminiOutputs(response.data);
       if (!parsed) throw new Error('Failed to parse Gemini response');
 
       const referenceSheetUrl = project.reference_sheet_url;
-      console.log('[AdsMaker] referenceSheetUrl:', referenceSheetUrl);
-      console.log('[AdsMaker] referenceSheetUrl type:', typeof referenceSheetUrl);
-      console.log('[AdsMaker] referenceSheetUrl starts with:', referenceSheetUrl?.substring(0, 50));
-
-      console.log('[AdsMaker] About to call gptImage2Edit with:');
-      console.log('[AdsMaker] - Prompt length:', parsed.storyboard_visual_prompt?.length);
-      console.log('[AdsMaker] - Prompt:', parsed.storyboard_visual_prompt?.substring(0, 100) + '...');
-      console.log('[AdsMaker] - Reference URL:', referenceSheetUrl?.substring(0, 50) + '...');
-      console.log('[AdsMaker] - Quality:', storyboardQuality);
-      console.log('[AdsMaker] - Image size:', params.aspectRatio === '9:16' ? 'portrait_16_9' : 'landscape_16_9');
 
       // @ts-expect-error - gptImage2Edit is defined in preload
       const storyboardImageResult = await window.api.fal.gptImage2Edit({
@@ -330,17 +313,11 @@ export function useAdsMaker() {
         output_format: 'webp'
       }) as { images?: Array<{ url: string }>; error?: string };
 
-      console.log('[AdsMaker] gptImage2Edit result:', storyboardImageResult.error ? `Error: ${storyboardImageResult.error}` : `Success: ${storyboardImageResult.images?.[0]?.url?.substring(0, 50)}...`);
+      console.log('[AdsMaker] gptImage2Edit result:', storyboardImageResult.error ? `Error` : `Success`);
 
       if (storyboardImageResult.error) {
         console.error('[AdsMaker] === GPT Image 2 STORYBOARD ERROR ===');
         console.error('[AdsMaker] Error:', storyboardImageResult.error);
-        console.error('[AdsMaker] Payload sent:');
-        console.error('  model: openai/gpt-image-2/edit');
-        console.error('  prompt length:', parsed.storyboard_visual_prompt?.length);
-        console.error('  image_urls:', [referenceSheetUrl]);
-        console.error('  quality:', storyboardQuality);
-        console.error('  image_size:', params.aspectRatio === '9:16' ? 'portrait_16_9' : 'landscape_16_9');
         throw new Error(`GPT Image 2 failed: ${storyboardImageResult.error}`);
       }
 

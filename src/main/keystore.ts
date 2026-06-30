@@ -21,7 +21,6 @@ export class KeystoreService {
   async getFalKey(): Promise<string | null> {
     try {
       const key = await keytar.getPassword(SERVICE_NAME, FAL_KEY_NAME)
-      log.info('Fal API key read:', key ? 'found' : 'not found')
       return key
     } catch (err) {
       log.error('keytar getPassword (fal) failed:', err)
@@ -54,7 +53,6 @@ export class KeystoreService {
   async getLicenseKey(): Promise<string | null> {
     try {
       const key = await keytar.getPassword(SERVICE_NAME, LICENSE_KEY_NAME)
-      log.info('License key read:', key ? 'found' : 'not found')
       return key
     } catch (err) {
       log.error('keytar getPassword (license) failed:', err)
@@ -87,7 +85,6 @@ export class KeystoreService {
   async getInstanceId(): Promise<string | null> {
     try {
       const id = await keytar.getPassword(SERVICE_NAME, INSTANCE_ID_NAME)
-      log.info('Instance ID read:', id ? 'found' : 'not found')
       return id
     } catch (err) {
       log.error('keytar getPassword (instance) failed:', err)

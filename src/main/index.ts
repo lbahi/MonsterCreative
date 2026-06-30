@@ -1,4 +1,18 @@
+import * as Sentry from '@sentry/electron/main'
 import { app, shell, BrowserWindow, ipcMain, dialog, session } from 'electron'
+
+Sentry.init({
+  dsn: (import.meta.env as any).VITE_SENTRY_DSN || 'YOUR_SENTRY_DSN_HERE',
+  release: `monstercreative@${app.getVersion()}`,
+  environment: process.env.NODE_ENV ?? 'production',
+  beforeSend(event) {
+    // Strip any event that may contain API key patterns
+    const str = JSON.stringify(event)
+    if (/fal_[a-zA-Z0-9]{32,}/.test(str)) return null
+    return event
+  }
+})
+
 import { join } from 'path'
 import { autoUpdater } from 'electron-updater'
 import log from 'electron-log'
@@ -25,6 +39,65 @@ const imageService = new ImageService()
 const videoService = new VideoService()
 const audioService = new AudioService()
 
+function isSafePath(filePath: string): boolean {
+  try {
+    const resolvedPath = path.resolve(filePath)
+    
+    // 1. Prevent path traversal / check allowed directories
+    const allowedRoots = [
+      app.getPath('userData'),
+      app.getPath('temp'),
+      app.getPath('downloads'),
+      app.getPath('desktop'),
+      app.getPath('documents'),
+      app.getAppPath()
+    ].map(p => path.resolve(p).toLowerCase())
+
+    const lowerPath = resolvedPath.toLowerCase()
+    const isUnderAllowedRoot = allowedRoots.some(root => lowerPath.startsWith(root))
+    if (!isUnderAllowedRoot) {
+      return false
+    }
+
+    // 2. Validate file extension to prevent execution of executable files
+    const safeExtensions = [
+      '.mp3', '.wav', '.ogg', '.aac', '.m4a', '.mp4', '.webm', '.mov',
+      '.png', '.jpg', '.jpeg', '.webp', '.gif', '.safetensors', '.json', '.html', '.css'
+    ]
+    const ext = path.extname(resolvedPath).toLowerCase()
+    if (!safeExtensions.includes(ext)) {
+      return false
+    }
+
+    return true
+  } catch (e) {
+    return false
+  }
+}
+
+function isValidFetchUrl(urlString: string): boolean {
+  try {
+    const parsed = new URL(urlString)
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return false
+    }
+    // Allow only known trusted domains/hosts
+    const allowedHosts = [
+      'fal.ai',
+      'fal.media',
+      'queue.fal.run',
+      'storage.googleapis.com',
+      'github.com',
+      'objects.githubusercontent.com'
+    ]
+    const hostname = parsed.hostname.toLowerCase()
+    const isAllowed = allowedHosts.some(host => hostname === host || hostname.endsWith('.' + host))
+    return isAllowed
+  } catch (e) {
+    return false
+  }
+}
+
 function createWindow(): void {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
@@ -42,8 +115,9 @@ function createWindow(): void {
     icon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: false,
-      webSecurity: false,
+      sandbox: true,
+      contextIsolation: true,
+      webSecurity: true,
       webviewTag: true
     }
   })
@@ -66,10 +140,8 @@ function createWindow(): void {
   }
 
   if (!is.dev) {
-    // IMPORTANT: For a private repo, electron-updater needs a token to read releases.
-    // DANGER: We are embedding a token. You should generate a "Fine-Grained" Personal Access Token
-    // that ONLY has "Read" access to "Contents" and "Metadata" of this repository.
-    // Do NOT use your full-access classic token here in production for security!
+    // For a public repository or configured feeds, no token is embedded.
+    // Ensure that if a token is ever needed, it is retrieved securely (e.g. via environment variables or an auth server).
     autoUpdater.setFeedURL({
       provider: 'github',
       owner: 'lbahi',
@@ -303,6 +375,10 @@ app.whenReady().then(() => {
     'social:saveAdImage',
     async (_, { imageUrl, filename }: { imageUrl: string; filename: string }) => {
       try {
+        if (!isValidFetchUrl(imageUrl)) {
+          throw new Error('Untrusted or invalid image URL')
+        }
+
         // In production, save next to the renderer html; in dev, save to public folder
         const rendererDir = is.dev
           ? path.join(__dirname, '../../src/renderer/public/OutputSocialAds')
@@ -310,8 +386,13 @@ app.whenReady().then(() => {
 
         if (!fs.existsSync(rendererDir)) fs.mkdirSync(rendererDir, { recursive: true })
 
-        const safeName = filename.replace(/[^a-zA-Z0-9_.-]/g, '_')
-        const destPath = path.join(rendererDir, safeName)
+        const safeName = path.basename(filename).replace(/[^a-zA-Z0-9_.-]/g, '_')
+        const destPath = path.resolve(path.join(rendererDir, safeName))
+        const resolvedRendererDir = path.resolve(rendererDir)
+
+        if (!destPath.startsWith(resolvedRendererDir)) {
+          throw new Error('Directory traversal attempt detected')
+        }
 
         const resp = await fetch(imageUrl)
         if (!resp.ok) throw new Error(`Failed to fetch image: ${resp.status}`)
@@ -335,6 +416,10 @@ app.whenReady().then(() => {
   })
 
   ipcMain.handle('util:downloadFile', async (_, { url, filename }) => {
+    if (!isValidFetchUrl(url)) {
+      return { success: false, error: 'Untrusted or invalid download URL' }
+    }
+
     const ext = filename.split('.').pop()?.toLowerCase() || 'png'
     const isImage = ['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext)
 
@@ -401,6 +486,10 @@ app.whenReady().then(() => {
     'audio:saveCustomVoice',
     async (_, params: { name: string; embeddingUrl: string; samplePath?: string }) => {
       try {
+        if (!isValidFetchUrl(params.embeddingUrl)) {
+          throw new Error('Untrusted or invalid embedding URL')
+        }
+
         const voicesDir = path.join(app.getPath('userData'), 'custom-voices')
         if (!fs.existsSync(voicesDir)) fs.mkdirSync(voicesDir, { recursive: true })
 
@@ -452,6 +541,9 @@ app.whenReady().then(() => {
 
   ipcMain.handle('audio:playAudio', async (_, filePath) => {
     try {
+      if (!isSafePath(filePath)) {
+        throw new Error('Access to the specified path is restricted')
+      }
       await shell.openPath(filePath)
       return { success: true }
     } catch (error: unknown) {
@@ -461,6 +553,9 @@ app.whenReady().then(() => {
 
   ipcMain.handle('audio:saveAudio', async (_, filePath, destPath) => {
     try {
+      if (!isSafePath(filePath) || !isSafePath(destPath)) {
+        throw new Error('Access to the specified paths is restricted')
+      }
       await copyFile(filePath, destPath)
       return { success: true }
     } catch (error: unknown) {

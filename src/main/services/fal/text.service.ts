@@ -94,9 +94,9 @@ export class TextService extends FalClient {
       const text = choice?.message?.content
         || choice?.message?.reasoning_content
         || ''
-      console.log('[TextService] chatCompletion model:', modelId, 'finish_reason:', choice?.finish_reason, 'content_length:', text?.length)
+      console.log('[TextService] chatCompletion model:', modelId, 'finish_reason:', choice?.finish_reason)
       if (!text) {
-        console.error('[TextService] Empty content. Full response:', JSON.stringify(data).substring(0, 500))
+        console.error('[TextService] Empty content response')
       }
       return { data: text }
     } catch (err: unknown) {
