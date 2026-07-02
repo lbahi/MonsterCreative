@@ -180,7 +180,9 @@ export class DatabaseService {
           voiceover_audio_url TEXT,
           music_audio_url TEXT,
           created_at TEXT NOT NULL,
-          updated_at TEXT NOT NULL
+          updated_at TEXT NOT NULL,
+          is_favorite INTEGER DEFAULT 0,
+          tags TEXT
         );
       `)
     } catch (err: unknown) {
@@ -229,7 +231,9 @@ export class DatabaseService {
       'ALTER TABLE copy_variants ADD COLUMN is_favorite INTEGER DEFAULT 0;',
       'ALTER TABLE copy_variants ADD COLUMN tags TEXT;',
       'ALTER TABLE custom_voices ADD COLUMN is_favorite INTEGER DEFAULT 0;',
-      'ALTER TABLE custom_voices ADD COLUMN tags TEXT;'
+      'ALTER TABLE custom_voices ADD COLUMN tags TEXT;',
+      'ALTER TABLE ad_projects ADD COLUMN is_favorite INTEGER DEFAULT 0;',
+      'ALTER TABLE ad_projects ADD COLUMN tags TEXT;'
     ]
 
     for (const sql of migrations) {
@@ -381,6 +385,10 @@ export class DatabaseService {
 
   deleteCopyVariant(id: number): Database.RunResult {
     return this.db.prepare('DELETE FROM copy_variants WHERE id = ?').run(id)
+  }
+
+  deleteAdProject(id: string): Database.RunResult {
+    return this.db.prepare('DELETE FROM ad_projects WHERE id = ?').run(id)
   }
 
   toggleFavorite(type: string, id: number | string, isFavorite: boolean): Database.RunResult {

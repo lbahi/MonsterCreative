@@ -19,6 +19,7 @@ interface Window {
       deleteGeneratedImage: (id: number) => Promise<void>
       deleteGeneratedVideo: (id: number) => Promise<void>
       deleteCopyVariant: (id: number) => Promise<void>
+      deleteAdProject: (id: string) => Promise<void>
       toggleFavorite: (type: string, id: number | string, isFavorite: boolean) => Promise<void>
       updateTags: (type: string, id: number | string, tags: string) => Promise<void>
     }
@@ -136,6 +137,9 @@ interface Window {
       onAvailable: (cb: () => void) => void
       onDownloaded: (cb: () => void) => void
       install: () => Promise<void>
+    }
+    sentry: {
+      crash: () => Promise<void>
     }
   }
 }

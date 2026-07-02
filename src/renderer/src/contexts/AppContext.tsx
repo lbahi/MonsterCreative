@@ -83,26 +83,45 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const checkLicense = async () => {
       setLicenseChecking(true)
       try {
+        console.log('[AppContext] Starting license check...')
         const result = await window.api.license.validate()
+        console.log('[AppContext] License validate result:', result)
         if (!result.valid) {
           // License invalid — force onboarding regardless of localStorage
+          console.log('[AppContext] License invalid, showing onboarding. Reason:', result.reason)
           setOnboardingComplete(false)
           setIsLicenseValid(false)
         } else {
           // License valid! Check fal connection.
           setIsLicenseValid(true)
-          const status = await refreshConnectionStatus()
-          if (status !== 'required' || localStorage.getItem('mosterads_onboarded') === 'true') {
-            // We have a key (even if currently invalid/offline), or previously bypassed.
+          console.log('[AppContext] License valid! import.meta.env.DEV =', import.meta.env.DEV)
+
+          // In dev mode, skip onboarding entirely when license is valid.
+          // Dev uses a fresh Chromium profile with no localStorage/fal key state.
+          if (import.meta.env.DEV) {
+            console.log('[AppContext] DEV mode — bypassing onboarding')
             setOnboardingComplete(true)
             localStorage.setItem('mosterads_onboarded', 'true')
+            await refreshConnectionStatus()
           } else {
-            // Missing Fal key completely, need to onboard
-            setOnboardingComplete(false)
+            const status = await refreshConnectionStatus()
+            if (status !== 'required') {
+              // Fal key exists in keystore — skip onboarding.
+              setOnboardingComplete(true)
+              localStorage.setItem('mosterads_onboarded', 'true')
+            } else if (localStorage.getItem('mosterads_onboarded') === 'true') {
+              // Previously completed onboarding (localStorage flag set)
+              setOnboardingComplete(true)
+            } else {
+              // Missing Fal key completely — need to onboard
+              setOnboardingComplete(false)
+            }
           }
         }
-      } catch {
+      } catch (err) {
         // Network error — force onboarding so user can re-validate
+        console.error('[AppContext] License check threw error:', err)
+
         setOnboardingComplete(false)
         setIsLicenseValid(false)
       } finally {

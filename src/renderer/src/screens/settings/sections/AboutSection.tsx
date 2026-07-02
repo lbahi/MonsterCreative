@@ -160,6 +160,49 @@ export const AboutSection = () => {
           Transfer License
           <AlertCircle size={14} />
         </button>
+
+        {import.meta.env.DEV && (
+          <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+            <button
+              onClick={() => {
+                ;(window as any).myUndefinedFunction()
+              }}
+              style={{
+                flex: 1,
+                padding: '11px 16px',
+                background: 'rgba(108,99,255,0.1)',
+                border: '1px solid rgba(108,99,255,0.3)',
+                borderRadius: 9,
+                cursor: 'pointer',
+                color: '#9B8FFF',
+                fontSize: 13,
+                fontFamily: 'var(--font-body)',
+                textAlign: 'center'
+              }}
+            >
+              Trigger JS Error
+            </button>
+            <button
+              onClick={() => {
+                window.api.sentry.crash()
+              }}
+              style={{
+                flex: 1,
+                padding: '11px 16px',
+                background: 'rgba(239,68,68,0.1)',
+                border: '1px solid rgba(239,68,68,0.3)',
+                borderRadius: 9,
+                cursor: 'pointer',
+                color: '#EF4444',
+                fontSize: 13,
+                fontFamily: 'var(--font-body)',
+                textAlign: 'center'
+              }}
+            >
+              Trigger Native Crash
+            </button>
+          </div>
+        )}
       </div>
 
       {activeModal !== 'none' && (

@@ -264,16 +264,33 @@ export class FreemiusService {
 
   async validate(): Promise<ValidateResult> {
     try {
-      const installId = await keytar.getPassword(SERVICE_NAME, 'install-id')
-      const lastValidatedStr = await keytar.getPassword(SERVICE_NAME, 'last-validated')
+      let installId = await keytar.getPassword(SERVICE_NAME, 'install-id')
+      let lastValidatedStr = await keytar.getPassword(SERVICE_NAME, 'last-validated')
 
-      const userId = await keytar.getPassword(SERVICE_NAME, 'user-id')
-      const userPublicKey = await keytar.getPassword(SERVICE_NAME, 'user-public-key')
-      const userSecretKey = await keytar.getPassword(SERVICE_NAME, 'user-secret-key')
-      const licenseKey = await keytar.getPassword(SERVICE_NAME, 'license-key')
+      let userId = await keytar.getPassword(SERVICE_NAME, 'user-id')
+      let userPublicKey = await keytar.getPassword(SERVICE_NAME, 'user-public-key')
+      let userSecretKey = await keytar.getPassword(SERVICE_NAME, 'user-secret-key')
+      let licenseKey = await keytar.getPassword(SERVICE_NAME, 'license-key')
 
       if (!installId || !userId || !userPublicKey || !userSecretKey || !licenseKey) {
-        return { valid: false, reason: 'not_activated' }
+        // Fallback: If not activated with Freemius keys, check if a legacy license_key exists
+        const legacyLicenseKey = await keytar.getPassword(SERVICE_NAME, 'license_key')
+        if (legacyLicenseKey) {
+          log.info('[Freemius] Found legacy license_key, attempting auto-activation...')
+          const activation = await this.activate(legacyLicenseKey)
+          if (activation.success) {
+            installId = await keytar.getPassword(SERVICE_NAME, 'install-id')
+            lastValidatedStr = await keytar.getPassword(SERVICE_NAME, 'last-validated')
+            userId = await keytar.getPassword(SERVICE_NAME, 'user-id')
+            userPublicKey = await keytar.getPassword(SERVICE_NAME, 'user-public-key')
+            userSecretKey = await keytar.getPassword(SERVICE_NAME, 'user-secret-key')
+            licenseKey = await keytar.getPassword(SERVICE_NAME, 'license-key')
+          } else {
+            return { valid: false, reason: 'not_activated' }
+          }
+        } else {
+          return { valid: false, reason: 'not_activated' }
+        }
       }
 
       // Skip API call if revalidated recently
@@ -287,7 +304,7 @@ export class FreemiusService {
         const quota = await keytar.getPassword(SERVICE_NAME, 'license-quota')
         if (!email || !quota) {
           log.info('[Freemius] Skipping full validation but email/quota is missing. Triggering background fetch...')
-          fetchUserEmailAndQuota(userId, userPublicKey, userSecretKey, licenseKey).then(async (fetched) => {
+          fetchUserEmailAndQuota(userId!, userPublicKey!, userSecretKey!, licenseKey!).then(async (fetched) => {
             if (fetched.email) await keytar.setPassword(SERVICE_NAME, 'purchaser-email', fetched.email)
             if (fetched.quota) await keytar.setPassword(SERVICE_NAME, 'license-quota', fetched.quota)
             log.info('[Freemius] Self-healing background fetch completed successfully')
@@ -301,7 +318,7 @@ export class FreemiusService {
 
       const dateStr = new Date().toUTCString()
       const path = `/v1/users/${userId}/plugins/${FREEMIUS_CONFIG.PRODUCT_ID}/licenses.json`
-      const sig = generateFsSignature(userSecretKey, 'GET', path, dateStr)
+      const sig = generateFsSignature(userSecretKey!, 'GET', path, dateStr)
       const url = `${API_BASE_ROOT}${path}`
 
       log.info('[Freemius] Validating licenses via user endpoint:', url)
@@ -337,7 +354,7 @@ export class FreemiusService {
 
       // Also proactively update email if available
       const userPath = `/v1/users/${userId}.json`
-      const userSig = generateFsSignature(userSecretKey, 'GET', userPath, dateStr)
+      const userSig = generateFsSignature(userSecretKey!, 'GET', userPath, dateStr)
       const userUrl = `${API_BASE_ROOT}${userPath}`
       const userRes = await fetch(userUrl, {
         method: 'GET',

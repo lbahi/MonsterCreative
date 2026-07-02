@@ -127,6 +127,7 @@ export function CreationsScreen() {
       else if (item.type === 'Video') await window.api.database.deleteGeneratedVideo(Number(item.rawId))
       else if (item.type === 'Audio') await window.api.audio.deleteCustomVoice(Number(item.rawId))
       else if (item.type === 'Copy') await window.api.database.deleteCopyVariant(Number(item.rawId))
+      else if (item.type === 'Ad Project') await window.api.database.deleteAdProject(String(item.rawId))
 
       if (selectedItem?.id === item.id) {
         setSelectedItem(null)
@@ -157,6 +158,7 @@ export function CreationsScreen() {
           else if (item.type === 'Video') await window.api.database.deleteGeneratedVideo(Number(item.rawId))
           else if (item.type === 'Audio') await window.api.audio.deleteCustomVoice(Number(item.rawId))
           else if (item.type === 'Copy') await window.api.database.deleteCopyVariant(Number(item.rawId))
+          else if (item.type === 'Ad Project') await window.api.database.deleteAdProject(String(item.rawId))
         }
       }
       setSelectedIds(new Set())
@@ -1000,7 +1002,7 @@ export function CreationsScreen() {
                       Open File
                     </button>
                   )}
-                  {selectedItem.type !== 'Ad Project' && (
+                  {(
                     <button
                       onClick={(e) => handleDeleteItem(selectedItem, e)}
                       style={{

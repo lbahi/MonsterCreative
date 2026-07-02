@@ -114,6 +114,9 @@ declare global {
         getCheckoutUrl: () => Promise<string>
         getDetails: () => Promise<{ email?: string; key?: string; quota?: string; plan?: string; lastValidated?: string }>
       }
+      sentry: {
+        crash: () => Promise<void>
+      }
     }
   }
 }

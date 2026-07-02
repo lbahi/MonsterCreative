@@ -44,6 +44,12 @@ const imageService = new ImageService()
 const videoService = new VideoService()
 const audioService = new AudioService()
 
+if (is.dev) {
+  app.name = 'MonsterCreative'
+  const appData = app.getPath('appData')
+  app.setPath('userData', join(appData, 'MonsterCreative'))
+}
+
 function isPathInside(childPath: string, parentPath: string): boolean {
   const child = path.resolve(childPath).toLowerCase()
   const parent = path.resolve(parentPath).toLowerCase()
@@ -203,7 +209,7 @@ function createWindow(): void {
     icon,
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
-      sandbox: true,
+      sandbox: false,
       contextIsolation: true,
       webSecurity: true,
       webviewTag: true
@@ -368,6 +374,7 @@ app.whenReady().then(() => {
   ipcMain.handle('db:deleteGeneratedImage', (_, id) => dbService.deleteGeneratedImage(id))
   ipcMain.handle('db:deleteGeneratedVideo', (_, id) => dbService.deleteGeneratedVideo(id))
   ipcMain.handle('db:deleteCopyVariant', (_, id) => dbService.deleteCopyVariant(id))
+  ipcMain.handle('db:deleteAdProject', (_, id) => dbService.deleteAdProject(id))
   ipcMain.handle('db:toggleFavorite', (_, type, id, isFavorite) => dbService.toggleFavorite(type, id, isFavorite))
   ipcMain.handle('db:updateTags', (_, type, id, tags) => dbService.updateTags(type, id, tags))
 
@@ -692,6 +699,10 @@ app.whenReady().then(() => {
       captureFalException(error, 'audio:generateMusic', { prompt }, 'fal-ai/elevenlabs/music')
       return { success: false, error: error instanceof Error ? error.message : String(error) }
     }
+  })
+
+  ipcMain.handle('sentry:crash', () => {
+    process.crash()
   })
 
   createWindow()

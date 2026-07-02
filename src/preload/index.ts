@@ -25,6 +25,7 @@ const api = {
     deleteGeneratedImage: (id: number) => ipcRenderer.invoke('db:deleteGeneratedImage', id),
     deleteGeneratedVideo: (id: number) => ipcRenderer.invoke('db:deleteGeneratedVideo', id),
     deleteCopyVariant: (id: number) => ipcRenderer.invoke('db:deleteCopyVariant', id),
+    deleteAdProject: (id: string) => ipcRenderer.invoke('db:deleteAdProject', id),
     toggleFavorite: (type: string, id: number | string, isFavorite: boolean) => ipcRenderer.invoke('db:toggleFavorite', type, id, isFavorite),
     updateTags: (type: string, id: number | string, tags: string) => ipcRenderer.invoke('db:updateTags', type, id, tags)
   },
@@ -103,6 +104,9 @@ const api = {
     onDownloaded: (cb: (event: any, ...args: any[]) => void) =>
       ipcRenderer.on('update:downloaded', cb),
     install: () => ipcRenderer.invoke('update:install')
+  },
+  sentry: {
+    crash: () => ipcRenderer.invoke('sentry:crash')
   }
 }
 
