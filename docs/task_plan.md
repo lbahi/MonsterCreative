@@ -1,6 +1,6 @@
 # MonsterCreative — Task Plan
 
-## Current Version: v1.0.13 (In Development)
+## Current Version: v1.0.14 (In Development)
 **Platform:** Electron (React + TypeScript)
 
 ---
@@ -23,7 +23,7 @@
 
 ---
 
-## Current Focus: v1.0.13 Development
+## Current Focus: v1.0.14 Development
 ### Ads Maker (Video Ad Generation)
 - [x] 3-phase workflow implementation
 - [x] Script generation phase

@@ -1,13 +1,13 @@
 # MonsterCreative Release Log
 
-## Current Version: v1.0.13
+## Current Version: v1.0.14
 **Status:** Active Development
 **Platform:** Electron (React + TypeScript)
 **Last Updated:** 2026-06-05
 
 ---
 
-## v1.0.13 (Current)
+## v1.0.14 (Current)
 **Status:** In Development
 **Focus:** AI Video Ad Generation & Asset Management
 - **Ads Maker:** Complete 3-phase AI video ad generation workflow

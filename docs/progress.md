@@ -1,6 +1,6 @@
 # MonsterCreative — Build Progress
 
-## [2026-06-05] — Current Status: v1.0.13 Development
+## [2026-06-05] — Current Status: v1.0.14 Development
 - **Platform:** Electron (React + TypeScript)
 - **Current Focus:** AI Video Ad Generation (Ads Maker) & Asset Management
 - **Latest Release:** v1.0.11 (Freemius licensing, GPT Image 2 integration, AI Shots enhancements)
