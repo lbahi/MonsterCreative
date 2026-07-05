@@ -2,9 +2,6 @@ import { FalClient } from './base'
 import log from 'electron-log'
 import { sanitizeDiagnosticText } from '../../../shared/sentryPrivacy'
 
-interface FalUploadResponse {
-  access_url?: string
-}
 
 interface FalImageOutput {
   image?: { url: string }
@@ -48,57 +45,52 @@ export class ImageService extends FalClient {
       const buffer = Buffer.from(base64Data, 'base64')
       const ext = mime.split('/')[1] || 'jpg'
       const fileName = `upload.${ext}`
-      const authVariants = [`Bearer ${apiKey}`, `Key ${apiKey}`]
-      const bodyVariants: Array<{ label: string; body: BodyInit }> = [
-        { label: 'blob', body: new Blob([buffer], { type: mime }) },
-        { label: 'buffer', body: buffer }
-      ]
 
+      // 1. Initiate upload
+      const initiateRes = await fetch('https://rest.fal.ai/storage/upload/initiate?storage_type=fal-cdn-v3', {
+        method: 'POST',
+        headers: {
+          Authorization: `Key ${apiKey}`,
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        body: JSON.stringify({
+          content_type: mime,
+          file_name: fileName
+        })
+      })
 
-      const failures: string[] = []
-
-      for (const auth of authVariants) {
-        for (const bodyVariant of bodyVariants) {
-          try {
-            const response = await fetch('https://fal.media/files/upload', {
-              method: 'POST',
-              headers: {
-                Authorization: auth,
-                'X-Fal-File-Name': fileName,
-                'Content-Type': mime,
-                Accept: 'application/json'
-              },
-              body: bodyVariant.body
-            })
-
-            if (!response.ok) {
-              const errBody = await response.text()
-              failures.push(
-                `auth=${auth.startsWith('Bearer') ? 'Bearer' : 'Key'} body=${bodyVariant.label} status=${response.status} body=${sanitizeDiagnosticText(errBody, 160)}`
-              )
-              continue
-            }
-
-            const data = (await response.json()) as FalUploadResponse
-            const accessUrl = data.access_url?.replace(/ /g, '%20')
-            if (accessUrl) {
-              return { url: accessUrl }
-            }
-
-            failures.push(
-              `auth=${auth.startsWith('Bearer') ? 'Bearer' : 'Key'} body=${bodyVariant.label} missing access_url`
-            )
-          } catch (err: unknown) {
-            failures.push(
-              `auth=${auth.startsWith('Bearer') ? 'Bearer' : 'Key'} body=${bodyVariant.label} error=${(err as Error)?.message ?? 'unknown'}`
-            )
-          }
+      if (!initiateRes.ok) {
+        const errBody = await initiateRes.text()
+        return {
+          error: `CDN upload initiation failed (${initiateRes.status}): ${sanitizeDiagnosticText(errBody, 160)}`
         }
       }
 
-      return {
-        error: `CDN upload failed after retries. ${failures.join(' | ')}`
+      const { upload_url, file_url } = await initiateRes.json()
+
+      // 2. Put file to upload_url
+      const uploadRes = await fetch(upload_url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': mime
+        },
+        body: buffer
+      })
+
+      if (!uploadRes.ok) {
+        const errBody = await uploadRes.text()
+        return {
+          error: `CDN upload PUT failed (${uploadRes.status}): ${sanitizeDiagnosticText(errBody, 160)}`
+        }
       }
+
+      const accessUrl = file_url?.replace(/ /g, '%20')
+      if (accessUrl) {
+        return { url: accessUrl }
+      }
+
+      return { error: 'Missing file_url in upload response' }
     } catch (err: unknown) {
       return { error: `Upload error: ${(err as Error).message}` }
     }

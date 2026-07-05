@@ -229,24 +229,45 @@ export class FalService {
       const apiKey = await window.api.keystore.getFalKey()
       if (!apiKey) return { error: 'No Fal.ai API key found.' }
 
-      const response = await fetch('https://fal.media/files/upload', {
+      const contentType = file.type || 'application/octet-stream'
+      const filename = file.name || `${Date.now()}.png`
+
+      // 1. Initiate upload
+      const initiateRes = await fetch('https://rest.fal.ai/storage/upload/initiate?storage_type=fal-cdn-v3', {
         method: 'POST',
         headers: {
-          Authorization: `Bearer ${apiKey}`,
-          'X-Fal-File-Name': file.name,
-          'Content-Type': file.type,
+          Authorization: `Key ${apiKey}`,
+          'Content-Type': 'application/json',
           Accept: 'application/json'
+        },
+        body: JSON.stringify({
+          content_type: contentType,
+          file_name: filename
+        })
+      })
+
+      if (!initiateRes.ok) {
+        const errBody = await initiateRes.text()
+        return { error: `CDN upload initiation failed (${initiateRes.status}): ${sanitizeDiagnosticText(errBody)}` }
+      }
+
+      const { upload_url, file_url } = await initiateRes.json()
+
+      // 2. Put file to upload_url
+      const uploadRes = await fetch(upload_url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': contentType
         },
         body: file
       })
 
-      if (!response.ok) {
-        const errBody = await response.text()
-        return { error: `CDN upload failed (${response.status}): ${sanitizeDiagnosticText(errBody)}` }
+      if (!uploadRes.ok) {
+        const errBody = await uploadRes.text()
+        return { error: `CDN upload PUT failed (${uploadRes.status}): ${sanitizeDiagnosticText(errBody)}` }
       }
 
-      const data = (await response.json()) as { access_url?: string }
-      let accessUrl = data.access_url
+      let accessUrl = file_url
       if (accessUrl) {
         accessUrl = accessUrl.replace(/ /g, '%20')
       }
