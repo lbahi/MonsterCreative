@@ -2,7 +2,8 @@ import { PostHog } from 'posthog-node'
 import crypto from 'crypto'
 import { dbService } from './database'
 
-const apiKey = process.env.VITE_POSTHOG_KEY || ''
+const posthogEnv = import.meta.env as { VITE_POSTHOG_KEY?: string }
+const apiKey = posthogEnv.VITE_POSTHOG_KEY || ''
 const client = new PostHog(apiKey, {
   host: 'https://us.i.posthog.com'
 })
