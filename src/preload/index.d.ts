@@ -117,6 +117,9 @@ declare global {
       sentry: {
         crash: () => Promise<void>
       }
+      analytics: {
+        capture: (eventName: string, properties?: object) => Promise<void>
+      }
     }
   }
 }

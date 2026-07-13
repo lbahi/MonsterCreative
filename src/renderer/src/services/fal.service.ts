@@ -227,7 +227,7 @@ export class FalService {
    * in the main process per the Secure IPC Pattern (constitution §4.8).
    */
   async uploadImageFromDataUrl(dataUrl: string): Promise<{ url?: string; error?: string }> {
-    return (await window.api.fal.uploadImage(dataUrl)) as {
+    return (await window.api.fal.uploadImageFromDataUrl(dataUrl)) as {
       url?: string
       error?: string
     }
