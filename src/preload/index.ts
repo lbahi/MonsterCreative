@@ -107,6 +107,10 @@ const api = {
   },
   sentry: {
     crash: () => ipcRenderer.invoke('sentry:crash')
+  },
+  analytics: {
+    capture: (eventName: string, properties?: object) =>
+      ipcRenderer.invoke('analytics:capture', eventName, properties)
   }
 }
 

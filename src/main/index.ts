@@ -24,7 +24,7 @@ import log from 'electron-log'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { dbService } from './database'
-import { shutdownAnalytics } from './analyticsService'
+import { shutdownAnalytics, captureEvent } from './analyticsService'
 import { keystoreService } from './keystore'
 import { freemiusService } from './services/freemius.service'
 import {
@@ -704,6 +704,10 @@ app.whenReady().then(() => {
 
   ipcMain.handle('sentry:crash', () => {
     process.crash()
+  })
+
+  ipcMain.handle('analytics:capture', (_event, eventName, properties) => {
+    captureEvent(eventName, properties)
   })
 
   createWindow()
