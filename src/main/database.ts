@@ -12,6 +12,8 @@ export interface AppSettings {
   auto_save_generations: number | boolean
   asset_save_path: string
   accent_color: string
+  distinct_id?: string
+  analytics_enabled?: number | boolean
 }
 
 export interface GeneratedImage {
@@ -199,6 +201,8 @@ export class DatabaseService {
 
     // --- MIGRATIONS ---
     const migrations = [
+      'ALTER TABLE app_settings ADD COLUMN distinct_id TEXT;',
+      'ALTER TABLE app_settings ADD COLUMN analytics_enabled INTEGER DEFAULT 1;',
       'ALTER TABLE generated_videos ADD COLUMN resolution TEXT;',
       'ALTER TABLE generated_videos ADD COLUMN url TEXT;',
       'ALTER TABLE generated_videos ADD COLUMN file_name TEXT;',
@@ -284,6 +288,11 @@ export class DatabaseService {
       settings.accent_color
     )
   }
+
+  saveDistinctId(distinctId: string): void {
+    this.db.prepare('UPDATE app_settings SET distinct_id = ? WHERE id = 1').run(distinctId)
+  }
+
 
   // --- Campaigns ---
   getAllCampaigns(): unknown[] {
