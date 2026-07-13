@@ -21,6 +21,7 @@ export function getOrCreateDistinctId(): string {
 
 export function captureEvent(eventName: string, properties?: object): void {
   const settings = dbService.getSettings()
+  // NULL means column was added after row existed → treat as enabled (default ON)
   const isEnabled = settings?.analytics_enabled !== 0 && settings?.analytics_enabled !== false
   
   if (!isEnabled) {

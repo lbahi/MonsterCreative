@@ -251,6 +251,14 @@ export class DatabaseService {
       }
     }
 
+    // Backfill: existing rows get NULL for newly added columns (DEFAULT only applies to INSERT).
+    // Set analytics_enabled = 1 for any row where it is still NULL.
+    try {
+      this.db.exec('UPDATE app_settings SET analytics_enabled = 1 WHERE analytics_enabled IS NULL;')
+    } catch (e) {
+      console.error('[DB] Failed to backfill analytics_enabled:', e)
+    }
+
     // Log ad_projects table schema
     try {
       this.db.prepare("PRAGMA table_info(ad_projects)").all()
