@@ -1,6 +1,7 @@
 import { FalClient } from './base'
 import log from 'electron-log'
 import { fal } from '@fal-ai/client'
+import { sanitizeDiagnosticText } from '../../../shared/sentryPrivacy'
 
 
 interface FalImageOutput {
@@ -38,7 +39,6 @@ export class ImageService extends FalClient {
 
       const mime = matches[1]
       const base64Data = matches[2]
-      const ext = mime.split('/')[1] || 'jpg'
 
       const buffer = Buffer.from(base64Data, 'base64')
       const blob = new Blob([buffer], { type: mime })
