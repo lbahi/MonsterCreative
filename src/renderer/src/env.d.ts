@@ -141,5 +141,8 @@ interface Window {
     sentry: {
       crash: () => Promise<void>
     }
+    analytics: {
+      capture: (eventName: string, properties?: Record<string, unknown>) => Promise<void>
+    }
   }
 }
