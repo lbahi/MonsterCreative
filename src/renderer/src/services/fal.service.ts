@@ -5,7 +5,7 @@
  */
 
 import * as Sentry from '@sentry/electron/renderer'
-import { sanitizeDiagnosticText, summarizePrompt } from '../../../shared/sentryPrivacy'
+import { summarizePrompt } from '../../../shared/sentryPrivacy'
 
 
 export interface FalResponse {
@@ -222,109 +222,14 @@ export class FalService {
   }
 
   /**
-   * Uploads an image directly from the renderer using the native File object.
+   * Uploads an image (base64 data URL) to fal storage.
+   * Pure IPC passthrough — the actual @fal-ai/client fal.storage.upload runs
+   * in the main process per the Secure IPC Pattern (constitution §4.8).
    */
-  async uploadImage(file: File): Promise<{ url?: string; error?: string }> {
-    try {
-      const apiKey = await window.api.keystore.getFalKey()
-      if (!apiKey) return { error: 'No Fal.ai API key found.' }
-
-      const contentType = file.type || 'application/octet-stream'
-      const filename = file.name || `${Date.now()}.png`
-
-      // 1. Initiate upload
-      const initiateRes = await fetch('https://rest.fal.ai/storage/upload/initiate?storage_type=fal-cdn-v3', {
-        method: 'POST',
-        headers: {
-          Authorization: `Key ${apiKey}`,
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
-        },
-        body: JSON.stringify({
-          content_type: contentType,
-          file_name: filename
-        })
-      })
-
-      if (!initiateRes.ok) {
-        const errBody = await initiateRes.text()
-        return { error: `CDN upload initiation failed (${initiateRes.status}): ${sanitizeDiagnosticText(errBody)}` }
-      }
-
-      const { upload_url, file_url } = await initiateRes.json()
-
-      // 2. Put file to upload_url
-      const uploadRes = await fetch(upload_url, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': contentType
-        },
-        body: file
-      })
-
-      if (!uploadRes.ok) {
-        const errBody = await uploadRes.text()
-        return { error: `CDN upload PUT failed (${uploadRes.status}): ${sanitizeDiagnosticText(errBody)}` }
-      }
-
-      let accessUrl = file_url
-      if (accessUrl) {
-        accessUrl = accessUrl.replace(/ /g, '%20')
-      }
-
-      return { url: accessUrl }
-    } catch (err: unknown) {
-      return { error: `Image upload failed: ${(err as Error).message}` }
-    }
-  }
-
-  /** Dual-mode upload: Tries browser first, falls back to IPC if needed */
   async uploadImageFromDataUrl(dataUrl: string): Promise<{ url?: string; error?: string }> {
-    let browserError: string | null = null
-    try {
-      const apiKey = await window.api.keystore.getFalKey()
-      if (!apiKey) {
-        const ipcRes = (await window.api.fal.uploadImageFromDataUrl(dataUrl)) as {
-          url?: string
-          error?: string
-        }
-        return ipcRes
-      }
-
-      const matches = dataUrl.match(/^data:([^;]+);base64,(.+)$/)
-      if (!matches) {
-        return { error: 'Invalid data URL format.' }
-      }
-
-      const mime = matches[1]
-      const base64Data = matches[2]
-      const binary = atob(base64Data)
-      const bytes = new Uint8Array(binary.length)
-      for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i)
-      }
-
-      const ext = mime.split('/')[1] || 'png'
-      const file = new File([bytes], `upload.${ext}`, { type: mime })
-      const browserUpload = await this.uploadImage(file)
-      if (!browserUpload.error && browserUpload.url) {
-        return browserUpload
-      }
-      browserError = browserUpload.error ?? 'unknown browser upload error'
-    } catch (err: unknown) {
-      browserError = (err as Error)?.message ?? 'unknown browser upload exception'
-    }
-
-    const ipcUpload = (await window.api.fal.uploadImageFromDataUrl(dataUrl)) as {
+    return (await window.api.fal.uploadImage(dataUrl)) as {
       url?: string
       error?: string
-    }
-    if (!ipcUpload.error || !browserError) {
-      return ipcUpload
-    }
-
-    return {
-      error: `Renderer upload failed: ${browserError}; IPC upload failed: ${ipcUpload.error}`
     }
   }
 

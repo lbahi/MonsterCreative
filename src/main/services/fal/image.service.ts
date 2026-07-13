@@ -1,6 +1,6 @@
 import { FalClient } from './base'
 import log from 'electron-log'
-import { sanitizeDiagnosticText } from '../../../shared/sentryPrivacy'
+import { fal } from '@fal-ai/client'
 
 
 interface FalImageOutput {
@@ -23,76 +23,41 @@ interface FalKontextOutput {
 
 export class ImageService extends FalClient {
   /**
-   * Uploads a base64 data URL to fal.media CDN.
-   * Called from the renderer via IPC — the main process handles it
-   * because Electron's renderer security blocks direct requests to fal.media.
+   * Uploads a base64 data URL to fal storage via the official @fal-ai/client
+   * helper (fal.storage.upload). Routed through the main process per the
+   * Secure IPC Pattern (constitution §4.8); never reached from the renderer.
    */
   async uploadImageFromDataUrl(dataUrl: string): Promise<{ url?: string; error?: string }> {
     try {
-      // Validate input
       if (!dataUrl || typeof dataUrl !== 'string') {
         return { error: 'Invalid dataUrl: must be a non-empty string' }
       }
 
-      const apiKey = await this.getApiKey()
-
-      // Parse the data URL: data:<mime>;base64,<data>
       const matches = dataUrl.match(/^data:([^;]+);base64,(.+)$/)
       if (!matches) return { error: 'Invalid data URL format.' }
 
       const mime = matches[1]
       const base64Data = matches[2]
-      const buffer = Buffer.from(base64Data, 'base64')
       const ext = mime.split('/')[1] || 'jpg'
-      const fileName = `upload.${ext}`
 
-      // 1. Initiate upload
-      const initiateRes = await fetch('https://rest.fal.ai/storage/upload/initiate?storage_type=fal-cdn-v3', {
-        method: 'POST',
-        headers: {
-          Authorization: `Key ${apiKey}`,
-          'Content-Type': 'application/json',
-          Accept: 'application/json'
-        },
-        body: JSON.stringify({
-          content_type: mime,
-          file_name: fileName
-        })
+      const buffer = Buffer.from(base64Data, 'base64')
+      const blob = new Blob([buffer], { type: mime })
+
+      fal.config({
+        credentials: await this.getApiKey(),
+        suppressLocalCredentialsWarning: true
       })
 
-      if (!initiateRes.ok) {
-        const errBody = await initiateRes.text()
-        return {
-          error: `CDN upload initiation failed (${initiateRes.status}): ${sanitizeDiagnosticText(errBody, 160)}`
-        }
-      }
-
-      const { upload_url, file_url } = await initiateRes.json()
-
-      // 2. Put file to upload_url
-      const uploadRes = await fetch(upload_url, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': mime
-        },
-        body: buffer
+      const uploadUrl = await fal.storage.upload(blob, {
+        lifecycle: { expiresIn: '30d' }
       })
 
-      if (!uploadRes.ok) {
-        const errBody = await uploadRes.text()
-        return {
-          error: `CDN upload PUT failed (${uploadRes.status}): ${sanitizeDiagnosticText(errBody, 160)}`
-        }
-      }
-
-      const accessUrl = file_url?.replace(/ /g, '%20')
-      if (accessUrl) {
-        return { url: accessUrl }
-      }
-
-      return { error: 'Missing file_url in upload response' }
+      if (!uploadUrl) return { error: 'Upload returned no URL' }
+      return { url: uploadUrl }
     } catch (err: unknown) {
-      return { error: `Upload error: ${(err as Error).message}` }
+      const message = err instanceof Error ? err.message : String(err)
+      log.error('[fal.storage.upload] failed:', message)
+      return { error: `Upload error: ${message}` }
     }
   }
 
