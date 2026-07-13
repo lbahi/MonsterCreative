@@ -9,6 +9,8 @@ const client = new PostHog(apiKey, {
 })
 
 const sessionId = crypto.randomUUID()
+const sessionStartTime = Date.now()
+let sessionHasEngaged = false
 
 export function getOrCreateDistinctId(): string {
   const settings = dbService.getSettings()
@@ -28,6 +30,10 @@ export function captureEvent(eventName: string, properties?: object): void {
   
   if (!isEnabled) {
     return
+  }
+
+  if (eventName !== 'app_launched' && eventName !== 'screen_viewed' && eventName !== 'app_closed') {
+    sessionHasEngaged = true
   }
 
   const distinctId = getOrCreateDistinctId()
@@ -56,6 +62,11 @@ export function captureEvent(eventName: string, properties?: object): void {
   })
 }
 
-export function shutdownAnalytics(): void {
+export function endSession(): void {
+  const sessionDuration = (Date.now() - sessionStartTime) / 1000
+  captureEvent('app_closed', {
+    session_duration_seconds: sessionDuration,
+    engaged_session: sessionHasEngaged
+  })
   client.shutdown()
 }

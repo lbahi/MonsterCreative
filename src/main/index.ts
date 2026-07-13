@@ -24,7 +24,7 @@ import log from 'electron-log'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { dbService } from './database'
-import { shutdownAnalytics, captureEvent } from './analyticsService'
+import { endSession, captureEvent } from './analyticsService'
 import { keystoreService } from './keystore'
 import { freemiusService } from './services/freemius.service'
 import {
@@ -730,7 +730,7 @@ app.on('window-all-closed', () => {
 })
 
 app.on('before-quit', () => {
-  shutdownAnalytics()
+  endSession()
 })
 
 // In this file you can include the rest of your app's specific main process
