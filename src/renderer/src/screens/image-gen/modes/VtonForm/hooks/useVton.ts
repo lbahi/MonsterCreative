@@ -135,6 +135,9 @@ export const useVton = (props: VtonFormProps) => {
 
       setGeneratedImages(genImages)
       setGenerated(true)
+      if (window.api?.analytics) {
+        window.api.analytics.capture('vton_used', { vibe_selected: selectedModelType })
+      }
     } catch (err: unknown) {
       console.error(err)
       alert(`VTON Error: ${err instanceof Error ? err.message : String(err)}`)

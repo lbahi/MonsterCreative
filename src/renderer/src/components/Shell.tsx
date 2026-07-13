@@ -18,6 +18,9 @@ export function Shell() {
 
   useEffect(() => {
     Sentry.setTag('screen', location.pathname)
+    if (window.api?.analytics) {
+      window.api.analytics.capture('screen_viewed', { screen_name: location.pathname })
+    }
   }, [location.pathname])
 
 

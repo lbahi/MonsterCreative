@@ -385,6 +385,10 @@ export function useAdsMaker() {
         status: 'video_generated'
       });
 
+      if (window.api?.analytics) {
+        window.api.analytics.capture('ai_maker_video_generated', {})
+      }
+
       clearLoading();
       return result.data.url;
     } catch (err) {

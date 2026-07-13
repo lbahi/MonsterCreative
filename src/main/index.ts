@@ -310,6 +310,7 @@ app.disableHardwareAcceleration()
 app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.monstercreative.app')
+  captureEvent('app_launched', { app_version: app.getVersion(), os: process.platform })
 
   // Fix YouTube embed in production: configure both default and webview sessions
   const ytFilter = { urls: ['*://*.youtube.com/*', '*://*.youtube-nocookie.com/*'] }

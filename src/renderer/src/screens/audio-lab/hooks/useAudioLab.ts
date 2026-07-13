@@ -45,6 +45,9 @@ export const useAudioLab = () => {
           },
           ...prev
         ])
+        if (window.api?.analytics) {
+          window.api.analytics.capture('audio_lab_used', { voice_model: selectedVoice.elevenLabsId })
+        }
       } else {
         alert('Generation failed: ' + response.error)
       }

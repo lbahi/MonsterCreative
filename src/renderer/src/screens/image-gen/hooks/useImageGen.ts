@@ -180,6 +180,9 @@ export function useImageGen(activeMode: ActiveImageGenMode) {
         setGeneratedImages(urls)
         setGenerated(true)
         setSelectedOutput(0)
+        if (window.api?.analytics) {
+          window.api.analytics.capture('format_resize_used', { target_format: resizeSelectedFormats })
+        }
       } catch (err: unknown) {
         console.error('Resize error:', err)
         const errorMessage = err instanceof Error ? err.message : String(err)
@@ -249,6 +252,9 @@ export function useImageGen(activeMode: ActiveImageGenMode) {
         setGeneratedImages(result.images.map((image) => image.url))
         setGenerated(true)
         setSelectedOutput(0)
+        if (window.api?.analytics) {
+          window.api.analytics.capture('image_generated', { model_id: nbModel })
+        }
       } catch (error: unknown) {
         console.error('Generation Error:', error)
         const errorMessage = error instanceof Error ? error.message : String(error)
@@ -256,6 +262,18 @@ export function useImageGen(activeMode: ActiveImageGenMode) {
       } finally {
         setGenerating(false)
       }
+      return
+    }
+
+    if (activeMode === 'landing') {
+      setGenerating(true)
+      setTimeout(() => {
+        setGenerating(false)
+        setGenerated(true)
+        if (window.api?.analytics) {
+          window.api.analytics.capture('landing_page_generated', {})
+        }
+      }, 1000)
       return
     }
 

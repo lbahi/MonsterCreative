@@ -69,6 +69,12 @@ export const useAdCopy = () => {
         setAiAnalysis(result.analysis)
         setGeneratedVariants(result.variants)
         setShowResults(true)
+        if (window.api?.analytics) {
+          window.api.analytics.capture('ad_copy_survey_completed', { 
+            platforms_selected: result.analysis.recommendedPlatforms || [],
+            frameworks_selected: [] 
+          })
+        }
       } catch (err: unknown) {
         setGenerationError(err instanceof Error ? err.message : String(err))
       } finally {
