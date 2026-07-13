@@ -24,7 +24,7 @@ import log from 'electron-log'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { dbService } from './database'
-import { endSession, captureEvent } from './analyticsService'
+import { endSession, captureEvent, setPersonProperties } from './analyticsService'
 import { keystoreService } from './keystore'
 import { freemiusService } from './services/freemius.service'
 import {
@@ -311,6 +311,7 @@ app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.monstercreative.app')
   captureEvent('app_launched', { app_version: app.getVersion(), os: process.platform })
+  setPersonProperties({ app_version: app.getVersion(), os: process.platform })
 
   // Fix YouTube embed in production: configure both default and webview sessions
   const ytFilter = { urls: ['*://*.youtube.com/*', '*://*.youtube-nocookie.com/*'] }
@@ -394,7 +395,11 @@ app.whenReady().then(() => {
   })
 
   ipcMain.handle('license:validate', async () => {
-    return await freemiusService.validate()
+    const result = await freemiusService.validate()
+    // Set person-level license_tier so it's a breakdownable dimension on every PostHog insight
+    const licenseTier = result.valid ? 'paid' : 'free'
+    setPersonProperties({ license_tier: licenseTier })
+    return result
   })
 
   ipcMain.handle('license:deactivate', async () => {

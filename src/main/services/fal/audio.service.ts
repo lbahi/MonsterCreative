@@ -1,6 +1,7 @@
 import { FalClient } from './base'
 import { AudioGenerationRequest, AudioResult } from './types'
 import { sanitizeDiagnosticText } from '../../../shared/sentryPrivacy'
+import { trackFalApiCall, getErrorType, estimateFalCost } from '../../analyticsService'
 
 interface FalAudioOutput {
   audio?: { url: string }
@@ -11,34 +12,41 @@ interface FalAudioOutput {
 export class AudioService extends FalClient {
   async generateSpeech(request: AudioGenerationRequest): Promise<AudioResult> {
     const key = await this.getApiKey()
-    const response = await fetch('https://fal.run/fal-ai/elevenlabs/tts/eleven-v3', {
-      method: 'POST',
-      headers: {
-        Authorization: `Key ${key}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        text: request.text,
-        voice: request.voiceId,
-        stability: request.stability ?? 0.5
+    const t0 = Date.now()
+    const MODEL_ID = 'fal-ai/elevenlabs/tts/eleven-v3'
+    try {
+      const response = await fetch(`https://fal.run/${MODEL_ID}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Key ${key}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          text: request.text,
+          voice: request.voiceId,
+          stability: request.stability ?? 0.5
+        })
       })
-    })
 
-    if (!response.ok) {
-      let errorMsg = response.statusText
-      try {
-        const error = await response.json()
-        errorMsg = error.message || error.detail || response.statusText
-      } catch {
-        // Keep the HTTP status text when the provider response is not JSON.
+      if (!response.ok) {
+        let errorMsg = response.statusText
+        try {
+          const error = await response.json()
+          errorMsg = error.message || error.detail || response.statusText
+        } catch {
+          // Keep the HTTP status text when the provider response is not JSON.
+        }
+        const err = new Error(`Fal API Error: ${sanitizeDiagnosticText(errorMsg)}`)
+        trackFalApiCall({ modelId: MODEL_ID, endpointCategory: 'audio_tts', durationMs: Date.now() - t0, status: 'error', errorType: getErrorType(err), estimatedCostUsd: estimateFalCost(MODEL_ID, { charsCount: request.text?.length }) })
+        throw err
       }
-      throw new Error(`Fal API Error: ${sanitizeDiagnosticText(errorMsg)}`)
-    }
 
-
-    const data = (await response.json()) as FalAudioOutput
-    return {
-      url: data.audio?.url || data.url || ''
+      const data = (await response.json()) as FalAudioOutput
+      trackFalApiCall({ modelId: MODEL_ID, endpointCategory: 'audio_tts', durationMs: Date.now() - t0, status: 'success', estimatedCostUsd: estimateFalCost(MODEL_ID, { charsCount: request.text?.length }) })
+      return { url: data.audio?.url || data.url || '' }
+    } catch (err: unknown) {
+      trackFalApiCall({ modelId: MODEL_ID, endpointCategory: 'audio_tts', durationMs: Date.now() - t0, status: 'error', errorType: getErrorType(err), estimatedCostUsd: estimateFalCost(MODEL_ID, { charsCount: request.text?.length }) })
+      throw err
     }
   }
 
