@@ -1,10 +1,32 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { SettingRow } from '../components/SettingRow'
 import { Toggle } from '../components/Toggle'
 
 export const DefaultsSection = () => {
   const [autoSave, setAutoSave] = useState(true)
   const [currency, setCurrency] = useState('USD')
+  const [analyticsEnabled, setAnalyticsEnabled] = useState(true)
+  const [settingsObj, setSettingsObj] = useState<any>(null)
+
+  useEffect(() => {
+    window.api.database.getSettings().then((s: any) => {
+      if (s) {
+        setSettingsObj(s)
+        if (s.analytics_enabled !== undefined) {
+          setAnalyticsEnabled(s.analytics_enabled !== 0 && s.analytics_enabled !== false)
+        }
+      }
+    })
+  }, [])
+
+  const handleAnalyticsChange = (val: boolean) => {
+    setAnalyticsEnabled(val)
+    if (settingsObj) {
+      const updated = { ...settingsObj, analytics_enabled: val ? 1 : 0 }
+      setSettingsObj(updated)
+      window.api.database.updateSettings(updated)
+    }
+  }
 
   return (
     <div>
@@ -27,6 +49,11 @@ export const DefaultsSection = () => {
           label="Auto-save generations"
           description="Automatically save all outputs to local library"
           control={<Toggle value={autoSave} onChange={setAutoSave} />}
+        />
+        <SettingRow
+          label="Share anonymous usage data"
+          description="Help us improve the app by sharing crash reports and basic usage metrics (no API keys, prompts, or personal data)."
+          control={<Toggle value={analyticsEnabled} onChange={handleAnalyticsChange} />}
         />
         <SettingRow
           label="Currency display"

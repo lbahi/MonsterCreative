@@ -275,7 +275,8 @@ export class DatabaseService {
         default_image_format = ?, 
         auto_save_generations = ?, 
         asset_save_path = ?, 
-        accent_color = ?
+        accent_color = ?,
+        analytics_enabled = ?
       WHERE id = 1
     `)
     return stmt.run(
@@ -285,7 +286,8 @@ export class DatabaseService {
       settings.default_image_format,
       settings.auto_save_generations ? 1 : 0,
       settings.asset_save_path,
-      settings.accent_color
+      settings.accent_color,
+      settings.analytics_enabled === false || settings.analytics_enabled === 0 ? 0 : 1
     )
   }
 
