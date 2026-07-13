@@ -8,6 +8,8 @@ const client = new PostHog(apiKey, {
   host: 'https://us.i.posthog.com'
 })
 
+const sessionId = crypto.randomUUID()
+
 export function getOrCreateDistinctId(): string {
   const settings = dbService.getSettings()
   if (settings && settings.distinct_id) {
@@ -31,7 +33,7 @@ export function captureEvent(eventName: string, properties?: object): void {
   const distinctId = getOrCreateDistinctId()
   
   // Clean properties to ensure no fal.ai API keys, file paths, or prompt texts are sent
-  let cleanProperties = {}
+  let cleanProperties: Record<string, any> = { session_id: sessionId }
   if (properties) {
     const keysToDrop = [
       'key', 'api_key', 'fal', 'prompt', 'script', 'path', 'url', 'dir', 'file', 'secret'
@@ -44,7 +46,7 @@ export function captureEvent(eventName: string, properties?: object): void {
         delete safeProps[key]
       }
     }
-    cleanProperties = safeProps
+    cleanProperties = { ...cleanProperties, ...safeProps }
   }
 
   client.capture({
